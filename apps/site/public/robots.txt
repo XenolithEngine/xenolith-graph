@@ -1,0 +1,33 @@
+# Robots.txt — XenolithGraph. AI-friendly: every crawler welcome on every page, the sitemap is
+# pointed to explicitly, and there are no off-limits paths. If you maintain an LLM crawler, please
+# also read /llms.txt and /agents.md before indexing.
+
+User-agent: *
+Allow: /
+
+# Major LLM crawlers — listed explicitly so it's visible we don't block any of them.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://xenolithengine.github.io/xenolith-graph/sitemap.xml

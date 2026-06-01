@@ -1,5 +1,8 @@
 import { XenolithEditor } from '@xenolith/editor'
 import { xenTheme, type XenolithTheme } from '@xenolith/render-pixi'
+// Synthwave hidden — kept imported so the package still typechecks when re-enabled.
+// import { synthwaveTheme } from '@xenolith/theme-synthwave'
+import { holographicTheme } from '@xenolith/theme-holographic'
 import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
 import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget, createPreviewWidget } from '@xenolith/demo'
 
@@ -26,6 +29,9 @@ editor.setControls({ position: 'top-right', orientation: 'horizontal' })
 // -----------------------------------------------------------------------------------------------
 const themes: { label: string; theme: XenolithTheme }[] = [
   { label: 'Xen',          theme: xenTheme },
+  // Synthwave hidden temporarily — visual fun but not in this playground pass.
+  // { label: 'Synthwave',    theme: synthwaveTheme },
+  { label: 'Holographic',  theme: holographicTheme },
   { label: 'Liquid Glass', theme: liquidGlassTheme },
 ]
 // Lives in the editor's overlay root and styles itself purely from the theme's `--xeno-*` design

@@ -42,8 +42,32 @@ const files = Object.entries(example.impls).flatMap(([fw, impl]) =>
 
 const hasReact   = !!example.impls.react
 const hasVanilla = !!example.impls.vanilla
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: example.title,
+  description: example.blurb,
+  codeRepository: 'https://github.com/XenolithEngine/xenolith-graph',
+  programmingLanguage: 'TypeScript',
+  applicationCategory: 'DeveloperApplication',
+  about: example.category,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'XenolithGraph',
+    url: 'https://xenolithengine.github.io/xenolith-graph/',
+  },
+}
 ---
-<ExamplesLayout title={`${example.title} — Examples`} activeId={example.id}>
+<ExamplesLayout
+  title={`${example.title} — Examples`}
+  description={example.blurb}
+  path={`/examples/${example.id}/`}
+  thumb={`/examples/thumbs/${example.id}.jpg`}
+  jsonLd={jsonLd}
+  llmsAlt={`${base}/examples/${example.id}/llms.md`}
+  activeId={example.id}
+>
   <a href={`${base}/examples/`} style="font-size:13px;color:#9a9a9a;text-decoration:none;">← All examples</a>
   <h1 style="margin:8px 0 4px;font-size:26px;">{example.title}</h1>
   <p style="margin:0 0 18px;color:#9a9a9a;max-width:70ch;">{example.blurb}</p>

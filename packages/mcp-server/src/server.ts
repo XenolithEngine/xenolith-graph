@@ -36,6 +36,21 @@ export function createMcpServer(bridge: EditorBridge): McpServer {
       async (args: unknown) => {
         try {
           const result = await bridge.current().call(def.name, args)
+          // Screenshot tools return a data-URI in `dataUri`. Re-wrap as MCP ImageContent so clients
+          // (Claude Desktop / Cursor / etc.) actually render the picture instead of dumping the
+          // base64 string into chat. Everything else is JSON text content.
+          const r = (result ?? null) as { dataUri?: string; format?: string } | null
+          if (r && typeof r.dataUri === 'string') {
+            const match = r.dataUri.match(/^data:([^;]+);base64,(.*)$/s)
+            if (match) {
+              return {
+                content: [
+                  { type: 'image' as const, data: match[2]!, mimeType: match[1]! },
+                  { type: 'text' as const, text: JSON.stringify({ ...r, dataUri: '<image>' }) },
+                ],
+              }
+            }
+          }
           return { content: [{ type: 'text' as const, text: JSON.stringify(result ?? null) }] }
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err)

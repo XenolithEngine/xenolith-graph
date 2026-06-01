@@ -2,9 +2,24 @@
 import '../styles/fonts.css'
 import '../styles/theme.css'
 import { EXAMPLES, CATEGORY_ORDER } from '../examples/manifest.ts'
-interface Props { title: string; activeId?: string }
-const { title, activeId } = Astro.props as Props
+import HeadMeta from '../components/HeadMeta.astro'
+interface Props {
+  title: string
+  activeId?: string
+  /** Override <meta description>. Defaults to a sensible fallback for the gallery index. */
+  description?: string
+  /** Path under the site BASE (e.g. `/examples/diagram/`). Used for canonical + og:url. */
+  path: string
+  /** Per-example preview thumbnail under /examples/thumbs/<id>.jpg. */
+  thumb?: string
+  /** Optional JSON-LD blob (Schema.org). Layouts that wrap docs/example pages set this. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+  /** Optional machine-readable mirror URL (per-example `llms.md`). */
+  llmsAlt?: string
+}
+const { title, activeId, description, path, thumb, jsonLd, llmsAlt } = Astro.props as Props
 const base = import.meta.env.BASE_URL
+const desc = description ?? 'A polished, embeddable node-graph editor for the web — Blueprint-style pins, in-node widgets, macros, AI-native via MCP. Live examples gallery.'
 const nav = [
   { label: 'Docs', href: `${base}/guides/install/` },
   { label: 'Examples', href: `${base}/examples/` },
@@ -22,6 +37,15 @@ const byCat = CATEGORY_ORDER
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <link rel="icon" href={`${base}/favicon-64.png`} />
+    <HeadMeta
+      title={title}
+      description={desc}
+      path={path}
+      image={thumb}
+      ogType="website"
+      jsonLd={jsonLd}
+      llmsAlt={llmsAlt}
+    />
     <style is:global>
       html, body { margin: 0; background: #121212; color: #e8e8e8; font-family: var(--xn-sans, system-ui, sans-serif); }
       a { color: inherit; }

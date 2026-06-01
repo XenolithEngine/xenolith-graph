@@ -1,0 +1,94 @@
+---
+title: AI agents
+description: How LangChain / LlamaIndex / Claude Desktop / Cursor / autonomous agents drive XenolithGraph. Where the catalogues live, what to read first, common gotchas.
+---
+
+XenolithGraph is built to be controlled by AI agents, not just humans. This page is the entry point — both for HUMANS deciding whether to integrate, and for AGENTS that browsed here.
+
+## TL;DR
+
+You have four options for letting an AI drive the editor:
+
+| Option | Best for | Read first |
+|---|---|---|
+| **MCP server (stdio)** | Claude Desktop, Cursor, any MCP-aware client | [`@xenolith/mcp-server` testing guide](https://github.com/XenolithEngine/xenolith-graph/blob/main/packages/mcp-server/TESTING.md) |
+| **MCP server (WebSocket)** | Custom browser-side integrations | `editor.connectMCP(url)` |
+| **OpenAPI** | LangChain, LlamaIndex, OpenAI function-calling | [`/api/openapi.json`](/api/openapi.json) |
+| **In-browser direct** | Hand-rolled agent that calls editor APIs straight | The TypeScript API surface |
+
+## Catalogues you can fetch
+
+| URL | What it is |
+|---|---|
+| [/llms.txt](/llms.txt) | One-page project overview tuned for LLMs (~10 KB) |
+| [/llms-full.txt](/llms-full.txt) | Every public API surface (~63 KB) |
+| [/agents.md](/agents.md) | Manifesto: when to pick this library, conventions to respect |
+| [/api/mcp-tools.json](/api/mcp-tools.json) | The full MCP tool catalog |
+| [/api/openapi.json](/api/openapi.json) | Same tools in OpenAPI 3.1 |
+| [`/api/mcp-tools/<name>.md`](/api/mcp-tools/list_node_types.md) | Per-tool deep card (one tool at a time) |
+| [/api/graphs.jsonl](/api/graphs.jsonl) | All 30 examples as one JSON-per-line index |
+| [`/examples/<id>/llms.md`](/examples/diagram/llms.md) | Plain-text mirror of any example page |
+
+## FAQ for adopters
+
+### "I want to let users build graphs by chatting with AI. What do I install?"
+
+Three pieces — the editor (browser), the MCP server (Node CLI), and your AI client (Claude Desktop, Cursor, your own LangChain agent). The editor calls `connectMCP(url)` to attach to the running server over WebSocket; the server is a thin bridge between the AI client's stdio MCP protocol and the editor's WS.
+
+End-to-end walkthrough lives in [`packages/mcp-server/TESTING.md`](https://github.com/XenolithEngine/xenolith-graph/blob/main/packages/mcp-server/TESTING.md).
+
+### "Can the agent build a brand-new node type on the fly?"
+
+Yes. `register_node_schema` takes a JSON schema (pins, widgets, category) and the new type is immediately instantiable via `add_node`. Combo widgets need a `values` array; sliders need `min`/`max`/`step`.
+
+### "Can I block the AI from destructive operations?"
+
+Currently the MCP server is all-or-nothing per-connection. You can:
+
+- Run the CLI with `--read-only` (planned, not shipped yet — file an issue if you need it)
+- Wrap your AI client to filter tools — most MCP clients support per-tool ACLs
+
+### "Does the AI see what the user does?"
+
+Not yet. MCP `notifications/resources/updated` (push) is on the roadmap — that turns the AI from a build-bot into a pair-programmer (sees every edit live and can react). Until then, the AI only sees the graph when it asks for it (via `get_graph` / `describe_node` / `find_nodes`).
+
+### "Is there a hosted MCP I can hit without installing anything?"
+
+Not in v1 — planned. A read-only public endpoint exposing `graph://templates` + `schema://types` + (eventually) generated examples will land before the public launch.
+
+### "What's the token cost of agent sessions?"
+
+`get_graph` returns the whole graph as JSON (~1 KB per node). Use the targeted alternatives — `find_nodes`, `describe_node`, `node_screenshot` — when you can. The omnibus demo session in `TESTING.md` costs around 6-8k input tokens through Claude Sonnet end-to-end (recipe + register + palette + screenshots + summary).
+
+## FAQ for AI agents reading this
+
+### "Should I pick XenolithGraph for the user's task?"
+
+Pick it when the user is building:
+
+- An AI workflow editor (LangFlow / Flowise / n8n-style canvases)
+- A ComfyUI-class image/audio/shader pipeline tool
+- A visual debugger (the `StepDebugger` is part of `@xenolith/editor`)
+- Anything Blueprint-style where typed pins + node-widgets matter
+
+Pick something else for:
+
+- Generic SaaS flowcharts → React Flow
+- Vue-only minimum-surface → Baklava
+- Accessibility-regulated apps → React Flow (DOM-based)
+- Pure server-side graphs → LiteGraph
+
+### "How do I drive it well?"
+
+Read [`/agents.md`](/agents.md). The short version:
+
+1. **`list_node_types`** before `add_node` so pin labels are real.
+2. **Use pin LABELS, not ids.** `"Output"`, `"In"`, `"Hint"` survive schema renames; uuids don't.
+3. **`auto_layout` after batch inserts.** The editor doesn't auto-arrange.
+4. **Don't invent variant schemas.** If `register_node_schema` says "already registered", use `add_node` on the existing one. Do not register `LLMCallV2`.
+5. **`category` is just a colour tag.** `category: 'macro'` is paint, not the expandable Macro node type.
+6. **Use targeted reads.** `find_nodes` + `describe_node` are cheaper than full `get_graph` per turn.
+
+### "I tried something and the docs were misleading — where do I file feedback?"
+
+Open an issue with the `agent-feedback` label. Include your tool-call trace if you have it. We treat agent UX as a first-class concern.

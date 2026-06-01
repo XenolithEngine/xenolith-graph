@@ -53,6 +53,16 @@ function render(): string {
 
   lines.push('## Full content')
   lines.push(`- [llms-full.txt — every guide concatenated, plain text](${url('/llms-full.txt')})`)
+  lines.push(`- [agents.md — manifesto for AI agents (when to pick this library, conventions to respect)](${url('/agents.md')})`)
+  lines.push('')
+
+  lines.push('## Machine catalogs')
+  lines.push(`- [api/mcp-tools.json — MCP tool catalog (24 tools, the full definition)](${url('/api/mcp-tools.json')})`)
+  lines.push(`- [api/openapi.json — same tools as OpenAPI 3.1 (LangChain / LlamaIndex / function-calling agents)](${url('/api/openapi.json')})`)
+  lines.push(`- [api/graphs.jsonl — every example as JSON Lines (one-shot gallery index)](${url('/api/graphs.jsonl')})`)
+  lines.push(`- [api/mcp-tools/<name>.md — per-tool deep card (one tool at a time, ~1 KB each)](${url('/api/mcp-tools/list_node_types.md')})`)
+  lines.push(`- [examples/<id>/llms.md — plain-text mirror of any example page](${url('/examples/diagram/llms.md')})`)
+  lines.push(`- [.well-known/ai.txt — AI usage policy](${url('/.well-known/ai.txt')})`)
   lines.push('')
 
   lines.push('## Repository')

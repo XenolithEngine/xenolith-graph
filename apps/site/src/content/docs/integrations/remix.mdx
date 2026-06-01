@@ -1,0 +1,79 @@
+---
+title: Remix
+description: How to embed XenolithGraph in a Remix app. Client-only mount via a `<ClientOnly>` boundary — WebGL doesn't exist on the server.
+---
+
+XenolithGraph is a WebGL editor that mounts PIXI into a `<canvas>`. Remix renders on the server by default; the editor has to live behind a client-only boundary.
+
+## Install
+
+```sh
+pnpm add @xenolith/editor @xenolith/react pixi.js
+```
+
+`pixi.js` is a peer dependency.
+
+## Pattern
+
+Use the official `remix-utils` `<ClientOnly>` (or write a 5-line one — see below).
+
+```tsx
+// app/routes/editor.tsx
+import { ClientOnly } from 'remix-utils/client-only'
+
+export default function EditorRoute() {
+  return (
+    <ClientOnly fallback={<div style={{ height: '100vh', background: '#121212' }} />}>
+      {() => <EditorClient />}
+    </ClientOnly>
+  )
+}
+```
+
+```tsx
+// app/components/EditorClient.tsx
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
+
+function MyPanel() {
+  const editor = useEditor()
+  return (
+    <XenolithPanel position="top-left">
+      <XenolithButton onClick={() => editor.fitView()}>Fit view</XenolithButton>
+    </XenolithPanel>
+  )
+}
+
+export default function EditorClient() {
+  return (
+    <XenolithGraph className="xeno" onReady={(e) => e.loadJSON(myGraph)}>
+      <MyPanel />
+    </XenolithGraph>
+  )
+}
+```
+
+If you don't want to add `remix-utils` for one component, a minimal `ClientOnly` is:
+
+```tsx
+// app/components/ClientOnly.tsx
+import { useEffect, useState, type ReactNode } from 'react'
+
+export function ClientOnly({ children, fallback = null }: { children: () => ReactNode; fallback?: ReactNode }) {
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => { setHydrated(true) }, [])
+  return hydrated ? <>{children()}</> : <>{fallback}</>
+}
+```
+
+## Why no SSR mode
+
+PIXI needs a real `<canvas>` + GPU. There's no headless static-HTML renderer in this library. If you need a static preview for a server-rendered route, call `editor.exportImage()` on the client and upload the PNG to your storage.
+
+## Loader / action gotchas
+
+The editor's graph data is just JSON (`xenolith.v1`). You can absolutely:
+
+- Load a graph JSON in a `loader` and pass it as a prop to your `<EditorClient>` via `useLoaderData()`.
+- Save a graph via a Remix `action` by calling `editor.toJSON()` and POSTing to your route.
+
+The constraint is only that the EDITOR itself stays inside `<ClientOnly>` — its DATA can travel through Remix's normal data flow.

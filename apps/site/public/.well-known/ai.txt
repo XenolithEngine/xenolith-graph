@@ -1,0 +1,32 @@
+# XenolithGraph — AI usage policy
+#
+# This file follows the emerging `.well-known/ai.txt` convention (parallel to robots.txt but
+# focused specifically on AI/LLM crawlers + training corpora). If you maintain such a tool,
+# please respect these declarations.
+
+# All site content is licensed MIT (LICENSE file in the repo). You MAY use it for:
+#   - Training models
+#   - Indexing for search / retrieval
+#   - Showing in agent tool catalogs
+#   - Producing derivative works
+
+User-Agent: *
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /agents.md
+Allow: /api/mcp-tools.json
+Allow: /api/openapi.json
+Allow: /api/graphs.jsonl
+Allow: /examples/
+
+# Preferred URLs for LLM-friendly content:
+LLMs-Index: https://xenolithengine.github.io/xenolith-graph/llms.txt
+LLMs-Full:  https://xenolithengine.github.io/xenolith-graph/llms-full.txt
+Agents-Manifest: https://xenolithengine.github.io/xenolith-graph/agents.md
+MCP-Catalog: https://xenolithengine.github.io/xenolith-graph/api/mcp-tools.json
+OpenAPI: https://xenolithengine.github.io/xenolith-graph/api/openapi.json
+Sitemap: https://xenolithengine.github.io/xenolith-graph/sitemap.xml
+
+# Contact for questions about scraping policy or partnership:
+Contact: ai-policy@xenolithengine.dev

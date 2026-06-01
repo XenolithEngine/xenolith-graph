@@ -1,0 +1,58 @@
+[
+  {
+    "name": "@xenolith/core",
+    "path": "packages/core/dist/index.js",
+    "limit": "30 KB",
+    "gzip": true,
+    "ignore": []
+  },
+  {
+    "name": "@xenolith/render-pixi (excl. PIXI)",
+    "path": "packages/render-pixi/dist/index.js",
+    "limit": "80 KB",
+    "gzip": true,
+    "ignore": ["pixi.js"]
+  },
+  {
+    "name": "@xenolith/editor (excl. PIXI)",
+    "path": "packages/editor/dist/index.js",
+    "limit": "120 KB",
+    "gzip": true,
+    "ignore": ["pixi.js"]
+  },
+  {
+    "name": "@xenolith/react (excl. React)",
+    "path": "packages/react/dist/index.js",
+    "limit": "10 KB",
+    "gzip": true,
+    "ignore": ["react", "react-dom", "@xenolith/editor", "@xenolith/adapter-core"]
+  },
+  {
+    "name": "@xenolith/adapter-core",
+    "path": "packages/adapter-core/dist/index.js",
+    "limit": "6 KB",
+    "gzip": true,
+    "ignore": ["@xenolith/editor"]
+  },
+  {
+    "name": "@xenolith/theme-xen",
+    "path": "packages/theme-xen/dist/index.js",
+    "limit": "8 KB",
+    "gzip": true
+  },
+  {
+    "name": "@xenolith/theme-liquid-glass",
+    "path": "packages/theme-liquid-glass/dist/index.js",
+    "limit": "12 KB",
+    "gzip": true,
+    "ignore": ["pixi.js", "@xenolith/render-pixi"]
+  },
+  {
+    "name": "@xenolith/plugin-autolayout (dagre adapter, excl. dagre)",
+    "path": "packages/plugin-autolayout/dist/adapters/dagre.js",
+    "limit": "5 KB",
+    "gzip": true,
+    "ignore": ["dagre", "@xenolith/editor", "@xenolith/core"]
+  }
+]
+

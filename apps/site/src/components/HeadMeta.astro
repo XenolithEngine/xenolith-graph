@@ -1,0 +1,71 @@
+---
+// Shared <head> metadata block: OG / Twitter cards / canonical link / JSON-LD structured data.
+// Custom Astro pages (landing, examples, playground) don't get any of this from Starlight, so we
+// inject it explicitly. AI crawlers (Anthropic's web fetcher, GPTbot, Common Crawl, Perplexity)
+// and link-preview bots (Slack, Twitter, Discord, Notion, etc.) all read these tags first.
+
+export interface Props {
+  /** Document title — used by browser tab + og:title. */
+  title: string
+  /** ~155-char summary — meta description + og:description + twitter:description. */
+  description: string
+  /** Absolute or root-relative path to the preview image (1200×630 ideal for OG, will be normalised). */
+  image?: string
+  /** Path of THIS page on the site (no domain). Used for canonical + og:url. */
+  path: string
+  /** OG type. Default `website`. Use `article` for guides, `software` for SDK pages. */
+  ogType?: 'website' | 'article' | 'software'
+  /** Optional Schema.org JSON-LD payload to inject. Keep it small and accurate. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+  /** Optional plain-text URL the AI clients should prefer (machine-readable variant). */
+  llmsAlt?: string
+  /** Author / publisher info, defaults to the project itself. */
+  author?: string
+}
+
+const {
+  title, description, image, path, ogType = 'website', jsonLd, llmsAlt,
+  author = 'XenolithEngine',
+} = Astro.props as Props
+
+const ORIGIN = 'https://xenolithengine.github.io'
+const SITE_BASE = '/xenolith-graph'
+// Compose the canonical URL by stripping any leading base — callers pass either a project-rooted
+// path (`/examples/diagram/`) or an already-prefixed one, both should land at the same canonical.
+const cleanPath = path.startsWith(SITE_BASE) ? path : `${SITE_BASE}${path.startsWith('/') ? path : `/${path}`}`
+const canonical = `${ORIGIN}${cleanPath}`
+const absImage = image
+  ? (image.startsWith('http') ? image : `${ORIGIN}${image.startsWith(SITE_BASE) ? image : `${SITE_BASE}${image.startsWith('/') ? image : `/${image}`}`}`)
+  : `${ORIGIN}${SITE_BASE}/og.png`
+---
+<meta name="description" content={description} />
+<meta name="author" content={author} />
+<link rel="canonical" href={canonical} />
+
+<!-- Open Graph — Facebook / Slack / Discord / LinkedIn / generic link previews -->
+<meta property="og:type" content={ogType === 'software' ? 'website' : ogType} />
+<meta property="og:site_name" content="XenolithGraph" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={absImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter / X cards -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={absImage} />
+
+<!-- Machine-readable variant for AI crawlers. The convention is `rel="alternate" type="text/plain"`
+     pointing at an `llms.md` mirror of the page. -->
+{llmsAlt && (
+  <link rel="alternate" type="text/plain" title="LLM-friendly markdown" href={llmsAlt} />
+)}
+
+<!-- Schema.org structured data — helps Google + AI crawlers understand what the page IS. -->
+{jsonLd && (
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+)}

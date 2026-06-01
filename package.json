@@ -18,13 +18,17 @@
     "typecheck": "turbo run typecheck",
     "playground": "pnpm --filter @xenolith/playground dev",
     "changeset": "changeset",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "size": "size-limit",
+    "size:why": "size-limit --why"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
+    "@size-limit/preset-small-lib": "^11.1.0",
     "@types/node": "^22.0.0",
     "eslint": "^9.15.0",
     "prettier": "^3.4.0",
+    "size-limit": "^11.1.0",
     "turbo": "^2.3.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.15.0"

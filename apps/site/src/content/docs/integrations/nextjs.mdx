@@ -1,0 +1,86 @@
+---
+title: Next.js
+description: How to embed XenolithGraph in a Next.js app. Client-only, no SSR — the editor needs WebGL, which doesn't exist on the server.
+---
+
+XenolithGraph is a **WebGL/PIXI editor that runs only in the browser**. Any framework with SSR has to render it inside a client-only boundary. Next.js (App Router or Pages Router) supports this in one line.
+
+## Install
+
+```sh
+pnpm add @xenolith/editor @xenolith/react pixi.js
+```
+
+`pixi.js` is a peer dependency. Pin it to a version we test against — see the `peerDependencies` field of `@xenolith/render-pixi`.
+
+## Mount (App Router, the path most modern apps use)
+
+```tsx
+// app/editor/page.tsx
+import dynamic from 'next/dynamic'
+
+const Editor = dynamic(() => import('./Editor').then((m) => m.Editor), {
+  ssr: false,
+  loading: () => <div style={{ height: '100vh', background: '#121212' }} />,
+})
+
+export default function Page() {
+  return <Editor />
+}
+```
+
+```tsx
+// app/editor/Editor.tsx
+'use client'
+
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
+
+function MyPanel() {
+  const editor = useEditor()
+  return (
+    <XenolithPanel position="top-left">
+      <XenolithButton onClick={() => editor.fitView()}>Fit view</XenolithButton>
+    </XenolithPanel>
+  )
+}
+
+export function Editor() {
+  return (
+    <XenolithGraph className="xeno" onReady={(e) => e.loadJSON(myGraph)}>
+      <MyPanel />
+    </XenolithGraph>
+  )
+}
+```
+
+Two important details:
+
+- **`'use client'`** at the top of `Editor.tsx`. The editor mounts PIXI into the DOM in `useEffect` — that file must never run on the server.
+- **`dynamic(... { ssr: false })`** in the page that uses it. Without this Next will try to render `<XenolithGraph>` server-side, the WebGL context fails, and you get a hydration mismatch.
+
+## Pages Router
+
+Same idea, slightly different syntax:
+
+```tsx
+// pages/editor.tsx
+import dynamic from 'next/dynamic'
+
+const Editor = dynamic(() => import('../components/Editor').then((m) => m.Editor), {
+  ssr: false,
+})
+
+export default function EditorPage() { return <Editor /> }
+```
+
+## Why no SSR mode
+
+A "headless" SSR mode would mean pre-rendering the graph as static SVG on the server. That's a different product. `@xenolith/render-pixi` is the only renderer we ship; it requires a `<canvas>` + GPU. If you need a server-rendered preview, use `editor.exportImage()` on the client and upload the resulting PNG — that's a one-shot static render, not interactivity.
+
+## Bundle size
+
+`@xenolith/editor` + `@xenolith/react` together are ~80 kB gzip. PIXI v8 (your peer dep) adds another ~250 kB gzip. The whole thing lazy-loads on the client side, so it doesn't affect your server-rendered initial paint.
+
+## Streaming, RSC, Suspense
+
+The `loading` prop on `next/dynamic` is the only Suspense-style API we recommend touching. Don't try to suspend on `XenolithGraph` itself — the binding has internal lifecycles (PIXI app, canvas attach, mount-once events) that don't tolerate React suspending mid-mount.

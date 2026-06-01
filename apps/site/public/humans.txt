@@ -1,0 +1,21 @@
+# humans.txt — who built this.
+# See https://humanstxt.org
+
+/* TEAM */
+
+  Maintainer: XenolithEngine
+  Contact: hello [at] xenolithengine.dev
+  GitHub: github.com/XenolithEngine
+
+/* THANKS */
+
+  PIXI.js — the WebGL renderer that makes the editor fast.
+  Astro + Starlight — the docs/site stack.
+  Anthropic — for the Model Context Protocol that turned this into an AI-native tool.
+
+/* SITE */
+
+  Last update: 2026/06/01
+  Standards: HTML5, CSS3, TypeScript (ESM, strict)
+  Components: Astro + React + PIXI v8
+  Software: pnpm, Vite, tsc, Vitest, Playwright, Changesets

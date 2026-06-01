@@ -18,12 +18,18 @@ function makeMockEditor(seed: { nodes?: Array<{ id: string; type?: string; x: nu
   )
   const edges: Array<{ from: { node: string; pin: string }; to: { node: string; pin: string } }> = []
   for (const e of seed.edges ?? []) edges.push({ from: { node: e.from, pin: 'x' }, to: { node: e.to, pin: 'x' } })
+  // Default registry seed used by list_node_types tests; register() adds entries on top.
+  const registry = new Map<string, { type: string; title: string; category: string; pins: Array<{ direction: 'in' | 'out'; kind: 'data'; type: string; label: string }> }>([
+    ['Box', { type: 'Box', title: 'Box', category: 'Math', pins: [{ direction: 'in', kind: 'data', type: 'float', label: 'In' }, { direction: 'out', kind: 'data', type: 'float', label: 'Out' }] }],
+    ['Add', { type: 'Add', title: 'Add', category: 'Math', pins: [{ direction: 'in', kind: 'data', type: 'float', label: 'A' }, { direction: 'in', kind: 'data', type: 'float', label: 'B' }, { direction: 'out', kind: 'data', type: 'float', label: 'Sum' }] }],
+  ])
   return {
     _calls: calls, _nodes: nodes as never, _edges: edges as never,
-    registry: { all: () => [
-      { type: 'Box', title: 'Box', category: 'Math', pins: [{ direction: 'in', kind: 'data', type: 'float', label: 'In' }, { direction: 'out', kind: 'data', type: 'float', label: 'Out' }] },
-      { type: 'Add', title: 'Add', category: 'Math', pins: [{ direction: 'in', kind: 'data', type: 'float', label: 'A' }, { direction: 'in', kind: 'data', type: 'float', label: 'B' }, { direction: 'out', kind: 'data', type: 'float', label: 'Sum' }] },
-    ] },
+    registry: {
+      all: () => Array.from(registry.values()) as never,
+      register: (schema: { type: string }) => { registry.set(schema.type, schema as never); calls.push(`register:${schema.type}`) },
+      has: (type: string) => registry.has(type),
+    },
     toJSON: () => { calls.push('toJSON'); return { version: 'xenolith.v1', nodes: [], edges: [] } },
     insertNode: (type, pos) => {
       calls.push(`insertNode:${type}@${pos.x},${pos.y}`)
@@ -49,6 +55,11 @@ function makeMockEditor(seed: { nodes?: Array<{ id: string; type?: string; x: nu
     createMacroFromSelection: (ids, title) => { calls.push(`macro:${ids?.join(',')}:${title}`); return 'm_1' as never },
     expandMacro: (id) => calls.push(`expand:${id}`),
     collapseMacro: (id) => calls.push(`collapse:${id}`),
+    setSelection: (ids) => { calls.push(`setSelection:${[...ids].join(',')}`) },
+    diveInto: (id) => { calls.push(`dive:${id}`); return true },
+    diveOut: (d) => { calls.push(`diveOut:${d ?? ''}`) },
+    setCategoryPalette: (p) => { calls.push(`palette:${p ? Object.keys(p).join(',') : 'reset'}`) },
+    setTheme: (t) => { calls.push(`theme:${JSON.stringify(t)}`) },
     graph: {
       nodes: () => nodes.values() as never,
       edges: () => edges as never,

@@ -185,6 +185,10 @@ export type { ControlsOptions, ControlsPosition } from './controls.js'
 export type { EditorEvents, PreventablePayload } from './events.js'
 export { CommandRegistry, Commands } from './commands-registry.js'
 export { StepDebugger } from './step-debugger.js'
+export {
+  BUILTIN_RECIPES, createRecipeRegistry, instantiateRecipe,
+  type RecipeDef, type RecipeNodeDef, type RecipeEdgeDef, type RecipeRegistry, type InstantiateResult,
+} from './recipes.js'
 export type { StepExecutor, StepRecord, StepDebuggerStatus, StepDebuggerEvents } from './step-debugger.js'
 export { diffGraphs } from './graph-diff.js'
 export type { GraphDiff, DiffSnapshot, DiffSnapshotNode, DiffSnapshotEdge, DiffOptions } from './graph-diff.js'
@@ -351,6 +355,40 @@ type MarqueeState =
     }
 
 /** Multiply a colour's RGB by `f` (<1 darkens) — used to tone down LOD node fills. */
+/** Coerce loosely-typed palette input (AI clients pass raw "#RRGGBB" strings or even CSS
+ *  `linear-gradient(...)` expressions) into the discriminated union the renderer expects:
+ *  `{ color }` for a solid accent, or `{ gradient: { start, end } }` for a two-stop fade. Anything
+ *  unparseable is dropped with a warning rather than crashing the renderer. */
+function normalisePalette(palette: Record<string, unknown> | undefined): GraphCategoryPalette | undefined {
+  if (!palette) return undefined
+  const out: Record<string, { color: string } | { gradient: { start: string; end: string } }> = {}
+  for (const [cat, raw] of Object.entries(palette)) {
+    const spec = normalisePaletteEntry(raw)
+    if (spec) out[cat] = spec
+    else if (typeof console !== 'undefined') console.warn(`setCategoryPalette: dropping invalid entry for '${cat}'`, raw)
+  }
+  return out
+}
+function normalisePaletteEntry(raw: unknown): { color: string } | { gradient: { start: string; end: string } } | undefined {
+  if (typeof raw === 'string') {
+    // CSS linear-gradient(...) — pluck the first two colour stops if present, else treat the whole
+    // string as a colour (browsers parse named colours; we only need a stable hex/RGB(A) literal).
+    const m = raw.match(/linear-gradient\s*\([^,]+,\s*(#[0-9a-f]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)\b[^,]*,\s*(#[0-9a-f]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)/i)
+    if (m) return { gradient: { start: m[1]!, end: m[2]! } }
+    return { color: raw }
+  }
+  if (raw && typeof raw === 'object') {
+    const r = raw as { color?: unknown; gradient?: unknown; start?: unknown; end?: unknown }
+    if (typeof r.color === 'string') return { color: r.color }
+    if (typeof r.start === 'string' && typeof r.end === 'string') return { gradient: { start: r.start, end: r.end } }
+    if (r.gradient && typeof r.gradient === 'object') {
+      const g = r.gradient as { start?: unknown; end?: unknown }
+      if (typeof g.start === 'string' && typeof g.end === 'string') return { gradient: { start: g.start, end: g.end } }
+    }
+  }
+  return undefined
+}
+
 function darkenColor(c: ColorSource, f: number): number {
   const col = new Color(c)
   return new Color([col.red * f, col.green * f, col.blue * f]).toNumber()
@@ -2857,6 +2895,9 @@ export class XenolithEditor {
       const raw = Math.min(1, (performance.now() - start) / dur)
       const e = raw * raw // ease-in
       for (const t of targets) {
+        // Mid-animation graph mutation (e.g. AI deleting nodes via MCP) can destroy the container.
+        // PIXI nulls its internal `scale` / `position` on destroy; skip rather than crash the tick.
+        if (!t.scale || !t.position) continue
         const o = origin.get(t)!
         t.alpha = 1 - e
         t.scale.set(1 - 0.4 * e)
@@ -4200,6 +4241,66 @@ export class XenolithEditor {
   /** Render the WHOLE graph (independent of the current viewport) to a high-resolution image Blob.
    *  PNG is transparent; JPEG fills the theme's canvas colour. Heavy on big graphs — pair with the
    *  busy overlay (`withOverlay`). Follows the editor's existing RenderTexture pattern. */
+  /** Replace the category → colour map and re-render every node so the new palette is visible
+   *  immediately. Loading a graph already sets this from the document's `categories` field; this
+   *  setter is for runtime changes (theme tooling, MCP `set_category_palette`, …). Pass an empty
+   *  object or `undefined` to fall back to the theme's defaults.
+   *
+   *  Accepts a loose shape per entry — anything that resolves to a colour gets normalised to a
+   *  `{ color }` spec, AI clients almost always pass raw "#RRGGBB" strings rather than the
+   *  `{color}` / `{gradient}` discriminated union the renderer wants downstream. */
+  setCategoryPalette(palette: Record<string, unknown> | undefined): void {
+    const normalised = normalisePalette(palette)
+    this.#categoryPalette = normalised && Object.keys(normalised).length > 0 ? normalised : undefined
+    // Bake cache keys include the category colour, so old entries would render with stale fills.
+    for (const tex of this.#bakeCache.values()) tex.destroy(true)
+    this.#bakeCache.clear()
+    // Re-render every materialised node so the new palette is visible without a pan/zoom nudge.
+    for (const [id, oldView] of [...this.#views]) {
+      const node = this.graph.getNode(id)
+      if (!node) continue
+      const wasCollapsed = oldView.isCollapsed()
+      const baseOpts = this.#renderOpts.get(id) ?? {}
+      const newView = this.#renderNode(node, { ...baseOpts, collapsed: wasCollapsed })
+      this.#nodesLayer.removeChild(oldView.container)
+      oldView.container.destroy({ children: true })
+      this.#views.set(id, newView)
+      this.#nodesLayer.addChild(newView.container)
+      this.#wireNodeInteraction(id, newView)
+      newView.container.position.set(node.position.x, node.position.y)
+    }
+    this.#requestRender()
+  }
+
+  /** Snapshot a single node's current view (with widget values, statuses, the lot) to a Blob.
+   *  Renders the live container — NOT the bake-cache "blank" texture — so AI clients calling MCP
+   *  `node_screenshot` see exactly what the user sees, not a default-state stand-in. */
+  async exportNodeImage(nodeId: NodeId, opts: { format?: 'png' | 'jpeg'; quality?: number; scale?: number; padding?: number } = {}): Promise<Blob> {
+    const view = this.#views.get(nodeId)
+    const node = this.graph.getNode(nodeId)
+    if (!view || !node) throw new Error(`exportNodeImage: no live view for node '${nodeId}'`)
+    const format = opts.format ?? 'png'
+    const scale = opts.scale ?? 2
+    const padding = opts.padding ?? 8
+    const w = Math.max(1, Math.ceil((node.size?.x ?? this.#theme.tokens.geometry.node.minWidth) + padding * 2))
+    const h = Math.max(1, Math.ceil((node.size?.y ?? this.#theme.tokens.geometry.node.headerHeight) + padding * 2))
+    const rt = RenderTexture.create({ width: w, height: h, resolution: scale })
+    // Render the node's container at identity into rt, offset by padding so there's a small bleed.
+    const savedPos = { x: view.container.position.x, y: view.container.position.y }
+    view.container.position.set(padding, padding)
+    const clearColor = format === 'jpeg' ? this.#theme.tokens.color.surface.canvas : [0, 0, 0, 0]
+    this.#app.renderer.render({ container: view.container, target: rt, clearColor: clearColor as never })
+    view.container.position.set(savedPos.x, savedPos.y)
+    this.#requestRender()
+    const canvas = this.#app.renderer.extract.canvas(rt) as HTMLCanvasElement
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), `image/${format}`, opts.quality ?? 0.92),
+    )
+    rt.destroy(true)
+    if (!blob) throw new Error('exportNodeImage: canvas.toBlob returned null')
+    return blob
+  }
+
   async exportImage(opts: { format?: 'png' | 'jpeg'; quality?: number; padding?: number; scale?: number } = {}): Promise<Blob> {
     const format = opts.format ?? 'png'
     const padding = opts.padding ?? 48

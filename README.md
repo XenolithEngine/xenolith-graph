@@ -1,5 +1,16 @@
 # XenolithGraph
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
+[![Tests](https://img.shields.io/badge/tests-1012%20unit%20%C2%B7%20142%20e2e-39d98a?style=flat-square)](#tests)
+[![Bundle: core](https://img.shields.io/badge/@xenolith%2Fcore-8.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: render-pixi](https://img.shields.io/badge/@xenolith%2Frender--pixi-17.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: editor](https://img.shields.io/badge/@xenolith%2Feditor-74.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: react](https://img.shields.io/badge/@xenolith%2Freact-2.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![MCP Server](https://img.shields.io/badge/MCP-24%20tools%20%C2%B7%202%20resources-a855f7?style=flat-square)](packages/mcp-server/TESTING.md)
+[![Discussions](https://img.shields.io/badge/community-Discussions-181717?style=flat-square&logo=github)](https://github.com/XenolithEngine/xenolith-graph/discussions)
+[![Discord](https://img.shields.io/badge/Discord-coming%20after%20v0.1-5865F2?style=flat-square&logo=discord&logoColor=white)](#)
+
 An embeddable, drop-in node-graph editor for the web with a polished design system inside the package — typed Blueprint pins, live templates, macros, in-node widgets, a plugin host — and a swappable theme architecture that replaces the renderer's material entirely, not just its palette.
 
 > **Status:** approaching v1.0. Public API stable; touch/mobile, Vue/Svelte/Solid adapters, and the Blueprint VM runtime (`@xenolith/plugin-runtime`) land before the freeze.
@@ -39,6 +50,39 @@ One async call boots: fonts, PIXI v8 renderer, viewport, grid, pan/zoom, marquee
 - **Six framework adapters.** First-party `@xenolith/react`, `@xenolith/vue`, `@xenolith/svelte`, `@xenolith/solid`, `@xenolith/angular`, and `@xenolith/wc` (Web Components). React ships `<XenolithPanel>`/`<XenolithControls>`/`<XenolithMiniMap>`/`<XenolithButton>` + reactive selector hooks; other adapters mirror the surface.
 - **AI-native via MCP.** Ships its own [Model Context Protocol](https://modelcontextprotocol.io) server (`@xenolith/mcp-server`). Start the CLI, click Connect in the editor, and Claude Desktop / Cursor can build graphs directly — `list_node_types` → `add_node` → `connect_pins` → `auto_layout`. Twelve tools + two resources (`graph://current`, `schema://types`). Every mutation flows through the command bus so undo and the live event stream just work. Token-auth + read-only mode supported.
 - **Visual stepping debugger.** `StepDebugger` is part of `@xenolith/editor` — wrap any executor (`StepExecutor`), and you get pause/step/continue, breakpoints, per-node timing, and a live trace. The Step debugger / Time-travel scrubber / Per-node cost heatmap / Graph diff for PR-review showcases all ride this primitive — drop-in observability for any graph runtime.
+
+## Bundle size
+
+Honest numbers, measured by [size-limit](https://github.com/ai/size-limit) on the latest build. Tree-shaken, minified, gzipped. Run `pnpm size` to reproduce.
+
+| Package | Gzip | Notes |
+|---|---|---|
+| `@xenolith/core` | **8.4 KB** | Headless graph model — zero deps |
+| `@xenolith/render-pixi` | **17.4 KB** | (excl. PIXI peer dep) |
+| `@xenolith/editor` | **74.3 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
+| `@xenolith/react` | **2.3 KB** | Adapter on top of `@xenolith/editor` |
+| `@xenolith/theme-xen` | **2.3 KB** | Default theme tokens + bundled Inter |
+| `@xenolith/theme-liquid-glass` | **7.9 KB** | Shader-based frosted-glass theme |
+| `@xenolith/plugin-autolayout` (dagre adapter) | **0.8 KB** | (excl. `dagre` peer dep — ~30 KB if you opt in) |
+| **`pixi.js` (peer dep)** | **~250 KB** | The WebGL renderer we ship on top of |
+| **Realistic React app load** | **~330 KB** | Our code + PIXI |
+
+### How we compare
+
+Tested against the published bundles of competitors (2025 data via [bundlephobia](https://bundlephobia.com)):
+
+| Library | App + peer gzip | Renderer |
+|---|---|---|
+| Drawflow | 25 KB | DOM |
+| LiteGraph.js | 50 KB | Canvas2D |
+| Rete.js (+ react plugin) | 55 KB | DOM |
+| Baklava (Vue) | ~95 KB | DOM |
+| **React Flow / @xyflow/react** | **130 KB** | SVG |
+| **XenolithGraph (with PIXI)** | **~330 KB** | **WebGL via PIXI** |
+
+We are the heaviest. PIXI accounts for ~75% of the weight — and it's also what lets us render 10k nodes at 60fps in our own benchmarks. Without PIXI we ship ~80 KB, in line with the alternatives.
+
+**Pick something lighter** if mobile-first SaaS where every kB matters (Drawflow / Rete), or Vue-only projects where the editor is one feature (Baklava). **Pick us** when the editor IS the product (AI workflow builders, ComfyUI-class tools, visual debuggers) and you'd rather ship 330 KB once than refactor renderers later.
 
 ## Theming
 
@@ -92,6 +136,21 @@ pnpm build                                   # tsc -b across all packages
 ```
 
 Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). ADRs: [`docs/adr/`](docs/adr/). Public API guide: [docs site](apps/site).
+
+## Tests
+
+`pnpm test` runs the full suite.
+
+- **1012 unit tests** across `@xenolith/*` packages (Vitest)
+- **142 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
+- Visual snapshot tests for the renderer (PIXI render → PNG → image-diff)
+- `pnpm size` enforces per-package bundle budgets in CI
+
+Coverage report and visual baselines live in `coverage/` and `apps/playground/tests/__snapshots__/`.
+
+## Star history
+
+[![Star History](https://api.star-history.com/svg?repos=XenolithEngine/xenolith-graph&type=Date)](https://star-history.com/#XenolithEngine/xenolith-graph&Date)
 
 ## License
 

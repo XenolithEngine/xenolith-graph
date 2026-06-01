@@ -33,6 +33,8 @@ jobs:
         run: pnpm --filter @xenolith/playground exec playwright install --with-deps chromium firefox
       - name: E2E tests (skip @visual — Linux/macOS pixel diffs)
         run: pnpm --filter @xenolith/playground exec playwright test --grep-invert @visual
+      - name: Bundle-size gates (size-limit; gzip; per-package budget from .size-limit.json)
+        run: pnpm size
 
   build-site:
     needs: test

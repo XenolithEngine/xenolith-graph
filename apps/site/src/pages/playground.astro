@@ -1,6 +1,7 @@
 ---
 import '../styles/fonts.css'
 import '../styles/theme.css'
+import HeadMeta from '../components/HeadMeta.astro'
 ---
 <!doctype html>
 <html lang="en" data-theme="dark">
@@ -9,6 +10,11 @@ import '../styles/theme.css'
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>XenolithGraph — Playground</title>
     <link rel="icon" href="/xenolith-graph/favicon-64.png" />
+    <HeadMeta
+      title="Playground — XenolithGraph"
+      description="Hands-on sandbox of XenolithGraph: every feature live in your browser. Drag nodes, connect typed pins, dive into subgraphs, theme it, save and reload — no install."
+      path="/playground/"
+    />
     <style>
       html, body { margin: 0; padding: 0; height: 100%; background: #1A1A1A; color: #FFFFFF; overflow: hidden; }
       body { font-family: var(--xn-sans); }

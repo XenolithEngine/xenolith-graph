@@ -20,6 +20,8 @@
     "@xenolith/render-pixi": "workspace:*",
     "@xenolith/theme-xen": "workspace:*",
     "@xenolith/theme-liquid-glass": "workspace:*",
+    "@xenolith/theme-synthwave": "workspace:*",
+    "@xenolith/theme-holographic": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

@@ -249,6 +249,19 @@ editor.loadJSON(myGraph)
     <Code code={t.quickStartCode} lang="ts" theme="vesper" />
   </section>
 
+  <section class="xn-builtwith">
+    <p class="xn-builtwith-label">{lang === 'ru' ? 'Стек' : lang === 'zh' ? '技术栈' : 'Built with'}</p>
+    <ul class="xn-builtwith-row">
+      <li>TypeScript</li>
+      <li>PIXI v8</li>
+      <li>Astro</li>
+      <li>Vitest</li>
+      <li>Playwright</li>
+      <li>pnpm + Turbo</li>
+      <li>MIT</li>
+    </ul>
+  </section>
+
   <section class="xn-final">
     <h2 class="xn-h2 xn-final-h">{t.finalH}</h2>
     <p>{t.finalP}</p>
@@ -520,4 +533,39 @@ editor.loadJSON(myGraph)
     line-height: 1.55;
   }
   .xn-final-h { margin-bottom: 12px; }
+
+  /* BUILT WITH — minimalist pill row right under the quickstart code block. Signals the stack
+   * without burning a full feature card on it. */
+  .xn-builtwith {
+    margin: 56px 0 0;
+    padding-top: 32px;
+    border-top: 1px solid var(--xn-hair-soft);
+    text-align: center;
+  }
+  .xn-builtwith-label {
+    margin: 0 0 16px;
+    font-family: var(--xn-display);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--xn-bone-mute);
+  }
+  .xn-builtwith-row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .xn-builtwith-row li {
+    font-family: var(--xn-mono);
+    font-size: 12px;
+    color: var(--xn-bone-dim);
+    padding: 6px 12px;
+    border: 1px solid var(--xn-hair-soft);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.015);
+  }
 </style>

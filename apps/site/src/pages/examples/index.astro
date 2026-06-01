@@ -8,7 +8,18 @@ const byCategory = CATEGORY_ORDER
 const fwLabels = (e: (typeof EXAMPLES)[number]): string =>
   FRAMEWORKS.filter((f) => e.impls[f.key]).map((f) => f.label).join(' · ')
 ---
-<ExamplesLayout title="Examples — XenolithGraph">
+<ExamplesLayout
+  title="Examples — XenolithGraph"
+  path="/examples/"
+  description="A live gallery of 30 self-contained examples: AI-driven MCP workflows, audio synth, image pipeline, visual debugger, time-travel, graph diff, stress test, theming, and more. Each demo runs in the browser — no setup."
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'XenolithGraph Examples',
+    description: '30 live examples demonstrating every feature of the editor.',
+    url: 'https://xenolithengine.github.io/xenolith-graph/examples/',
+  }}
+>
   <h1 style="margin:0 0 6px;font-size:32px;">Examples</h1>
   <p style="margin:0 0 28px;color:#9a9a9a;max-width:60ch;">
     Live, interactive examples — each with a framework switcher, full source, and reset.
