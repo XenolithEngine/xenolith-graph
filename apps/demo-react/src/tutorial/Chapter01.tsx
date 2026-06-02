@@ -8,7 +8,7 @@ import { XenolithGraph } from '@xenolith/react'
 import type { XenolithGraphV1 } from '@xenolith/editor'
 import { DemoStage } from '../Layout.js'
 
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     {

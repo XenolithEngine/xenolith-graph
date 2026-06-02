@@ -27,7 +27,7 @@ const toUpperSchema: NodeSchema = {
   ],
 }
 
-const seedGraph: XenolithGraphV1 = {
+const seedGraph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: -240, y: 0 }, state: { msg: 'Hello, Xenolith', volume: 60 } },

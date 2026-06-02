@@ -29,7 +29,7 @@ const greeterSchema: NodeSchema = {
 // Compact JSON: no pins, no widgets — the editor resolves them from the registered schema. Edges
 // reference pins by their deterministic id (`${node.id}:${pin.label}`) so they keep working across
 // reloads without any per-instance pin declarations.
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: 0, y: 0 }, state: { msg: 'Hello, Xenolith' } },

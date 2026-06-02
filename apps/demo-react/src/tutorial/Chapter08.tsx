@@ -40,7 +40,7 @@ const mixerSchema: NodeSchema = {
   widgets: [{ id: 'level', type: 'custom', key: 'level', renderer: 'level', label: 'Level', height: 56, freeFloating: true }],
 }
 
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: -240, y: 0 }, state: { msg: 'Hello, world' } },

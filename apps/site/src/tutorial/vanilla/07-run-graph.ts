@@ -37,7 +37,7 @@ const outSchema: NodeSchema = {
   widgets: [{ id: 'result', type: 'text', key: 'result', label: 'Result', placeholder: 'press Run', freeFloating: true, disabled: true }],
 }
 
-const seedGraph: XenolithGraphV1 = {
+const seedGraph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'c1', type: 'Const',    position: { x: -380, y: -160 }, state: { value: 5 } },

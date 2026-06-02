@@ -22,7 +22,7 @@ const greeterSchema: NodeSchema = {
   ],
 }
 
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: 0, y: 0 }, state: { msg: 'Hello, Xenolith' } },

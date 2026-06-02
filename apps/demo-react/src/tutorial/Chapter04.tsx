@@ -39,7 +39,7 @@ const toUpperSchema: NodeSchema = {
   ],
 }
 
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: -240, y: 0 },

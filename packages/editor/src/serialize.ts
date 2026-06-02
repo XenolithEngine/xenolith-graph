@@ -44,11 +44,13 @@ export interface XenolithNodeV1 {
   position: { x: number; y: number }
   size?: { x: number; y: number }
   state?: Record<string, unknown>
-  /** Explicit pin list. Optional — if omitted, the parser mints pins from the registered schema
-   *  (pin id = `${node.id}:${pin.label || pin index}`). Dynamic-pin schemas that diverge from the
-   *  schema declaration MUST keep writing pins explicitly. */
-  pins?: XenolithPinV1[]
-  /** Explicit widget list. Optional — if omitted, parsed from the registered schema's `widgets`. */
+  /** Pin list — always present in serialized output. INPUT JSON can omit this when the type is
+   *  registered (the parser then mints pins from the schema with deterministic ids
+   *  `${node.id}:${pin.label || pin index}`); accept the compact-input shape by typing your
+   *  authored constant as `unknown` or by dropping the `XenolithGraphV1` annotation. Dynamic-pin
+   *  schemas that diverge from the registered shape MUST keep writing pins explicitly. */
+  pins: XenolithPinV1[]
+  /** Widget list. Same input-compact rule as `pins` — omit on input, parser fills from schema. */
   widgets?: WidgetSpec[]
   render?: { category?: string; title?: string; collapsed?: boolean; color?: string }
   /** Blueprint "pure" node flag — see {@link import('@xenolith/core').Node.pure}. */

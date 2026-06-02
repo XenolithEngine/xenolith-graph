@@ -62,7 +62,7 @@ const toUpperSchema: NodeSchema = {
 // JSON now carries the Greeter's state across every widget — that's what makes a saved scene
 // reload to the exact same look. Widgets without `state[key]` use the type's default
 // (text → '', slider → min, combo → first value, toggle → false, color → '#6c8ebf').
-const graph: XenolithGraphV1 = {
+const graph = {
   version: 'xenolith.v1',
   nodes: [
     { id: 'greeter', type: 'Greeter', position: { x: -240, y: 0 },
