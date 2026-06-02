@@ -67,6 +67,8 @@ export function freeFloatingHeight(w: WidgetSpec, rowHeight: number): number {
     const field = w.multiline ? rowHeight * 3 : rowHeight
     return w.label ? field + rowHeight : field
   }
+  // Combo: label-above-field, mirrored from the text widget pattern so box-style widgets line up.
+  if (w.type === 'combo') return w.label ? rowHeight * 2 : rowHeight
   return rowHeight
 }
 

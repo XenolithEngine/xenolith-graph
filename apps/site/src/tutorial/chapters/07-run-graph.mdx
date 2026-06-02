@@ -1,0 +1,72 @@
+---
+id: 07-run-graph
+order: 7
+title: Run the graph — a topological executor
+blurb: "Walk the DAG node by node: collect inputs, compute, cache outputs, light up the active node."
+delta: 8 nodes, 7 edges, Kahn's algorithm, ~80 lines of plain JS — your first real runtime.
+vanilla: vanilla/07-run-graph.ts
+react: tutorial/Chapter07.tsx
+---
+
+## The setup
+
+Four schemas that compose into a real computation graph:
+
+- `Const` — leaf source. One `number` out, a number widget. State: `{ value }`.
+- `Add` — two `number` ins (A, B), one `number` out (Sum).
+- `Multiply` — two `number` ins, one `number` out (Product).
+- `Output` — terminal sink. One `number` in, a read-only text widget that shows the result.
+
+The seed graph wires them up:
+
+```
+Const(5) ─┐
+          ├─→ Add ──┐
+Const(3) ─┘         ├─→ Multiply ──┐
+Const(2) ───────────┘                ├─→ Add ──→ Output
+Const(7) ───────────────────────────┘
+```
+
+Eight nodes, seven edges, depth 4. Expected result: `((5 + 3) × 2) + 7 = 23`.
+
+## Try it
+
+- **Run** evaluates the whole graph in one tick. The *Output* node's *Result* widget paints **23**.
+- **Step ×slow** walks the same order with a delay between nodes — watch the highlight march from the leaves through Add → Multiply → Add → Output.
+- Edit any *Value* widget on a Const and press **Run** again — the result updates live.
+- Build your own. Spawn nodes from <kbd>Tab</kbd>, wire them up, run.
+
+## The algorithm
+
+A runtime over a graph is three steps:
+
+1. **Topological sort.** Kahn's algorithm: start with every node whose in-degree is 0, peel them off, decrement neighbours, repeat. Detects cycles by leftover nodes (refused with `cycle detected`).
+2. **Walk in order.** For each node, read inputs by following INCOMING edges to a value cache (`{nodeId}:{pinLabel}` → value). Call the type's compute function with `(inputs, state)`. Stash the returned outputs back in the cache.
+3. **Sink → widget.** When the active node is a terminal sink (here: `Output`), write its input into a read-only widget so the user sees the result.
+
+The whole runtime is ~80 lines of plain JS. No engine, no operators, no scheduler — just a walk over the editor's graph model.
+
+```js
+const compute = {
+  Const:    (_,  state) => ({ Out: Number(state.value) }),
+  Add:      (i)         => ({ Sum: (i.A ?? 0) + (i.B ?? 0) }),
+  Multiply: (i)         => ({ Product: (i.A ?? 0) * (i.B ?? 0) }),
+  Output:   (i)         => ({ In: i.In ?? 0 }),
+}
+```
+
+## What this is NOT
+
+A real engine handles a lot more — async ops, exec-pin flow control (the difference Blueprint draws between *data* and *exec* pins), error pins, dynamic schemas, batching, cancellation, caching, parallelism, dependency tracking on widget edits so only the affected subgraph re-runs. Each of those is its own design.
+
+For the tutorial: read this as the **shape** of any executor. Topological sort + value cache + per-type compute. Bolt that to your real domain — image filters, audio nodes, LLM tools, build steps — and you have a runnable graph for your app.
+
+A more featured executor ships in [`@xenolith/plugin-runtime`](https://github.com/XenolithEngine/xenolith-graph/tree/main/packages/plugin-runtime) — type-aware, async-aware, with three engines (interpreted, codegen-JS, AssemblyScript-WASM). It's the same shape, just dialled up.
+
+## Highlighting the active node
+
+We piggyback on `editor.setSelection([nodeId])` for the visual "this is running" indicator — selection styling is themed, free, and the user already understands it. A real runtime would use a dedicated render-option (`{ executing: true }`) so it doesn't fight with the user's actual selection.
+
+## Next
+
+You've covered mount → schemas → connections → widgets → events → save/load → execution — the full loop from blank canvas to running graph. Final chapter: **make it yours** — switch themes, dock a properties sidebar, render a minimap, build a custom widget. Polish for shipping.

@@ -1416,8 +1416,15 @@ export class XenolithEditor {
   }
 
   /** Open the pin context menu for one specific pin. MVP item: Unbind — disconnects every edge
-   *  attached to that pin in one undoable transaction. */
+   *  attached to that pin in one undoable transaction.
+   *
+   *  Inline `$reroute` knots are pure edge midpoints (split a wire visually, no fan-out, no
+   *  unbinding semantics). Showing "Unbind" on them is meaningless — Delete the reroute removes
+   *  the knot and reconnects the wire end-to-end. So the pin menu is suppressed entirely on
+   *  inline reroutes; right-click should fall through to the node menu instead. */
   #openPinMenu(nodeId: NodeId, pinId: string, screen: { x: number; y: number }): void {
+    const node = this.graph.getNode(nodeId)
+    if (node && isReroute(node)) return
     const incident: EdgeId[] = []
     for (const edge of this.graph.edges()) {
       if ((edge.from.node === nodeId && String(edge.from.pin) === pinId) ||
@@ -4338,7 +4345,12 @@ export class XenolithEditor {
    *  existing graph, selection, and viewport before reloading. Throws on malformed input — the
    *  editor is left in its previous state in that case. */
   loadJSON(data: unknown): void {
-    const parsed = parseXenolithGraph(data)
+    // Pass the editor's registry into the parser so compact node JSON (no per-instance pins/widgets)
+    // resolves shapes from registered schemas. Any `schemas[]` inline in the graph gets auto-
+    // registered first (idempotent — already-registered types are kept as-is). Together these two
+    // enable a self-describing JSON shape: one schema declaration → minimal node entries → palette
+    // + render stay in sync from a single source.
+    const parsed = parseXenolithGraph(data, { registry: this.#registry })
     this.#clearAll()
     this.#categoryPalette = parsed.categories // graph-owned category colours (undefined for old graphs)
     // Restore template definitions + their members'/boundary nodes' render+edge opts (parseTemplates

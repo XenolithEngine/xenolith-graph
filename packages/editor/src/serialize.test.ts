@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Edge, Node, Pin, TemplateDefinition } from '@xenolith/core'
+import { NodeRegistry } from '@xenolith/core'
 import type { RenderNodeOptions } from '@xenolith/render-pixi'
 import {
   parseXenolithGraph,
@@ -360,5 +361,110 @@ describe('templates round-trip (live-template definitions)', () => {
     expect(back.type).toBe('$templateInstance')
     expect(back.state['definitionId']).toBe('def1')
     expect(back.pins).toHaveLength(2)
+  })
+})
+
+// ──────────────────────────────────────────────────────────────────────────────────────────────
+// Schema-driven compact nodes — author one schema, omit pins/widgets on instances, let the parser
+// resolve from the registry. The JSON shrinks from 20 lines of per-instance duplication to ~5,
+// and you can ship the schemas alongside the graph in a single top-level `schemas[]` field so the
+// graph is self-describing.
+// ──────────────────────────────────────────────────────────────────────────────────────────────
+describe('schema-driven compact node JSON', () => {
+  function regWithGreeter(): NodeRegistry {
+    const r = new NodeRegistry()
+    r.register({
+      type: 'Greeter',
+      title: 'Greeter',
+      category: 'data',
+      pins: [{ kind: 'data', direction: 'out', type: 'string', label: 'Out', multiple: true }],
+      widgets: [{ id: 'msg', type: 'text', key: 'msg', label: 'Message' }],
+    })
+    return r
+  }
+
+  it('omits pins on the node — parser resolves them from the registry schema', () => {
+    const parsed = parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 } }], edges: [] },
+      { registry: regWithGreeter() },
+    )
+    expect(parsed.nodes[0]!.pins).toHaveLength(1)
+    expect(parsed.nodes[0]!.pins[0]).toMatchObject({ type: 'string', direction: 'out', label: 'Out', multiple: true })
+    // Pin id deterministic from node id + pin label — edges in compact JSON reference this.
+    expect(parsed.nodes[0]!.pins[0]!.id).toBe('g1:Out')
+  })
+
+  it('omits widgets on the node — parser resolves them from the schema', () => {
+    const parsed = parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 } }], edges: [] },
+      { registry: regWithGreeter() },
+    )
+    expect(parsed.nodes[0]!.widgets).toHaveLength(1)
+    expect(parsed.nodes[0]!.widgets![0]!.id).toBe('msg')
+  })
+
+  it('falls back to schema.category when render.category is absent', () => {
+    const parsed = parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 } }], edges: [] },
+      { registry: regWithGreeter() },
+    )
+    expect(parsed.renderOpts.get('g1')!.category).toBe('data')
+  })
+
+  it('explicit render.category wins over schema fallback', () => {
+    const parsed = parseXenolithGraph(
+      { version: 'xenolith.v1',
+        nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 }, render: { category: 'utility' } }],
+        edges: [] },
+      { registry: regWithGreeter() },
+    )
+    expect(parsed.renderOpts.get('g1')!.category).toBe('utility')
+  })
+
+  it('still works when pins ARE provided on the node — schema is not consulted', () => {
+    const parsed = parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{
+        id: 'g1', type: 'Greeter', position: { x: 0, y: 0 },
+        pins: [{ id: 'custom-id', kind: 'data', direction: 'in', type: 'int', multiple: false }],
+      }], edges: [] },
+      { registry: regWithGreeter() },
+    )
+    expect(parsed.nodes[0]!.pins).toHaveLength(1)
+    expect(parsed.nodes[0]!.pins[0]!.id).toBe('custom-id')
+    expect(parsed.nodes[0]!.pins[0]!.type).toBe('int')
+  })
+
+  it('throws when pins missing AND the type is not in the registry (no fallback)', () => {
+    expect(() => parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 } }], edges: [] },
+      { registry: new NodeRegistry() },
+    )).toThrow(/pins/)
+  })
+
+  it('throws when pins missing AND no registry was passed at all', () => {
+    expect(() => parseXenolithGraph(
+      { version: 'xenolith.v1', nodes: [{ id: 'g1', type: 'Greeter', position: { x: 0, y: 0 } }], edges: [] },
+    )).toThrow(/pins/)
+  })
+})
+
+describe('top-level schemas[] — self-describing graphs', () => {
+  it('parses schemas[] from the graph payload as a separate output bucket', () => {
+    const parsed = parseXenolithGraph({
+      version: 'xenolith.v1',
+      schemas: [
+        { type: 'Greeter', title: 'Greeter', pins: [{ kind: 'data', direction: 'out', type: 'string', label: 'Out', multiple: true }] },
+      ],
+      nodes: [],
+      edges: [],
+    })
+    expect(parsed.schemas).toBeDefined()
+    expect(parsed.schemas).toHaveLength(1)
+    expect(parsed.schemas![0]!.type).toBe('Greeter')
+  })
+
+  it('schemas[] is omitted in the parsed output when not in the JSON', () => {
+    const parsed = parseXenolithGraph({ version: 'xenolith.v1', nodes: [], edges: [] })
+    expect(parsed.schemas).toBeUndefined()
   })
 })

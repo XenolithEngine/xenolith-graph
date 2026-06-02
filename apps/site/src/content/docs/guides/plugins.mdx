@@ -44,16 +44,20 @@ Both adapters animate the move — the plugin tweens positions per frame via an 
 Persistent left-side panel listing every registered schema. Drag a tile onto the canvas to spawn a node at the drop point:
 
 ```ts
-editor.setPaletteSidebar(true)                // default
-editor.setPaletteSidebar({ width: 240, categories: ['logic', 'io'] })
-editor.setPaletteSidebar(false)               // hide
+editor.setPaletteSidebar(true)                                   // mount with defaults
+editor.setPaletteSidebar({ side: 'right' })                      // dock on the right
+editor.setPaletteSidebar({ filter: (s) => s.category !== 'io' }) // hide a category
+editor.setPaletteSidebar(false)                                  // unmount
 
-editor.on('node:drop', ({ nodeId, position, items }) => {
-  // items['text/plain'] holds the dragged schema's `type` — auto-wired by the editor.
+// The default drop handler is wired automatically — drag a tile, drop on the canvas, the editor
+// calls `insertNode(schema.type, dropPosition)`. Listen to the same event to layer on validation,
+// snapping, or your own analytics:
+editor.on('node:drop', ({ nodeId, position, text }) => {
+  // `text` holds the dragged schema's `type` (set by the panel into `dataTransfer.text/plain`).
 })
 ```
 
-The drop handler is set up automatically — drag a tile, drop on the canvas, a fresh node spawns at the world position.
+A live demo: [Palette sidebar example](/examples/palette-sidebar/).
 
 ## Per-node file drop
 
@@ -137,8 +141,6 @@ editor.registry.register({
 ```
 
 Returning `undefined` from a field means "leave it alone". The fn is pure — never mutate the node directly.
-
-`defineDynamicNode(schema)` is a convenience that pre-registers a common Sequence-style variadic shape.
 
 ## Headless tick loop
 

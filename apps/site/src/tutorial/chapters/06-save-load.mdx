@@ -1,0 +1,80 @@
+---
+id: 06-save-load
+order: 6
+title: Save & load — the graph is just data
+blurb: "toJSON() / loadJSON(), autosave to localStorage, download / upload a .json file."
+delta: Wire autosave + a Save / Load toolbar; reload the page and the scene comes back.
+vanilla: vanilla/06-save-load.ts
+react: tutorial/Chapter06.tsx
+---
+
+## The contract
+
+The whole scene is data. Two methods own the round-trip:
+
+- `editor.toJSON()` — returns the live `XenolithGraphV1` payload (nodes with state, edges, viewport, comments, optional `schemas[]`, category palette). Pure data, JSON-serialisable.
+- `editor.loadJSON(data)` — replaces the entire scene with the payload. Idempotent: same input gives the same scene.
+
+That's it. Everything else in this chapter is just *plumbing* around those two methods.
+
+## Try it
+
+The toolbar lives inside the editor (top-right):
+
+- Move a node or edit *Volume* — watch the status line tick: **Autosaved · 0s ago**, then ages each second.
+- Reload the page. The scene comes back exactly as you left it.
+- Click **Download .json** — your browser saves the current scene to disk. Open it: it's pretty-printed `xenolith.v1` JSON.
+- Click **Load .json**, pick the file you just downloaded — the editor reloads from it.
+- **Reset** clears localStorage and reloads the seed graph.
+
+## Autosave — the pattern
+
+The graph emits an event for every mutation (`widget:changed`, `node:moved`, `edge:connected`, …). Debounce them into one localStorage write per ~250 ms — same write covers the whole burst of a drag, an undo, a paste.
+
+**Vanilla:**
+
+```js
+let timer = null
+const save = () => localStorage.setItem(KEY, JSON.stringify(editor.toJSON()))
+const schedule = () => { clearTimeout(timer); timer = setTimeout(save, 250) }
+editor.on('widget:changed',    schedule)
+editor.on('node:added',        schedule)
+editor.on('node:moved',        schedule)
+editor.on('edge:connected',    schedule)
+editor.on('edge:disconnected', schedule)
+```
+
+**React:** `useGraphJSON()` returns the live JSON as React state — every mutation re-renders the hook's consumer. Put the debounced save inside a `useEffect` that depends on the returned value:
+
+```jsx
+const graph = useGraphJSON()
+useEffect(() => {
+  if (!graph) return
+  const t = setTimeout(() => localStorage.setItem(KEY, JSON.stringify(graph)), 250)
+  return () => clearTimeout(t)
+}, [graph])
+```
+
+One subscription, all events covered for free.
+
+## Download / Load — also one-liners
+
+Download = `Blob` + object URL + `<a download>`. Load = `<input type="file">` + `JSON.parse` + `editor.loadJSON(...)`. Both small, no library required.
+
+## What lives in the JSON?
+
+Everything needed to reproduce the scene exactly:
+
+- `nodes`: id, type, position, state, plus optional per-instance pins/widgets when they diverge from the schema (chapter 2). Compact form (omit pins/widgets) when the schema covers the instance.
+- `edges`: typed pin-to-pin references.
+- `viewport`: optional `{x, y, zoom}` so a saved scene reopens framed the way you left it.
+- `comments`, `templates`, `categories`: covered later as you reach them.
+- `schemas`: optional inline schemas (chapter 2). Include them and the JSON is **self-contained** — a viewer / AI agent / headless runtime can render the scene without first registering any types in code.
+
+## A note on versioning
+
+`xenolith.v1` is the format string at the top of every payload. The parser refuses anything else. When `xenolith.v2` lands, old JSON keeps loading; new features will arrive behind feature-additive fields, not a breaking version bump (per [CLAUDE.md](https://github.com/XenolithEngine/xenolith-graph/blob/main/CLAUDE.md) — no backwards-compat shims until v1.0).
+
+## Next
+
+You can save, load, and react to changes. Time to actually *run* the graph. Next chapter: a topological executor that walks the graph node by node, lights the active one, and pipes data through the wires.

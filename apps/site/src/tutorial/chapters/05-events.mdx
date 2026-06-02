@@ -1,0 +1,73 @@
+---
+id: 05-events
+order: 5
+title: Events — drive your UI from the graph
+blurb: Typed event bus, reactive hooks, in-editor panels. No refs, no polling, no manual wiring.
+delta: Subscribe to `widget:changed` / `selection:changed` / graph mutations and paint a live readout.
+vanilla: vanilla/05-events.ts
+react: tutorial/Chapter05.tsx
+---
+
+## The contract
+
+The editor publishes a typed event bus. Subscribe with `editor.on('event-name', handler)` — the call returns a disposer. Every event has a strict TypeScript payload (`{ nodeId, widgetId, value }`, etc.) so you get full autocomplete in your editor.
+
+The bus is bridged off the command bus, so **events fire on every path** that changes the graph: user interaction, the public API, AND undo / redo. Your readout stays in sync with reality, not just with the last user gesture.
+
+## The events you'll reach for first
+
+| Event                   | Fires when                              | Payload                                    |
+|-------------------------|------------------------------------------|--------------------------------------------|
+| `widget:changed`        | a widget's value changed                 | `{ nodeId, widgetId, value }`              |
+| `selection:changed`     | the selected node set changed            | `{ nodeIds: readonly NodeId[] }`           |
+| `node:added` / `:removed` | a node entered / left the graph        | `{ node }` / `{ nodeId }`                  |
+| `edge:connected` / `:disconnected` | a wire was added / removed    | `{ edge }` / `{ edgeId }`                  |
+| `viewport:changed`      | pan or zoom                              | `{ x, y, zoom }`                           |
+| `graph:loaded`          | `loadJSON` finished                      | `{ nodeCount, edgeCount }`                 |
+
+There are pre-mutation events too (`node:removing`, `edge:connecting`) that accept `payload.cancel()` to veto. Covered in a later chapter on validation.
+
+## Try it
+
+Look at the **Live readout** panel in the top-right corner.
+
+- Click any node. *Selected* updates.
+- Click empty canvas. *Selected* clears.
+- Edit the *Message* widget or drag the *Volume* slider. *Last edit* updates with the precise `{nodeId}.{widgetId} → value` triple.
+- Press <kbd>Tab</kbd> and spawn another node. *Nodes* increments.
+- Drag a wire. *Edges* increments.
+
+## Vanilla vs React — same data, different idiom
+
+**Vanilla:** subscribe in `mount`, paint into a plain DOM panel mounted on `editor.overlayRoot`, return a teardown that disposes every subscription.
+
+```js
+const offs = [
+  editor.on('selection:changed', ({ nodeIds }) => paint(nodeIds)),
+  editor.on('widget:changed',    (e)            => log(e)),
+]
+return () => offs.forEach((off) => off())
+```
+
+**React:** use the adapter's reactive hooks for derived state (no refs, no manual subscription), `useEffect(() => editor.on(...))` for one-shot events whose payload you stash in `useState`. Render in-editor UI with `<XenolithPanel>` — it portals into the editor's overlay layer, themed by the active `--xeno-*` tokens.
+
+```jsx
+function Readout() {
+  const editor    = useEditor()        // strict — throws outside <XenolithGraph>
+  const nodes     = useNodes()         // readonly Node[]   — useSyncExternalStore
+  const selection = useSelection()     // readonly NodeId[] — useSyncExternalStore
+  const [last, setLast] = useState('—')
+  useEffect(() => editor.on('widget:changed', (e) => setLast(format(e))), [editor])
+  return <XenolithPanel position="top-right">…</XenolithPanel>
+}
+```
+
+## What the hooks give you
+
+The React hooks (`useNodes`, `useEdges`, `useSelection`, `useViewport`, `useGraphJSON`) are built on `useSyncExternalStore`. They subscribe directly to the editor's bus, return STABLE references between updates, and never trigger extra renders. Treat the graph like any other store — `useMemo` over derived data, `useCallback` for handlers, the usual.
+
+The same pattern wires Vue (composables over `editor.on`), Svelte (`readable` stores), and Solid (signals) — every adapter's job is to expose the editor's event bus the way that framework expects state. Same events, same payloads, different idioms.
+
+## Next
+
+Events are how you OBSERVE the graph. Next chapter: **save and load** — `editor.toJSON()` / `editor.loadJSON(...)`, autosave to localStorage on every edit, and what changes when you start versioning your graphs.

@@ -47,7 +47,7 @@ const a = {
 editor.addNode(a, { category: 'logic', title: 'Source' })
 ```
 
-`editor.connect(fromNode, fromPinIndex, toNode, toPinIndex, { sourceType })` draws an edge between two pins. The wire colour follows the source pin's type — this is an invariant of the Xen theme.
+`editor.connect(fromNode, fromPinIndex, toNode, toPinIndex, opts?)` draws an edge between two pins. The optional `opts` is `RenderEdgeOptions` — `{ sourceType?, label?, markerEnd?, animated?, pathStyle?, noMidpoint? }`. The wire colour follows the source pin's type — an invariant of the Xen theme.
 
 ## Interaction
 

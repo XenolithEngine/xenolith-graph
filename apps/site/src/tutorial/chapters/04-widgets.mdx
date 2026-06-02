@@ -1,0 +1,63 @@
+---
+id: 04-widgets
+order: 4
+title: Widgets — let users edit node state
+blurb: text, combo, slider, toggle, color — declarative, in-node, and conditional. No host code per widget.
+delta: Grow the Greeter with five widget types, including one that appears only on a toggle.
+vanilla: vanilla/04-widgets.ts
+react: tutorial/Chapter04.tsx
+---
+
+## Widgets are part of the schema
+
+Schemas declare *what* a node is; widgets are the UI side of that — the controls users edit inside a node. Both ship as plain data on `NodeSchema.widgets[]`, both copy onto every fresh instance, and both store their values in `node.state[key]`.
+
+Six built-in widget types cover the everyday cases:
+
+| type     | for                              | state value           |
+|----------|----------------------------------|-----------------------|
+| `text`   | single-line / multiline strings  | `string`              |
+| `number` | numeric with min/max/step/unit   | `number`              |
+| `slider` | number on a visual range track   | `number`              |
+| `combo`  | drop-down with discrete options  | `string` \| `number`  |
+| `toggle` | boolean switch                   | `boolean`             |
+| `color`  | hex colour swatch + picker       | `string` (`#rrggbb`)  |
+
+(Plus `custom`, for any canvas/DOM widget you write — covered later.)
+
+## Try it
+
+- Edit the *Message* — the node re-renders live.
+- Drag the *Volume* slider — see the value tick.
+- Flip the *Show accent* toggle **off**. The colour swatch below it disappears. Flip it back on; it returns. That's the conditional widget.
+- Spawn a fresh Greeter from <kbd>Tab</kbd> — it arrives with empty defaults (`msg = ''`, `volume = 0` (min), `showAccent = false`, …). Then edit it. Defaults are per-widget-type, concrete starting values live in JSON.
+
+## Conditional widgets — schema-only
+
+The *Accent* widget uses `displayOptions.show`:
+
+```js
+{ id: 'accent', type: 'color', key: 'accent', label: 'Accent', freeFloating: true,
+  displayOptions: { show: (state) => state.showAccent === true } }
+```
+
+`show` runs after every `setWidgetValue` (and on initial layout). Return `false` and the widget is hidden — the renderer skips it, the sidebar skips it, edges stay attached because the pin row doesn't move. This is exactly what n8n / ComfyUI front-ends do; here it's a single schema field, not a separate UI layer.
+
+Failure mode: a throwing `show` callback fails OPEN (widget stays visible). A schema bug must never blank the node.
+
+## `key` and pin binding
+
+The `key` field is two things at once:
+
+1. The path into `node.state` where the value lives.
+2. The IMPLICIT match against a same-named data IN pin. When the pin is disconnected, the widget value seeds the pin's default; once a wire connects, the widget hides (Blueprint behaviour).
+
+Our Greeter has only OUT pins, so no binding happens. In the next chapter we'll wire a widget to an IN pin and watch it disappear the moment you drag an edge in.
+
+## `freeFloating: true`
+
+You'll see this on every widget here. The Greeter has no IN pins for these widgets to bind to — without `freeFloating`, the editor would silently drop them as orphans (they're not connectable from outside). `freeFloating` says "this is config, not an input default — give it a full row." Use it for HTTP body, schema editor fields, tone/volume/accent — anything that's not a value source.
+
+## Next
+
+Widget edits raise events. Next chapter: **listen to changes** — wire `editor.on('widget:changed')` (and friends) into your app's state, build a live readout, drive React/Vue/Svelte from the editor without a single ref hack.

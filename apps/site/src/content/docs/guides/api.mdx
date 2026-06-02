@@ -256,17 +256,19 @@ A per-node glyph override round-trips through `xenolith.v1`.
 `editor.on(event, handler)` returns an `Unsubscribe`. Events are bridged off the command bus, so they fire on undo/redo too — a UI bound to them stays in sync without extra wiring around mutation calls.
 
 ```ts
-const off = editor.on('node:added',     ({ id, node }) => {})
-editor.on('node:removed',   ({ id }) => {})
-editor.on('node:moved',     ({ id, position }) => {})
-editor.on('edge:added',     ({ id, edge }) => {})
-editor.on('edge:removed',   ({ id }) => {})
-editor.on('selection:changed', ({ ids }) => {})
-editor.on('widget:changed', ({ nodeId, key, value }) => {})
-editor.on('viewport:changed', ({ x, y, scale }) => {})
-editor.on('dive:changed',   ({ defId, depth, path }) => {})  // template dive in/out
+const off = editor.on('node:added',         ({ node }) => {})
+editor.on('node:removed',                   ({ nodeId }) => {})
+editor.on('node:moved',                     ({ nodeId, position }) => {})
+editor.on('edge:connected',                 ({ edge }) => {})
+editor.on('edge:disconnected',              ({ edgeId }) => {})
+editor.on('selection:changed',              ({ nodeIds }) => {})
+editor.on('widget:changed',                 ({ nodeId, widgetId, value }) => {})
+editor.on('viewport:changed',               ({ x, y, zoom }) => {})
+editor.on('dive:changed',                   ({ depth, definitionId }) => {})  // template dive in/out
 off()
 ```
+
+Pre-mutation events (`node:removing`, `edge:connecting`, `edge:disconnecting`, `node:clicking`) accept `payload.cancel()` to veto.
 
 ## Animated edges
 
@@ -298,12 +300,18 @@ Edges connected to removed pins are pruned automatically.
 A Comment is a labelled rectangle behind nodes — a spatial group, not data containment. Move it, resize it from the corner, double-click the header to rename.
 
 ```ts
-const id = editor.createComment({ x: 100, y: 100, width: 400, height: 300, title: 'IO', color: '#36c' })
-editor.setCommentTitle(id, 'Inputs')
+const id = editor.addComment({
+  position: { x: 100, y: 100 },
+  size:     { x: 400, y: 300 },
+  text:     'IO',
+  color:    '#36c',
+})
+editor.setCommentText(id, 'Inputs')
 editor.setCommentColor(id, '#f93')
-editor.editComment(id)        // start inline edit (overlay text input)
 editor.removeComment(id)
 ```
+
+Inline rename: double-click the comment header.
 
 Shortcuts: `Tab` → **Comment**, or double-click an empty area and pick **Comment** from the palette.
 
@@ -347,13 +355,17 @@ Shortcuts: `Cmd+Shift+G` makes a template from the selection; double-click an in
 
 ## Virtualization & LOD
 
-The editor virtualizes nodes outside the viewport and downgrades distant nodes to lower-fidelity representations automatically. Defaults are tuned for ~30k+ nodes; override only for unusually small graphs or custom renderers.
+The editor virtualizes nodes outside the viewport and downgrades distant nodes to lower-fidelity representations automatically. Defaults are tuned for ~30k+ nodes — the threshold is read from the active theme (`virtualizeThreshold`, default 300) so a custom theme can override it without touching editor code.
 
 ```ts
-editor.setVirtualization({ enabled: true, threshold: 300, overscan: 200 })
+// In your theme module:
+export const myTheme: XenolithTheme = {
+  ...xenTheme,
+  virtualizeThreshold: 100,  // virtualize earlier on a render-heavy theme
+}
 ```
 
-LOD switches as zoom decreases: full → sprite-baked → flat-batch.
+LOD switches as zoom decreases: full → sprite-baked → flat-batch. No public toggle — the editor manages it per-frame against the active theme's threshold.
 
 ## Headless runtime
 

@@ -1,4 +1,4 @@
-import type { Edge, Node, NodeId, EdgeId, Pin, WidgetSpec, Comment, TemplateDefinition, TemplateDefId, NodeGlyph } from '@xenolith/core'
+import type { Edge, Node, NodeId, EdgeId, Pin, WidgetSpec, Comment, TemplateDefinition, TemplateDefId, NodeGlyph, NodeSchema, NodeRegistry } from '@xenolith/core'
 import type { RenderEdgeOptions, RenderNodeOptions, GraphCategoryPalette, CategoryColorSpec } from '@xenolith/render-pixi'
 
 export const XENOLITH_GRAPH_VERSION = 'xenolith.v1' as const
@@ -17,6 +17,11 @@ export interface XenolithGraphV1 {
    *  `nodes` (or in another template) references one by `state.definitionId`. Optional — old graphs
    *  without it load unchanged. */
   templates?: Record<string, XenolithTemplateV1>
+  /** Self-describing graphs: include the NodeSchemas inline so the editor can render the graph
+   *  without the host first registering every type by hand. `loadJSON` auto-registers any schema
+   *  it finds here (idempotent — already-registered types are skipped). Optional; static-type
+   *  hosts that register schemas in code can omit this field. */
+  schemas?: NodeSchema[]
 }
 
 export interface XenolithTemplateV1 {
@@ -39,7 +44,11 @@ export interface XenolithNodeV1 {
   position: { x: number; y: number }
   size?: { x: number; y: number }
   state?: Record<string, unknown>
-  pins: XenolithPinV1[]
+  /** Explicit pin list. Optional — if omitted, the parser mints pins from the registered schema
+   *  (pin id = `${node.id}:${pin.label || pin index}`). Dynamic-pin schemas that diverge from the
+   *  schema declaration MUST keep writing pins explicitly. */
+  pins?: XenolithPinV1[]
+  /** Explicit widget list. Optional — if omitted, parsed from the registered schema's `widgets`. */
   widgets?: WidgetSpec[]
   render?: { category?: string; title?: string; collapsed?: boolean; color?: string }
   /** Blueprint "pure" node flag — see {@link import('@xenolith/core').Node.pure}. */
@@ -89,6 +98,17 @@ export interface ParsedGraph {
   categories?: GraphCategoryPalette
   /** Parsed template definitions (render/edge opts for their nodes are merged into renderOpts/edgeOpts). */
   templates?: TemplateDefinition[]
+  /** Top-level NodeSchemas embedded in the graph (`graph.schemas[]`). `loadJSON` auto-registers
+   *  these so a self-describing graph renders without the host registering types manually. */
+  schemas?: NodeSchema[]
+}
+
+export interface ParseOptions {
+  /** Optional NodeRegistry — when present, lets `loadJSON`-style compact JSON omit `pins`/`widgets`
+   *  on individual nodes; the parser mints them from the registered schema. Pin ids are derived
+   *  deterministically (`${node.id}:${pin.label || index}`) so edges in the same compact JSON keep
+   *  resolving across reloads. */
+  registry?: NodeRegistry
 }
 
 function serializePin(p: Pin): XenolithPinV1 {
@@ -259,25 +279,79 @@ function parseWidget(v: unknown, where: string): WidgetSpec {
   return { ...v } as unknown as WidgetSpec
 }
 
-function parseNode(v: unknown, idx: number): { node: Node; render?: RenderNodeOptions } {
+function parseSchema(v: unknown, where: string): NodeSchema {
+  if (!isPlainObject(v)) throw new Error(`xenolith.v1 parse: ${where} must be an object`)
+  const type = v['type'], title = v['title'], pins = v['pins']
+  if (typeof type !== 'string')  throw new Error(`xenolith.v1 parse: ${where}.type must be string`)
+  if (typeof title !== 'string') throw new Error(`xenolith.v1 parse: ${where}.title must be string`)
+  if (!Array.isArray(pins))      throw new Error(`xenolith.v1 parse: ${where}.pins must be array`)
+  // PinSchema is the schema's pin shape (no `id`, no `multiple`-required) — keep it permissive.
+  // We pass the raw pin objects through verbatim; the registry consumes them and `mintPinsFromSchema`
+  // mints concrete pins per instance. A failed assertion would just blow up on registration.
+  const schema: NodeSchema = {
+    type,
+    title,
+    pins: pins.map((p) => ({ ...p })) as NodeSchema['pins'],
+  }
+  if (typeof v['category']    === 'string')  schema.category    = v['category']
+  if (typeof v['description'] === 'string')  schema.description = v['description']
+  if (Array.isArray(v['keywords']))          schema.keywords    = (v['keywords'] as unknown[]).filter((k): k is string => typeof k === 'string')
+  if (Array.isArray(v['widgets']))           schema.widgets     = v['widgets'] as WidgetSpec[]
+  if (typeof v['pure'] === 'boolean')        schema.pure        = v['pure']
+  if (isPlainObject(v['meta']))              schema.meta        = { ...v['meta'] }
+  const rawGlyph = v['glyph']
+  if (isPlainObject(rawGlyph) && typeof rawGlyph['icon'] === 'string') {
+    const side = rawGlyph['side']
+    schema.glyph = { icon: rawGlyph['icon'], ...(side === 'left' || side === 'right' ? { side } : {}) }
+  }
+  return schema
+}
+
+function mintPinsFromSchema(schema: NodeSchema, nodeId: string): Pin[] {
+  return schema.pins.map((p, i) => {
+    const label = p.label
+    // Deterministic id: prefer `${nodeId}:${label}` so edges in compact JSON can target it by
+    // label. Fall back to a positional id if a pin lacks a label.
+    const id = (label ? `${nodeId}:${label}` : `${nodeId}:pin${i}`) as Pin['id']
+    const pin: Pin = { id, kind: p.kind, direction: p.direction, type: p.type, multiple: p.multiple ?? false }
+    if (label !== undefined) pin.label = label
+    if (p.default !== undefined) pin.default = p.default
+    return pin
+  })
+}
+
+function parseNode(v: unknown, idx: number, registry?: NodeRegistry): { node: Node; render?: RenderNodeOptions } {
   const where = `nodes[${idx}]`
   if (!isPlainObject(v)) throw new Error(`xenolith.v1 parse: ${where} must be an object`)
   const id = v['id'], type = v['type'], pins = v['pins'], state = v['state']
   if (typeof id !== 'string')   throw new Error(`xenolith.v1 parse: ${where}.id must be string`)
   if (typeof type !== 'string') throw new Error(`xenolith.v1 parse: ${where}.type must be string`)
   const position = assertVec2(v['position'], `${where}.position`)
-  if (!Array.isArray(pins)) throw new Error(`xenolith.v1 parse: ${where}.pins must be array`)
+  const schema = registry?.get(type)
+
+  let nodePins: Pin[]
+  if (Array.isArray(pins)) {
+    nodePins = pins.map((p, i) => parsePin(p, `${where}.pins[${i}]`))
+  } else if (pins === undefined && schema) {
+    nodePins = mintPinsFromSchema(schema, id)
+  } else {
+    throw new Error(`xenolith.v1 parse: ${where}.pins must be array (or register a "${type}" schema to omit it)`)
+  }
+
   const node: Node = {
-    id:       id as Node['id'],
+    id:    id as Node['id'],
     type,
     position,
-    state:    isPlainObject(state) ? { ...state } : {},
-    pins:     pins.map((p, i) => parsePin(p, `${where}.pins[${i}]`)),
+    state: isPlainObject(state) ? { ...state } : {},
+    pins:  nodePins,
   }
   if (v['size'] !== undefined) node.size = assertVec2(v['size'], `${where}.size`)
   if (v['widgets'] !== undefined) {
     if (!Array.isArray(v['widgets'])) throw new Error(`xenolith.v1 parse: ${where}.widgets must be array`)
     node.widgets = v['widgets'].map((w, i) => parseWidget(w, `${where}.widgets[${i}]`))
+  } else if (schema?.widgets && schema.widgets.length > 0) {
+    // Schema-defined widgets — cloned per-instance, same as NodeRegistry.instantiate does.
+    node.widgets = schema.widgets.map((w) => ({ ...w }) as WidgetSpec)
   }
   if (typeof v['pure'] === 'boolean') node.pure = v['pure']
   if (isPlainObject(v['meta'])) node.meta = { ...v['meta'] }
@@ -294,6 +368,11 @@ function parseNode(v: unknown, idx: number): { node: Node; render?: RenderNodeOp
     if (typeof rawRender['title']     === 'string')  render.title     = rawRender['title']
     if (typeof rawRender['collapsed'] === 'boolean') render.collapsed = rawRender['collapsed']
     if (typeof rawRender['color']     === 'string')  render.color     = rawRender['color']
+  }
+  // Schema category fallback — explicit render.category wins, schema fills the gap. Lets a graph
+  // omit per-instance category and still get the right header tint once the schema is registered.
+  if (schema?.category && (!render || render.category === undefined)) {
+    render = { ...(render ?? {}), category: schema.category }
   }
   return render ? { node, render } : { node }
 }
@@ -379,7 +458,7 @@ function parseTemplates(
   return out.length > 0 ? out : undefined
 }
 
-export function parseXenolithGraph(data: unknown): ParsedGraph {
+export function parseXenolithGraph(data: unknown, opts: ParseOptions = {}): ParsedGraph {
   if (!isPlainObject(data)) throw new Error('xenolith.v1 parse: payload must be an object')
   const version = data['version']
   if (version === undefined) throw new Error('xenolith.v1 parse: missing version field')
@@ -391,10 +470,27 @@ export function parseXenolithGraph(data: unknown): ParsedGraph {
   if (!Array.isArray(rawNodes)) throw new Error('xenolith.v1 parse: nodes must be an array')
   if (!Array.isArray(rawEdges)) throw new Error('xenolith.v1 parse: edges must be an array')
 
+  // Self-describing graphs ship their schemas inline. Surface them on the parsed output so
+  // `loadJSON` can auto-register before the parser tries to mint pins from the registry (callers
+  // that want compact JSON pass the registry into parse opts, then call register themselves — or
+  // use `loadJSON` which does both).
+  let schemas: NodeSchema[] | undefined
+  const rawSchemas = data['schemas']
+  if (rawSchemas !== undefined) {
+    if (!Array.isArray(rawSchemas)) throw new Error('xenolith.v1 parse: schemas must be an array')
+    schemas = rawSchemas.map((s, i) => parseSchema(s, `schemas[${i}]`))
+  }
+
+  // Auto-register schemas[] into the provided registry BEFORE parsing nodes, so compact node
+  // entries (no pins/widgets) resolve from the schemas the graph itself just declared.
+  if (schemas && opts.registry) {
+    for (const s of schemas) if (!opts.registry.has(s.type)) opts.registry.register(s)
+  }
+
   const renderOpts = new Map<string, RenderNodeOptions>()
   const nodes: Node[] = []
   rawNodes.forEach((raw, i) => {
-    const { node, render } = parseNode(raw, i)
+    const { node, render } = parseNode(raw, i, opts.registry)
     nodes.push(node)
     if (render) renderOpts.set(String(node.id), render)
   })
@@ -419,6 +515,7 @@ export function parseXenolithGraph(data: unknown): ParsedGraph {
   if (categories) out.categories = categories
   const templates = parseTemplates(data['templates'], renderOpts, edgeOpts)
   if (templates) out.templates = templates
+  if (schemas) out.schemas = schemas
   const rawViewport = data['viewport']
   if (isPlainObject(rawViewport)
       && typeof rawViewport['x'] === 'number'

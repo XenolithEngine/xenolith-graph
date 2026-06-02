@@ -3,6 +3,11 @@ title: Events, commands, history
 description: Listen for changes, veto destructive actions, register named commands with hotkeys, group history into transactions.
 ---
 
+:::caution[Translation may lag]
+<!-- EN-canonical-banner -->
+English is the canonical source. If something contradicts the [English version](../../../guides/events-commands/) — trust the English page. We'll re-sync translations periodically until v1.0.
+:::
+
 Three intertwined APIs for hooking host code into the editor lifecycle: **events** (broadcast what happened, plus preventable variants that ask permission first), **commands** (named actions with hotkeys, registry-style), and **command-bus transactions** (group many mutations into one undo step).
 
 ## Listening for events

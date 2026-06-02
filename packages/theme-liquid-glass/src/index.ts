@@ -12,11 +12,11 @@ import { createLiquidGlassBackdrop } from './backdrop.js'
 /**
  * Liquid Glass theme — Apple WWDC25 material aesthetic applied to nodes.
  *
- * v0.1 ships as a tokens-only theme: translucent surfaces + luminous rims + cool canvas. A
- * future iteration will add a custom `renderNode` with backdrop-blur and edge refraction
- * shaders for the full WWDC25 glass effect. The current build relies on the default Xen
- * renderer being respectful of token-level translucency (it draws surface fills with the
- * tokens' rgba values), so swapping themes at runtime is a single `setTheme()` call.
+ * Custom PIXI v8 Mesh + GLSL material per node body (see `render-node.ts` + `glass-shader.ts`).
+ * Each frame the editor renders the world (minus the nodes layer) into a backdrop RenderTexture
+ * via `needsBackdrop: true`; every glass body samples that texture through its shader with
+ * edge-localised refraction, gaussian blur, and a vertical tint. Sits over a radial-gradient
+ * navy canvas with a soft dot grid (`createGrid` override).
  */
 export const liquidGlassTheme: XenolithTheme = {
   id: 'liquid-glass',

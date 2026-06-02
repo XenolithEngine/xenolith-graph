@@ -1,0 +1,32 @@
+---
+id: 01-mount
+order: 1
+title: Mount your first editor
+blurb: One call to init(), one JSON file, one node on screen. The honest minimum.
+delta: Bootstrap the editor and load a single node from JSON.
+vanilla: vanilla/01-mount.ts
+react: tutorial/Chapter01.tsx
+---
+
+## What just happened
+
+You mounted a fully-featured node-graph editor in three steps:
+
+1. **Init.** `XenolithEditor.init(target)` creates a PIXI v8 canvas, wires interactions (pan, zoom, drag, selection, Tab palette), and applies the default *Xen* theme. No CSS to import, no theme tokens to wire.
+2. **Load JSON.** The graph is plain data in our `xenolith.v1` format — the same JSON renders the same scene in every framework adapter. No imperative node construction.
+3. **Frame.** `fitView` centres and zooms the loaded content into view.
+
+## Try it
+
+- Drag the *Greeter* node — interaction is already live.
+- Edit the *Message* widget — text inputs work out of the box.
+- Press <kbd>Tab</kbd> to open the palette. You'll see only *Comment* and *Reroute* — those are the editor's built-in node types. **Greeter isn't there** because we loaded it from JSON without telling the editor what a *Greeter* is. That's exactly what Chapter 2 fixes.
+- Click the chip switcher below the preview to swap between the **JS** and **React** implementations — both load the exact same graph JSON.
+
+## Why JSON, not JavaScript
+
+Throughout this tutorial, the graph itself is always JSON. The host language (JS, React, Vue, Svelte) does the wiring — events, controlled state, UI chrome — but the graph data stays in a single portable file. That's the contract that lets you load a graph in the editor today and execute it in a worker, on the server, or inside an agent tomorrow.
+
+## Next
+
+You shipped one node. In the next chapter, you'll define *your own* node type — give it pins, a label, a default state — and instantiate it from JSON.

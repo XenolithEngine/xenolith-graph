@@ -1,0 +1,58 @@
+---
+id: 03-connect-edges
+order: 3
+title: Connect nodes with typed edges
+blurb: Two registered types, one wire between them — and the editor refuses to connect mismatched types.
+delta: Register a second schema, declare an edge in JSON, see typed validation at work.
+vanilla: vanilla/03-connect-edges.ts
+react: tutorial/Chapter03.tsx
+---
+
+## A second type — and an edge
+
+The scene grows: we add a `ToUpper` schema (string in → string out, *Transform* category) and connect it to the Greeter from the previous chapter. The new pieces in JSON:
+
+```js
+nodes: [
+  { id: 'greeter', type: 'Greeter', position: { x: -220, y: 0 }, state: { msg: 'Hello, Xenolith' } },
+  { id: 'upper',   type: 'ToUpper', position: { x:  180, y: 0 }, state: {} },
+],
+edges: [
+  { id: 'e1',
+    from: { node: 'greeter', pin: 'greeter:Out' },
+    to:   { node: 'upper',   pin: 'upper:In'   } },
+],
+```
+
+Pin ids are deterministic — `${nodeId}:${pin.label}`. That's the contract: when a node omits its pins (and the parser mints them from the schema), the resulting pin ids follow this exact rule. Edges in compact JSON can target them by name, no opaque uuids.
+
+## Try it
+
+- Drag a wire **from** the *Greeter*'s **Out** pin: you can drop it on the *ToUpper*'s **In** pin (already connected) or anywhere on a *ToUpper* node — the editor's auto-connect finds the right pin.
+- Try dragging into the *Greeter*'s **own** *Out* pin: refused (an `out → out` is meaningless).
+- Spawn a new node from <kbd>Tab</kbd>: search "upper", drop one. You can chain `greeter → upper1 → upper2 → …`.
+- Hover an edge near its midpoint: a tiny dot appears — click it to insert a reroute or split the wire.
+
+## Pin types do real work
+
+The `type` field on each pin (`'string'`, `'int'`, …) drives two things:
+
+1. **Validation.** The interaction layer asks "can this source pin connect to that target pin?" and refuses incompatible pairs. Try registering a *Counter* schema with an `int` out pin and dragging it to ToUpper's `string` in — denied. (Types can declare compatibility through `editor.types.registerConversion(...)` — covered later.)
+2. **Wire colour.** The Xen theme tints each wire by its source pin type. Two strings → one colour; mix data types and you see the palette light up.
+
+A schema is the SHAPE; pin types are the CONTRACTS. Together they make graphs that fail loudly at edit time rather than silently at run time.
+
+## Multiplicity (`multiple: true` vs `false`)
+
+- `multiple: true` on an OUT pin → can fan out to many target pins (one source, many readers).
+- `multiple: false` on an IN pin → at most one wire (the typical default — one value source per input).
+
+Our Greeter's `out` is `multiple: true`; ToUpper's `in` is `multiple: false`. Want to A/B-test a transformer? Wire Greeter to two different uppercases (and downstream nodes) — it just works.
+
+## What we still don't do
+
+The Greeter and ToUpper are *types*, not *runtimes*. They render and validate; nothing yet *executes*. Wiring up a real run loop is chapter 7. Up next: **widgets** — the bits inside a node that let your user change its state.
+
+## Next
+
+Widgets — slider, number, combo, color, custom canvas. Per-instance state, conditional visibility, the `key` ↔ pin binding that quietly powers default values.

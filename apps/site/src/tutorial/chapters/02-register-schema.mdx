@@ -1,0 +1,59 @@
+---
+id: 02-register-schema
+order: 2
+title: Register your first node type
+blurb: Declare a NodeSchema once. JSON nodes shrink to id + position + state — the editor mints pins and widgets from the schema.
+delta: Add `editor.registry.register(schema)` before `loadJSON` — and watch the JSON collapse.
+vanilla: vanilla/02-register-schema.ts
+react: tutorial/Chapter02.tsx
+---
+
+## What changed
+
+Chapter 1's JSON was honest but bloated — every node repeated its pins and widgets in full. That repetition exists for one good reason (graphs that ship without any code can still be deserialized — viewers, diff tools, headless runtimes) and one bad one (we hadn't introduced schemas yet). Now we have schemas.
+
+A `NodeSchema` is a tiny data object that describes a *type*. Register it with the editor and:
+
+- the palette lists it (`title`, `description`, `keywords`)
+- the header takes the schema's `category` tint
+- the editor mints pins on every instance from the schema's pins (deterministic ids — `${node.id}:${pin.label}` — so edges in JSON keep resolving)
+- widgets are seeded the same way
+
+The JSON for each node collapses to **id + type + position + state**. That's it.
+
+## Try it
+
+- Look at the Greeter — same node as chapter 1, but the header now has the *Data* category tint (the schema's category, applied automatically).
+- Press <kbd>Tab</kbd> — search "greeter" or "hello". You'll find **Greeter** in the palette now. Spawn a second one.
+- The new node arrives with the schema's *structure* — title, pins, the *Message* widget — but the widget is empty (placeholder shows "Hello, Xenolith"). Schema-level defaults are empty per widget type (`text` → `""`); concrete starting values live in JSON, on the instance.
+- Compare side-by-side: open the *JS* code panel — the `graph` object is now five lines for the node entry. No pin or widget repetition.
+
+## Compact JSON, behind the scenes
+
+`editor.loadJSON(graph)` passes the registry into the parser. For each node:
+
+1. If `pins` is present in JSON, use it (this is the escape hatch for dynamic-pin schemas).
+2. If `pins` is missing AND the type is registered, mint pins from the schema.
+3. If `pins` is missing AND the type is NOT registered, the parser throws with a clear message.
+
+The same logic applies to widgets and to `render.category`. Old graphs that ship explicit pins continue to work unchanged — none of this is breaking.
+
+## Self-describing graphs (optional)
+
+The `xenolith.v1` envelope also supports a top-level `schemas[]` array. Drop your schemas inline:
+
+```js
+const graph = {
+  version: 'xenolith.v1',
+  schemas: [greeterSchema],
+  nodes: [{ id: 'greeter', type: 'Greeter', position: { x: 0, y: 0 }, state: { msg: 'Hi' } }],
+  edges: [],
+}
+editor.loadJSON(graph) // registers schemas[] for you, then loads the nodes
+```
+
+Use this when the graph is meant to render *anywhere* without the host pre-registering types — agents emitting JSON, file-shared scenes, the MCP server.
+
+## Next
+
+Two unconnected nodes is just a scene. Next chapter: **typed edges** — connect a string Out to a string In, watch the editor refuse a mismatched type, and learn how pin types drive both validation and the wire colour.

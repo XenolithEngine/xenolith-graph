@@ -1,0 +1,53 @@
+---
+import TutorialLayout from '../../layouts/TutorialLayout.astro'
+import { TUTORIAL } from '../../tutorial/manifest.ts'
+const base = import.meta.env.BASE_URL
+---
+<TutorialLayout
+  title="Learn XenolithGraph — a step-by-step tutorial"
+  description="A guided, hands-on path from blank canvas to a running graph. Each chapter builds on the previous one — JS and React side-by-side."
+  path="/learn/"
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: 'Learn XenolithGraph',
+    description: 'A linear hands-on tutorial covering mount, node types, connections, widgets, events, save/load, executing a graph, and themes.',
+    provider: { '@type': 'Organization', name: 'XenolithEngine' },
+  }}
+>
+  <div style="font: 11px var(--xn-mono, ui-monospace, monospace); text-transform: uppercase; letter-spacing: .08em; color: #7a7a7a; margin-bottom: 6px;">Tutorial</div>
+  <h1 style="margin: 0 0 8px; font-size: 32px;">Learn XenolithGraph</h1>
+  <p style="margin: 0 0 32px; max-width: 70ch; color: #b0b0b0; font-size: 16px; line-height: 1.6;">
+    A linear, hands-on path from blank canvas to a running graph. Each chapter introduces one
+    new concept on top of the previous one — same graph, growing capabilities. Switch between
+    <strong style="color:#fff;">JS</strong> and <strong style="color:#fff;">React</strong> in
+    every chapter — the editor is one library; only the host language changes.
+  </p>
+
+  <ol class="chap-list">
+    {TUTORIAL.map((c, i) => (
+      <li class="chap-item">
+        <a href={`${base}/learn/${c.id}/`} class="chap-link">
+          <span class="chap-no">{String(i + 1).padStart(2, '0')}</span>
+          <span class="chap-body">
+            <strong class="chap-title">{c.title}</strong>
+            <span class="chap-blurb">{c.blurb}</span>
+            <span class="chap-delta">{c.delta}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+
+  <style>
+    .chap-list { list-style: none; counter-reset: chap; margin: 0; padding: 0; max-width: 760px; }
+    .chap-item { margin: 10px 0; }
+    .chap-link { display: flex; gap: 18px; align-items: flex-start; padding: 16px 20px; border: 1px solid #232323; border-radius: 12px; background: #181818; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+    .chap-link:hover { border-color: var(--xn-gold, #FCB400); transform: translateY(-1px); }
+    .chap-no { font: 600 13px var(--xn-mono, ui-monospace, monospace); color: var(--xn-gold, #FCB400); padding-top: 3px; flex: 0 0 32px; letter-spacing: .04em; }
+    .chap-body { display: flex; flex-direction: column; gap: 4px; }
+    .chap-title { font-size: 17px; color: #fff; }
+    .chap-blurb { font-size: 14px; color: #b0b0b0; line-height: 1.5; }
+    .chap-delta { font-size: 12px; color: #7a7a7a; margin-top: 2px; font-style: italic; }
+  </style>
+</TutorialLayout>

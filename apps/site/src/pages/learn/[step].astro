@@ -1,0 +1,135 @@
+---
+import TutorialLayout from '../../layouts/TutorialLayout.astro'
+import DemoFrame from '../../components/DemoFrame.astro'
+import TutorialReactChapter from '../../tutorial/TutorialReactChapter.tsx'
+import { TUTORIAL, prevChapter, nextChapter, chapterImpls, type TutorialChapter } from '../../tutorial/manifest.ts'
+import type { ExampleDef, Framework } from '../../examples/manifest.ts'
+
+export function getStaticPaths() {
+  return TUTORIAL.map((c) => ({ params: { step: c.id }, props: { chapter: c } }))
+}
+
+const { chapter } = Astro.props as { chapter: TutorialChapter }
+const base = import.meta.env.BASE_URL
+
+const REACT_RAW   = import.meta.glob('../../../../demo-react/src/**/*.{tsx,ts,css}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const SHARED_RAW  = import.meta.glob('../../../../shared/**/*.{ts,tsx,json}',        { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const VANILLA_RAW = import.meta.glob('../../tutorial/vanilla/**/*.{ts,tsx,css}',     { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const codeFor = (rel: string): string => {
+  const raw = rel.startsWith('shared/')
+    ? SHARED_RAW[`../../../../shared/${rel.slice('shared/'.length)}`]
+    : rel.startsWith('vanilla/')
+      ? VANILLA_RAW[`../../tutorial/${rel}`]
+      : REACT_RAW[`../../../../demo-react/src/${rel}`]
+  return (raw ?? `// missing: ${rel}`).trimEnd()
+}
+const langOf = (rel: string): string => {
+  const ext = rel.split('.').pop()
+  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : 'tsx'
+}
+const impls = chapterImpls(chapter)
+const files = Object.entries(impls).flatMap(([fw, impl]) =>
+  impl!.files.map((rel) => ({ framework: fw as Framework, name: rel.split('/').pop()!, code: codeFor(rel), lang: langOf(rel) })),
+)
+
+// DemoFrame expects an ExampleDef shape — we synthesise one since the fields DemoFrame actually
+// reads (id + impls) match exactly.
+const exampleForFrame: ExampleDef = {
+  id: chapter.id, title: chapter.title, blurb: chapter.blurb,
+  category: 'Tutorial', impls,
+}
+
+const hasReact   = !!impls.react
+const hasVanilla = !!impls.vanilla
+const prev = prevChapter(chapter.id)
+const next = nextChapter(chapter.id)
+const step = TUTORIAL.findIndex((c) => c.id === chapter.id) + 1
+const total = TUTORIAL.length
+const { Content } = chapter
+---
+<TutorialLayout
+  title={`${chapter.title} — Learn XenolithGraph`}
+  description={chapter.blurb}
+  path={`/learn/${chapter.id}/`}
+  activeId={chapter.id}
+>
+  <div style="font: 11px var(--xn-mono, ui-monospace, monospace); text-transform: uppercase; letter-spacing: .08em; color: #7a7a7a; margin-bottom: 6px;">Chapter {step} of {total}</div>
+  <h1 style="margin: 0 0 6px; font-size: 30px;">{chapter.title}</h1>
+  <p style="margin: 0 0 24px; color: #b0b0b0; max-width: 70ch; font-size: 16px; line-height: 1.5;">{chapter.blurb}</p>
+
+  <DemoFrame example={exampleForFrame} files={files}>
+    {/* Both vanilla + React always render so each can hot-swap on chip click — but only the active
+     * one is visible. Without an initial `.dfr-hidden` on the inactive pane, two editors mount in
+     * the same overlapping rect and their overlay panels stack on top of each other. The active
+     * default mirrors DemoFrame's chip logic: vanilla wins when present. */}
+    {hasVanilla && (
+      <div data-fw="vanilla" style="position:absolute;inset:0;">
+        <div id={`xen-tut-vanilla-${chapter.id}`} data-tutorial-chapter-id={chapter.id} style="position:absolute;inset:0;"></div>
+      </div>
+    )}
+    {hasReact && (
+      <div data-fw="react" class={hasVanilla ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+        <TutorialReactChapter id={chapter.id} client:only="react" />
+      </div>
+    )}
+  </DemoFrame>
+
+  {hasVanilla && (
+    <script>
+      // Static import → Vite resolves the path at build/dev time. Chapter id is read off a data-
+      // attr so a single script can handle every chapter without `define:vars` (which would force
+      // the script inline and break the import).
+      import { mountVanillaChapter } from '../../tutorial/VanillaMount.ts'
+      const target = document.querySelector('[data-tutorial-chapter-id]')
+      const id = target?.getAttribute('data-tutorial-chapter-id')
+      if (target instanceof HTMLElement && id) {
+        let dispose = await mountVanillaChapter(id, target)
+        document.addEventListener('xeno:reset', async (e) => {
+          const detail = (e instanceof CustomEvent ? e.detail : null) ?? null
+          if (detail?.id && detail.id !== id) return
+          if (typeof dispose === 'function') dispose()
+          target.innerHTML = ''
+          dispose = await mountVanillaChapter(id, target)
+        })
+      }
+    </script>
+  )}
+
+  <article class="tut-narrative">
+    <Content />
+  </article>
+
+  <nav class="tut-nav-foot">
+    {prev
+      ? <a href={`${base}/learn/${prev.id}/`} class="tut-navlink"><span class="tut-navlink-dir">← Previous</span><span class="tut-navlink-title">{prev.title}</span></a>
+      : <span></span>}
+    {next
+      ? <a href={`${base}/learn/${next.id}/`} class="tut-navlink right"><span class="tut-navlink-dir">Next →</span><span class="tut-navlink-title">{next.title}</span></a>
+      : <a href={`${base}/examples/`} class="tut-navlink right"><span class="tut-navlink-dir">Done — explore →</span><span class="tut-navlink-title">All examples</span></a>}
+  </nav>
+
+  <style is:global>
+    /* PIXI's default canvas is 800x600 — taller than DemoFrame's 460px preview. Without a clip,
+     * the canvas spills downward and covers the chip-switcher row below. Clip preview to keep
+     * the framework chips reachable. Tutorial pages only. */
+    .tut-main .dfr-preview { overflow: hidden; }
+  </style>
+  <style>
+    .tut-narrative { font-size: 15.5px; line-height: 1.7; color: #d4d4d4; margin-top: 36px; }
+    .tut-narrative :global(h2) { font-size: 18px; font-weight: 600; color: #fff; margin: 32px 0 10px; }
+    .tut-narrative :global(p), .tut-narrative :global(ul), .tut-narrative :global(ol) { max-width: 70ch; }
+    .tut-narrative :global(ul), .tut-narrative :global(ol) { padding-left: 22px; }
+    .tut-narrative :global(li) { margin: 6px 0; }
+    .tut-narrative :global(code) { font-family: var(--xn-mono, ui-monospace, monospace); font-size: .92em; background: #1d1d1d; padding: 1px 6px; border-radius: 4px; border: 1px solid #2a2a2a; color: #e8e8e8; }
+    .tut-narrative :global(kbd) { font-family: var(--xn-mono, ui-monospace, monospace); font-size: .85em; background: #1d1d1d; padding: 1px 6px; border-radius: 4px; border: 1px solid #3a3a3a; color: var(--xn-gold, #FCB400); box-shadow: 0 1px 0 #000; }
+    .tut-narrative :global(strong) { color: #fff; font-weight: 600; }
+    .tut-narrative :global(em) { color: #e8e8e8; font-style: italic; }
+    .tut-narrative :global(pre) { margin: 14px 0; border-radius: 8px; }
+    .tut-nav-foot { display:flex; justify-content:space-between; gap:12px; margin-top:48px; padding-top:24px; border-top:1px solid #232323; }
+    .tut-navlink { display:flex; flex-direction:column; gap:4px; text-decoration:none; padding:14px 18px; border:1px solid #2a2a2a; border-radius:10px; background:#181818; min-width:220px; }
+    .tut-navlink:hover { border-color:var(--xn-gold,#FCB400); }
+    .tut-navlink.right { text-align:right; align-items:flex-end; }
+    .tut-navlink-dir { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#7a7a7a; }
+    .tut-navlink-title { font-size:14px; color:#fff; font-weight:500; }
+  </style>
+</TutorialLayout>

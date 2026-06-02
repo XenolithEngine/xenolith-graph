@@ -9,23 +9,24 @@ description: All initialisation options for XenolithEditor.
 
 ```ts
 interface XenolithEditorOptions {
-  /** Deep-partial theme override merged into the bundled Xen tokens. */
-  theme?: DeepPartial<XenTokens>
+  /** A full XenolithTheme (Xen, Liquid Glass, …) or a partial token override deep-merged into Xen.
+   *  Swap at runtime via `editor.setTheme(...)`. */
+  theme?: XenolithTheme | DeepPartial<XenTokens>
 
-  /** Canvas background. Defaults to the Xen canvas color (#1A1A1A). */
+  /** Canvas background. Defaults to the active theme's canvas color. */
   background?: string
 
   /** Auto-resize the canvas with the window. Defaults to `true`. */
   resizeToWindow?: boolean
 
-  /** Preferred renderer. PIXI v8 picks the best available; we default to `'webgl'`. */
+  /** Preferred renderer. Defaults to `'webgl'`. */
   renderer?: 'webgl' | 'webgpu'
 
-  /** Initial viewport state {x, y, zoom}. Defaults to identity. */
+  /** Initial viewport state `{x, y, zoom}`. Defaults to identity. */
   viewport?: ViewportState
 
-  /** Min/max zoom bounds. Defaults to [0.25, 2] — text begins to pixelate past 2×. */
-  zoomBounds?: [number, number]
+  /** Min/max zoom bounds. Defaults to `[0.05, 16]`. */
+  zoomBounds?: readonly [min: number, max: number]
 
   /** Disable pan/zoom and node click interaction. Defaults to `false`. */
   disableInteraction?: boolean
@@ -33,8 +34,21 @@ interface XenolithEditorOptions {
   /** Hide the dot grid behind the world. Defaults to `false`. */
   disableGrid?: boolean
 
-  /** Snap cell size in world pixels when dragging nodes. Hold Alt to disable. Defaults to `8`. */
+  /** Snap cell size in world pixels when dragging. Hold Alt to disable. Defaults to `8`. */
   snap?: number
+
+  /** Show the overview minimap. `true` uses the default (bottom-right) placement; pass an object
+   *  for an explicit corner/edge anchor. Toggle later via `editor.setMinimapVisible(bool)`. */
+  minimap?: boolean | { position?: MinimapPosition }
+
+  /** Show the built-in viewport controls (zoom / fit / reset / undo·redo / save / lock). `true`
+   *  uses defaults; pass an object for position/orientation/buttons. Toggle later via
+   *  `editor.setControls(...)`. */
+  controls?: boolean | ControlsOptions
+
+  /** Custom connection guard, on top of the built-in type check. Return `false` to reject a wire.
+   *  Receives the normalised out → in endpoints. Update at runtime via `editor.setIsValidConnection`. */
+  isValidConnection?: (connection: ConnectionRequest) => boolean
 }
 ```
 

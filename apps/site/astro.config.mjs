@@ -69,7 +69,8 @@ export default defineConfig({
           label: 'Explore',
           translations: { ru: 'Обзор', zh: '探索' },
           items: [
-            { label: 'Examples', link: '/examples/', attrs: { target: '_self' } },
+            { label: 'Learn',      link: '/learn/',      attrs: { target: '_self' } },
+            { label: 'Examples',   link: '/examples/',   attrs: { target: '_self' } },
             { label: 'Playground', link: '/playground/', attrs: { target: '_self' } },
           ],
         },

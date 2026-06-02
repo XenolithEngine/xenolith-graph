@@ -114,6 +114,12 @@ export const EXAMPLES: ExampleDef[] = [
       vanilla: { files: ['vanilla/breadcrumb-dive.ts', 'shared/breadcrumb-dive.ts'] },
       react:   { files: ['demos/BreadcrumbDiveDemo.tsx', 'shared/breadcrumb-dive.ts'] },
     } },
+  { id: 'palette-sidebar', title: 'Palette sidebar (drag to spawn)', category: 'Interaction',
+    blurb: '16 schemas across 5 categories (data / math / transform / logic / io) listed in a docked palette on the left. Drag any tile onto the canvas — the editor inserts the node at the drop point via its built-in `node:drop` handler. Configure with `editor.setPaletteSidebar({ side, filter })`.',
+    impls: {
+      vanilla: { files: ['vanilla/palette-sidebar.ts', 'shared/palette-sidebar.ts'] },
+      react:   { files: ['demos/PaletteSidebarDemo.tsx', 'shared/palette-sidebar.ts'] },
+    } },
   { id: 'connection-validation', title: 'Connection validation', category: 'Interaction',
     blurb: 'Typed Blueprint pins refuse mismatched wires automatically (a string won’t plug into a number). A custom guard adds cycle prevention on top. Every attempt is logged live.',
     impls: { react: { files: ['shared/connection-validation.json', 'demos/ConnectionValidationDemo.tsx', 'shared/connection-validation.ts'] } } },

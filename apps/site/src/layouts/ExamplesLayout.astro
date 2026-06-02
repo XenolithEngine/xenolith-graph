@@ -21,10 +21,11 @@ const { title, activeId, description, path, thumb, jsonLd, llmsAlt } = Astro.pro
 const base = import.meta.env.BASE_URL
 const desc = description ?? 'A polished, embeddable node-graph editor for the web — Blueprint-style pins, in-node widgets, macros, AI-native via MCP. Live examples gallery.'
 const nav = [
-  { label: 'Docs', href: `${base}/guides/install/` },
-  { label: 'Examples', href: `${base}/examples/` },
+  { label: 'Learn',      href: `${base}/learn/` },
+  { label: 'Docs',       href: `${base}/guides/install/` },
+  { label: 'Examples',   href: `${base}/examples/` },
   { label: 'Playground', href: `${base}/playground/` },
-  { label: 'GitHub', href: 'https://github.com/XenolithEngine/xenolith-graph' },
+  { label: 'GitHub',     href: 'https://github.com/XenolithEngine/xenolith-graph' },
 ]
 const byCat = CATEGORY_ORDER
   .map((cat) => ({ cat, items: EXAMPLES.filter((e) => e.category === cat) }))

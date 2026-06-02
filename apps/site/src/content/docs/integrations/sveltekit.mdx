@@ -39,15 +39,20 @@ pnpm add @xenolith/editor @xenolith/wc pixi.js
 ```svelte
 <!-- src/lib/Editor.svelte -->
 <script lang="ts">
-  import { XenolithGraph } from '@xenolith/svelte'
+  import { xenolith } from '@xenolith/svelte'
   import { myGraph } from '$lib/data'
+
+  const onNodeClick = (e: CustomEvent) => console.log('clicked', e.detail.nodeId)
 </script>
 
-<XenolithGraph
-  className="xeno"
-  onReady={(editor) => { editor.loadJSON(myGraph); editor.fitView() }}
-/>
+<div
+  use:xenolith={{ graph: myGraph, fitOnLoad: true, minimap: true }}
+  on:node-click={onNodeClick}
+  style="height:100vh"
+></div>
 ```
+
+The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a component. Pass the graph + options as props; the action re-dispatches every editor event off the host element as a kebab-named `CustomEvent` (`node-click`, `edge-connected`, `selection-changed`, …). For imperative setup that needs the editor instance (registering schemas, custom plugins), use pattern 2 (Web Component) and listen for its `ready` event.
 
 ## Pattern 2 — Web Component (framework-neutral)
 
@@ -56,22 +61,21 @@ pnpm add @xenolith/editor @xenolith/wc pixi.js
 <script lang="ts">
   import { browser } from '$app/environment'
   import { onMount } from 'svelte'
+  import { myGraph } from '$lib/data'
 
-  let host: HTMLDivElement
+  let el: HTMLElement
   onMount(async () => {
     if (!browser) return
     await import('@xenolith/wc') // registers <xenolith-graph>
-    const editor = host.querySelector('xenolith-graph')! as any
-    editor.addEventListener('ready', (e: CustomEvent) => {
-      e.detail.editor.loadJSON({ /* … */ })
-      e.detail.editor.fitView()
-    })
+    // The WC takes `graph` via the JS property — set it after the element is in the DOM and the
+    // editor mounts itself + loads it. For imperative work (registering schemas, plugins) poll
+    // `el.editor` until it's non-null.
+    ;(el as any).graph = myGraph
+    ;(el as any).setAttribute('fit-on-load', '')
   })
 </script>
 
-<div bind:this={host} style="height:100vh">
-  <xenolith-graph class="xeno"></xenolith-graph>
-</div>
+<xenolith-graph bind:this={el} class="xeno" minimap style="display:block;height:100vh"></xenolith-graph>
 ```
 
 ## Disable SSR for editor routes

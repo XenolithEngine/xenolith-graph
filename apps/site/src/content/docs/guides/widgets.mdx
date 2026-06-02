@@ -46,10 +46,12 @@ Set `visibility: 'always'` to make the widget render even when its pin is wired 
 ### Reading and writing values
 
 ```ts
-editor.getWidgetValue(nodeId, 'intensity')
-editor.setWidgetValue(nodeId, 'intensity', 0.4)
-editor.setWidgetValue(nodeId, 'intensity', 0.4, { ephemeral: true }) // skip command bus (no undo entry)
+editor.getWidgetValue(nodeId, widgetId)
+editor.setWidgetValue(nodeId, widgetId, value)
+editor.setWidgetValue(nodeId, widgetId, value, { ephemeral: true }) // skip command bus (no undo entry)
 ```
+
+The second parameter is the widget's `id` field (the stable identifier you set in the schema). It often matches `key` (the path into `node.state`), but they're conceptually distinct — `id` is for addressing the widget; `key` is for state lookup.
 
 ## Conditional visibility (`displayOptions.show`)
 

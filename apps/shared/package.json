@@ -25,7 +25,8 @@
     "./edge-paths": "./edge-paths.ts",
     "./properties-sidebar": "./properties-sidebar.ts",
     "./breadcrumb-dive": "./breadcrumb-dive.ts",
-    "./conditional-widgets": "./conditional-widgets.ts"
+    "./conditional-widgets": "./conditional-widgets.ts",
+    "./palette-sidebar": "./palette-sidebar.ts"
   },
   "types": "./demo-graph.ts",
   "dependencies": {

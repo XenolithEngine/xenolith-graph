@@ -318,10 +318,14 @@ export function renderWidgets(
       continue
     }
 
+    // Labels sit at the row's LEFT EDGE (row-local x=0) — aligned with the bg-box's left edge for
+    // text/combo, and with the row's outer margin for boxless widgets (toggle/color/slider). The
+    // OUTER outer-padX already insets the row inside the node; the label re-applying its own padX
+    // would shift it RIGHT of the box and break label-stack alignment vertically.
     const label = (text: string, color = c.label, align: 'left' | 'right' = 'left'): BitmapText => {
       const t = new BitmapText({ text, style: { fontFamily, fontSize: labelSize, fontWeight: '500', fill: color } })
       t.anchor.set(align === 'right' ? 1 : 0, 0.5)
-      t.position.set(align === 'right' ? rect.width - padX : padX, rect.height / 2)
+      t.position.set(align === 'right' ? rect.width : 0, rect.height / 2)
       return t
     }
 
@@ -337,21 +341,42 @@ export function renderWidgets(
 
     switch (spec.type) {
       case 'number':
-      case 'slider':
+      case 'slider': {
+        // Number + slider are SINGLE-row with label INSIDE the track / field, so the label gets
+        // inset by padX (and the right-aligned value by the same on the right) — otherwise the
+        // text touches the rounded corner. Box-style labels (text/combo) sit ABOVE the box and
+        // align with the row's left edge — that's handled by the helper's x=0 default.
         if (spec.type === 'number') field(bg)
         else bg.roundRect(0, 0, rect.width, rect.height, radius).fill({ color: c.track })
-        row.addChild(label(spec.label))
-        valueText = label('', c.text, 'right')
+        const lab = label(spec.label); lab.position.x = padX
+        row.addChild(lab)
+        valueText = label('', c.text, 'right'); valueText.position.x = rect.width - padX
         row.addChild(valueText)
         break
+      }
       case 'combo': {
-        field(bg)
-        const cx = rect.width - padX, cy = rect.height / 2
+        // Same vertical structure as the text widget: label on its own row above the field box.
+        // Keeps every box-style widget (text + combo) aligned to the SAME left margin, so labels
+        // line up across the whole node. A label-less combo collapses to a single-row box.
+        const hasLabel = spec.label.length > 0
+        const boxTop = hasLabel ? wRowHeight : 0
+        bg.roundRect(0, boxTop, rect.width, rect.height - boxTop, radius).fill({ color: c.bg }).stroke({ color: c.border, width: borderW })
+        if (hasLabel) {
+          const lab = label(spec.label)
+          lab.anchor.set(0, 0.5); lab.position.set(0, boxTop / 2)
+          row.addChild(lab)
+        }
+        // Chevron inside the field box (vertically centred in the box, not the whole row).
+        const cx = rect.width - padX, cy = boxTop + (rect.height - boxTop) / 2
         bg.moveTo(cx - 7, cy - 2).lineTo(cx - 3.5, cy + 2).lineTo(cx, cy - 2).stroke({ color: c.label, width: 1.2 })
-        valueText = label('', c.text, 'left')
+        // Value text inside the field box, left-aligned (matches the placeholder/value position of
+        // the text widget). Anchor (0, 0.5) + y at box centre.
+        valueText = new BitmapText({ text: '', style: { fontFamily, fontSize: labelSize, fontWeight: '500', fill: c.text } })
+        valueText.anchor.set(0, 0.5)
+        valueText.position.set(padX, cy)
         row.addChild(valueText)
-        // Clip so a long value doesn't run under/past the chevron.
-        const clip = new Graphics().rect(padX, 0, rect.width - padX * 2 - 8, rect.height).fill({ color: 0xffffff })
+        // Clip so a long value doesn't bleed past the chevron.
+        const clip = new Graphics().rect(padX, boxTop, rect.width - padX * 2 - 8, rect.height - boxTop).fill({ color: 0xffffff })
         row.addChild(clip)
         valueText.mask = clip
         break
@@ -364,7 +389,7 @@ export function renderWidgets(
         bg.roundRect(0, boxTop, rect.width, rect.height - boxTop, radius).fill({ color: c.bg }).stroke({ color: c.border, width: borderW })
         if (hasLabel) {
           const lab = label(spec.label)
-          lab.anchor.set(0, 0.5); lab.position.set(padX, boxTop / 2)
+          lab.anchor.set(0, 0.5); lab.position.set(0, boxTop / 2)
           row.addChild(lab)
         }
         // Editable text VALUE stays a regular Text (not BitmapText) so its vertical metrics match

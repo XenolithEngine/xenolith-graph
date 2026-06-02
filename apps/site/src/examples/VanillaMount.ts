@@ -13,6 +13,7 @@ const MAP: Record<string, () => Promise<{ mount: Mount }>> = {
   'properties-sidebar': () => import('./vanilla/properties-sidebar.ts'),
   'breadcrumb-dive':    () => import('./vanilla/breadcrumb-dive.ts'),
   'conditional-widgets': () => import('./vanilla/conditional-widgets.ts'),
+  'palette-sidebar':    () => import('./vanilla/palette-sidebar.ts'),
 }
 
 export function hasVanilla(id: string): boolean { return id in MAP }

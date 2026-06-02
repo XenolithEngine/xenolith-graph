@@ -1,0 +1,65 @@
+---
+id: 08-make-it-yours
+order: 8
+title: Make it yours — themes, minimap, custom widgets
+blurb: "The polish pass: swap themes at runtime, dock a minimap, paint a custom widget in canvas."
+delta: Theme switcher (Xen / Liquid Glass), minimap on, custom level bar widget on the Mixer.
+vanilla: vanilla/08-make-it-yours.ts
+react: tutorial/Chapter08.tsx
+---
+
+## The polish pass
+
+The basics work; now make it your editor. Three orthogonal patterns:
+
+1. **Themes** — `editor.setTheme(...)` swaps the active visual theme at runtime. Chrome you authored against `--xeno-*` CSS variables (toolbars, sidebars, panels) restyles for free.
+2. **Minimap** — a single init flag. Drops a screen-space minimap in the bottom-right that tracks pan/zoom.
+3. **Custom widgets** — when the built-in widget types don't cover what you need, drop into a 2D canvas. Two functions: `draw(ctx, context)` paints, `onPointer(phase, x, y, context)` returns the new value on drag.
+
+## Try it
+
+- Click **Liquid Glass** in the top-right toolbar — the entire scene re-themes: nodes, edges, backdrop, control chrome. Click **Xen** to switch back.
+- Drag the level bar on the *Mixer* node — `Level` ticks from 0% to 100%. The value lives in `node.state.level`, just like a built-in widget; undoable; serialisable.
+- The minimap bottom-right tracks pan/zoom. Drag it, click inside it — standard chrome.
+
+## Custom widget — the contract
+
+```js
+const levelWidget: CanvasWidgetController = {
+  draw(ctx, { value, width, height, accent, muted }) {
+    // pure 2D canvas — paint anything
+  },
+  onPointer(phase, x, y, ctx) {
+    // return the new value while phase is 'down' or 'move'; undefined to keep current
+  },
+}
+```
+
+Schema-side:
+
+```js
+{ id: 'level', type: 'custom', key: 'level', renderer: 'level', label: 'Level', height: 56, freeFloating: true }
+```
+
+Then `editor.registerWidget('level', levelWidget)` before `loadJSON`. The renderer string in the schema matches the registered name; one controller can power many nodes.
+
+There's a sibling contract — `DomWidgetController` — for mounting a real React/Vue/Svelte component into the widget rect. The editor positions the element over the canvas in screen space, kept in sync with pan/zoom/drag. That's how the framework-native sub-widgets (e.g. CodeMirror, async select, sparkline) plug in. Covered in the integration guides.
+
+## What we *didn't* show
+
+The polish pass keeps going — pick what your product needs:
+
+- **Properties sidebar** — `editor.openSidebar(nodeId)` docks a side panel listing every widget on the node (use `showInSidebar: true` per widget to opt in). Same controls, more screen.
+- **Search palette** — already there (<kbd>Tab</kbd>). Configure with `setPaletteSidebar(true)` for a persistent left rail.
+- **Breadcrumb / template dive** — `editor.diveIntoTemplate(id)` enters a reusable subgraph; `setBreadcrumbVisible(true)` shows the navigation strip.
+- **Save / export image** — `editor.exportImage('png')` rasterises the current viewport. Themed save dropdown ships in the editor controls.
+- **MCP server** — point Claude Desktop / Cursor at `@xenolith/mcp-server` and ask "build me a RAG pipeline" — the AI fills your editor.
+- **Multi-framework adapters** — React, Vue, Svelte, Solid, Angular. Same editor, different host idiom.
+
+## You're done
+
+Mount → schemas → connections → widgets → events → save/load → execution → polish. That's the full loop from blank canvas to a runtime your users can ship. Everything beyond this point is product-shaped: what types do *your* domain need, what does *your* runtime do with them, what theme suits *your* aesthetic.
+
+Recipes for common shapes — RAG pipelines, image filters, audio synths, agent workflows — live in the [Examples gallery](/examples/). The full API reference is in [Docs](/guides/install/). The [playground](/playground/) is one click away if you just want to mess around.
+
+Welcome aboard.

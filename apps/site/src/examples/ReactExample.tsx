@@ -32,6 +32,7 @@ import { TimeTravelDemo } from '../../../demo-react/src/demos/TimeTravelDemo'
 import { GraphDiffDemo } from '../../../demo-react/src/demos/GraphDiffDemo'
 import { HeatmapDemo } from '../../../demo-react/src/demos/HeatmapDemo'
 import { StressTestDemo } from '../../../demo-react/src/demos/StressTestDemo'
+import { PaletteSidebarDemo } from '../../../demo-react/src/demos/PaletteSidebarDemo'
 
 const MAP: Record<string, ComponentType> = {
   'llm-builder': LLMBuilderDemo,
@@ -50,6 +51,7 @@ const MAP: Record<string, ComponentType> = {
   'properties-sidebar': PropertiesSidebarDemo,
   'breadcrumb-dive': BreadcrumbDiveDemo,
   'conditional-widgets': ConditionalWidgetsDemo,
+  'palette-sidebar': PaletteSidebarDemo,
   'mcp-live': MCPDemo,
   'step-debugger': StepDebuggerDemo,
   'time-travel': TimeTravelDemo,
