@@ -207,7 +207,7 @@ export function importComfyWorkflow(input: unknown): ComfyImportResult {
   // the link's `type` field, which ComfyUI frequently leaves numeric/empty — most visibly on the
   // wires leaving a Reroute, which would otherwise render grey/white while the knot is coloured.
   const pinType = new Map<string, string>()
-  for (const n of nodes) for (const p of n.pins) pinType.set(p.id, String(p.type))
+  for (const n of nodes) for (const p of n.pins ?? []) pinType.set(p.id, String(p.type))
 
   const edges: XenolithEdgeV1[] = []
   for (const link of wf.links ?? []) {

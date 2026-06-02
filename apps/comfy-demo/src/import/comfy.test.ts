@@ -73,15 +73,15 @@ describe('importComfyWorkflow', () => {
 
   it('derives pins from inputs/outputs with mapped types and labels, plus a synthetic IN-pin per widget', () => {
     const loader = graph.nodes.find((n) => n.type === 'CheckpointLoader')!
-    const outs = loader.pins.filter((p) => p.direction === 'out')
+    const outs = loader.pins!.filter((p) => p.direction === 'out')
     expect(outs.map((p) => p.label)).toEqual(['MODEL', 'CLIP'])
     expect(outs[0]!.type).toBe('object') // MODEL → object
     const sampler = graph.nodes.find((n) => n.type === 'KSampler')!
     // KSampler had 2 declared inputs (model, seed) + 3 widget_values → 3 synthetic IN-pins (param 1..3).
-    const sins = sampler.pins.filter((p) => p.direction === 'in')
+    const sins = sampler.pins!.filter((p) => p.direction === 'in')
     expect(sins.map((p) => p.label).sort()).toEqual(['model', 'param 1', 'param 2', 'param 3', 'seed'])
-    expect(sampler.pins.find((p) => p.label === 'seed')!.type).toBe('float')      // INT → float
-    expect(sampler.pins.find((p) => p.label === 'param 1')!.type).toBe('float')   // widget-pin matches the widget type
+    expect(sampler.pins!.find((p) => p.label === 'seed')!.type).toBe('float')      // INT → float
+    expect(sampler.pins!.find((p) => p.label === 'param 1')!.type).toBe('float')   // widget-pin matches the widget type
   })
 
   it('preserves the raw ComfyUI payload in node.state.__comfy for faithful re-export', () => {
@@ -99,8 +99,8 @@ describe('importComfyWorkflow', () => {
     const sampler = graph.nodes.find((n) => n.type === 'KSampler')!
     expect(e.from.node).toBe(loader.id)
     expect(e.to.node).toBe(sampler.id)
-    expect(e.from.pin).toBe(loader.pins.find((p) => p.label === 'MODEL')!.id)
-    expect(e.to.pin).toBe(sampler.pins.find((p) => p.label === 'model')!.id)
+    expect(e.from.pin).toBe(loader.pins!.find((p) => p.label === 'MODEL')!.id)
+    expect(e.to.pin).toBe(sampler.pins!.find((p) => p.label === 'model')!.id)
     expect(e.opts?.sourceType).toBe('object')
   })
 
@@ -139,16 +139,16 @@ describe('importComfyWorkflow — Reroute mapping', () => {
     const n = graph.nodes[0]!
     expect(n.type).toBe(REROUTE_TYPE)
     expect(n.pins).toHaveLength(2)
-    expect(n.pins[0]!.direction).toBe('in')
-    expect(n.pins[1]!.direction).toBe('out')
+    expect(n.pins![0]!.direction).toBe('in')
+    expect(n.pins![1]!.direction).toBe('out')
   })
 
   it('colours both reroute pins by the resolved output type', () => {
     const { graph } = importComfyWorkflow(wf)
     const n = graph.nodes[0]!
     // IMAGE → object in our type system; the bare '*' input adopts the same colour
-    expect(n.pins[0]!.type).toBe('object')
-    expect(n.pins[1]!.type).toBe('object')
+    expect(n.pins![0]!.type).toBe('object')
+    expect(n.pins![1]!.type).toBe('object')
   })
 
   it('does not emit a reroute schema into the insert palette set', () => {
