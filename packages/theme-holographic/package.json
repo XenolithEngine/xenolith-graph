@@ -42,5 +42,8 @@
     "theme",
     "holographic",
     "node-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

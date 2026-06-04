@@ -45,5 +45,8 @@
     "node-editor",
     "node-graph",
     "graph-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

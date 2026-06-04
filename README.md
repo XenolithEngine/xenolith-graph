@@ -14,7 +14,7 @@
 
 An embeddable, drop-in node-graph editor for the web with a polished design system inside the package — typed Blueprint pins, live templates, macros, in-node widgets, a plugin host — and a swappable theme architecture that replaces the renderer's material entirely, not just its palette.
 
-> **Status: v0.7 BETA.** Public API in **v0.7 STABLE-API.md** is frozen — minor breakage is possible in unstable corners until v1.0. Initial touch / mobile support landed (pinch, two-finger pan, long-press menu, drawer chrome) but a few polish items remain. See [Roadmap](#roadmap) below.
+> **Status: v0.7 BETA.** The public API documented in [`STABLE-API.md`](STABLE-API.md) is the surface we plan to freeze, but it is **NOT frozen yet** — breaking changes can land at any point before v1.0. If you adopt now, pin an exact version. Initial touch / mobile support landed (pinch, two-finger pan, long-press menu, drawer chrome) but a few polish items remain. See [Roadmap](#roadmap) below.
 
 <p>
   <img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme" width="49%" />
@@ -22,6 +22,8 @@ An embeddable, drop-in node-graph editor for the web with a polished design syst
 </p>
 
 ## What it does
+
+**Vanilla / any framework:**
 
 ```ts
 import { XenolithEditor } from '@xenolith/editor'
@@ -31,7 +33,32 @@ editor.loadJSON(graphDoc)
 editor.fitView()
 ```
 
-One async call boots: fonts, PIXI v8 renderer, viewport, grid, pan/zoom, marquee, multi-drag with snap, connect-pins-by-drag, `Alt`+drag rewire, two reroute kinds, comments, collapsed macros, live templates with dive-in editing, in-node widgets, K2-style Tab palette, properties sidebar, undo/redo, JSON serialize with schema migrations, minimap, drag-and-drop palette sidebar. Headless `@xenolith/core` is zero-dependency.
+**React:**
+
+```tsx
+import { XenolithGraph } from '@xenolith/react'
+
+<XenolithGraph
+  style={{ position: 'absolute', inset: 0 }}
+  graph={graphDoc}
+  fitOnLoad
+  onReady={(editor) => editor.registry.register(MyNodeSchema)}
+/>
+```
+
+**Vue 3:**
+
+```vue
+<script setup lang="ts">
+import { XenolithGraph } from '@xenolith/vue'
+function onReady(editor) { editor.registry.register(MyNodeSchema) }
+</script>
+<template>
+  <XenolithGraph :graph="graphDoc" fit-on-load @ready="onReady" style="position:absolute;inset:0" />
+</template>
+```
+
+One call (or one component) boots: fonts, PIXI v8 renderer, viewport, grid, pan/zoom, marquee, multi-drag with snap, connect-pins-by-drag, `Alt`+drag rewire, two reroute kinds, comments, collapsed macros, live templates with dive-in editing, in-node widgets, K2-style Tab palette, properties sidebar, undo/redo, JSON serialize with schema migrations, minimap, drag-and-drop palette sidebar. Headless `@xenolith/core` is zero-dependency.
 
 ## Highlights
 
@@ -47,8 +74,8 @@ One async call boots: fonts, PIXI v8 renderer, viewport, grid, pan/zoom, marquee
 - **Plugin host.** `editor.use(plugin)` with a `PluginContext` that exposes schema/types/icons/widgets, an event bus, and runtime-delegation surfaces (`onTick`, `startLoop`/`stopLoop`/`step`, `setNodePins`, `setWidgetValue({ephemeral})`, `setNodePositionEphemeral`, `expandTemplateInstance`, `graphSnapshot`, `setEdgeAnimated`).
 - **Two themes shipped.** Xen (dark/gold, original design system) and Liquid Glass (shader-based refraction + rim lighting via PIXI Mesh+Shader). Swap at runtime with `editor.setTheme(theme)`.
 - **Live Mode.** `editor.setLiveMode(true)` hides editor chrome (palette, breadcrumb, controls) — perfect for read-only previews and demos.
-- **Perf for real graphs.** Viewport virtualization + 3-tier LOD (full → sprite-baked → flat-batch). Render-on-demand (static graphs idle at 0 fps cost). BitmapText glyph atlas for node/widget text. Shared GPU texture caches. Tested at 58k nodes; ~4–7 ms/frame at 40k+ on M1.
-- **Six framework adapters.** First-party `@xenolith/react`, `@xenolith/vue`, `@xenolith/svelte`, `@xenolith/solid`, `@xenolith/angular`, and `@xenolith/wc` (Web Components). React ships `<XenolithPanel>`/`<XenolithControls>`/`<XenolithMiniMap>`/`<XenolithButton>` + reactive selector hooks; other adapters mirror the surface.
+- **Perf for real graphs.** Viewport virtualization + 3-tier LOD (full → sprite-baked → flat-batch). Render-on-demand (static graphs idle at 0 fps cost). BitmapText glyph atlas for node/widget text. Shared GPU texture caches.
+- **Framework adapters.** First-class **React** (`@xenolith/react`) and **Vue 3** (`@xenolith/vue`) — both ship `<XenolithPanel>`/`<XenolithControls>`/`<XenolithMiniMap>`/`<XenolithButton>` with reactive selector hooks/composables, custom-widget wrappers (`reactWidget` / `vueWidget`), and full Learn pages. Thin starter packages also ship for **Svelte**, **Solid**, **Angular**, and **Web Components** (`@xenolith/wc`) — they mount the editor and expose a typed handle, but idiomatic hooks / panel components for those four are a v1.0 item, not BETA.
 - **AI-native via MCP.** Ships its own [Model Context Protocol](https://modelcontextprotocol.io) server (`@xenolith/mcp-server`). Start the CLI, click Connect in the editor, and Claude Desktop / Cursor can build graphs directly — `list_node_types` → `add_node` → `connect_pins` → `auto_layout`. Twenty-four tools + two resources (`graph://current`, `schema://types`). Every mutation flows through the command bus so undo and the live event stream just work. Token-auth + read-only mode supported.
 - **Visual stepping debugger.** `StepDebugger` is part of `@xenolith/editor` — wrap any executor (`StepExecutor`), and you get pause/step/continue, breakpoints, per-node timing, and a live trace. The Step debugger / Time-travel scrubber / Per-node cost heatmap / Graph diff for PR-review showcases all ride this primitive — drop-in observability for any graph runtime.
 
@@ -81,7 +108,7 @@ Tested against the published bundles of competitors (2025 data via [bundlephobia
 | **React Flow / @xyflow/react** | **130 KB** | SVG |
 | **XenolithGraph (with PIXI)** | **~330 KB** | **WebGL via PIXI** |
 
-We are the heaviest. PIXI accounts for ~75% of the weight — and it's also what lets us render 10k nodes at 60fps in our own benchmarks. Without PIXI we ship ~80 KB, in line with the alternatives.
+We are the heaviest. PIXI accounts for ~75% of the weight — and it's also what makes the WebGL renderer + viewport virtualization possible. Without PIXI we ship ~80 KB, in line with the alternatives.
 
 **Pick something lighter** if mobile-first SaaS where every kB matters (Drawflow / Rete), or Vue-only projects where the editor is one feature (Baklava). **Pick us** when the editor IS the product (AI workflow builders, ComfyUI-class tools, visual debuggers) and you'd rather ship 330 KB once than refactor renderers later.
 
@@ -106,7 +133,7 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 - **Core** — `@xenolith/core` headless model, command bus, typed pins, type registry with conversions
 - **Renderer** — `@xenolith/render-pixi` WebGL editor, viewport virtualization + LOD past 300 nodes
 - **Editor** — `@xenolith/editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 24 typed events (4 preventable), context-menu plugin API
-- **Adapters** — React (`@xenolith/react`), Vue 3 (`@xenolith/vue`), Svelte, Solid, Angular, Web Components — all with full hook / composable parity
+- **Adapters** — React (`@xenolith/react`) and Vue 3 (`@xenolith/vue`) with full hook / composable parity, panel components, and `reactWidget` / `vueWidget` wrappers. Thin starter adapters for Svelte, Solid, Angular, and Web Components (`@xenolith/wc`) — idiomatic hooks for those four are post-BETA
 - **Themes** — Xen (default, original design system) + Liquid Glass (refraction-based glass) + Holographic, runtime `setTheme()` swap
 - **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` ports)
 - **Header icons** — 13 built-in Feather glyphs, `editor.icons.register(name, svgInner)` for custom

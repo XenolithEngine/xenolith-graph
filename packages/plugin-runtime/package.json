@@ -40,5 +40,8 @@
     "blueprint",
     "executor",
     "dataflow"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

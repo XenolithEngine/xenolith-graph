@@ -46,5 +46,8 @@
     "pixijs",
     "renderer",
     "graph-renderer"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

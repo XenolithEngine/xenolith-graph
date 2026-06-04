@@ -1,0 +1,95 @@
+name: Release (publish to npm)
+
+# Triggered by pushing a semver tag (`v0.7.0-beta.0`, `v1.0.0`, etc.).
+# Re-uses the exact build path the regular CI runs on every PR, so what we publish
+# is what CI validated. Local `npm publish` is also documented (NPM_PUBLISH.md) but
+# this workflow is the canonical / auditable path.
+#
+# Secrets required at the repository level:
+#   NPM_TOKEN — an "Automation" token from npmjs.com for the @xenolith scope.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'npm dist-tag (default: beta for pre-1.0, latest after)'
+        required: false
+        default: 'beta'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@xenolith'
+
+      - run: pnpm install --frozen-lockfile
+
+      # Same build the CI workflow runs on every PR. dist/ is what gets packed into
+      # the tarball — if this fails, nothing gets published.
+      - name: Build all publishable packages
+        run: pnpm -r --filter '!@xenolith/playground' --filter '!@xenolith/site' --filter '!@xenolith/wasm-demo' run build
+
+      - name: Run unit + integration tests
+        run: pnpm -r --filter '!@xenolith/playground' --filter '!@xenolith/site' --filter '!@xenolith/wasm-demo' run test
+
+      - name: Bundle-size budgets
+        run: pnpm size
+
+      # Sanity-check: every publishable package's version must equal the pushed tag.
+      # Prevents publishing 0.7.0-beta.0 when the tag is v0.7.0-beta.1 (human error).
+      - name: Verify package versions match the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "Tag version: $TAG"
+          MISMATCH=0
+          for f in packages/*/package.json; do
+            PRIV=$(jq -r '.private // false' "$f")
+            [ "$PRIV" = "true" ] && continue
+            NAME=$(jq -r '.name' "$f")
+            VER=$(jq -r '.version' "$f")
+            if [ "$VER" != "$TAG" ]; then
+              echo "::error::$NAME is at $VER but tag is $TAG"
+              MISMATCH=1
+            fi
+          done
+          [ $MISMATCH -eq 0 ] || exit 1
+
+      - name: Publish all packages to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+        run: |
+          # Pick dist-tag: pre-1.0 → beta, 1.x+ → latest. Overridable via workflow_dispatch input.
+          DEFAULT_TAG=beta
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            DEFAULT_TAG="${{ github.event.inputs.tag }}"
+          elif [ "${GITHUB_REF#refs/tags/v}" != "${GITHUB_REF#refs/tags/v0.}" ] && \
+               [ "${GITHUB_REF#refs/tags/v}" != "${GITHUB_REF#refs/tags/v}-beta" ]; then
+            : # stays beta
+          fi
+          # If the version string has no -beta./-alpha./-rc. suffix → ship as @latest.
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          case "$TAG_VERSION" in
+            *-*) ;;                              # has a prerelease suffix → keep beta
+            *)   DEFAULT_TAG=latest ;;           # plain semver → publish as latest
+          esac
+          echo "Publishing with --tag=$DEFAULT_TAG"
+          pnpm -r --filter './packages/*' --filter '!@xenolith/test-fixtures' \
+            publish --access public --tag "$DEFAULT_TAG" --no-git-checks

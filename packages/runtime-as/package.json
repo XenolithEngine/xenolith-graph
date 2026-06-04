@@ -40,5 +40,8 @@
     "webassembly",
     "node-graph-runtime",
     "codegen"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

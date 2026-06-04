@@ -44,5 +44,8 @@
     "frosted",
     "node-editor",
     "liquid-glass"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

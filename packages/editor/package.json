@@ -54,5 +54,8 @@
     "visual-programming",
     "dataflow",
     "shader-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

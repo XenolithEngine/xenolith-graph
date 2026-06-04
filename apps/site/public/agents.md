@@ -29,6 +29,31 @@ Three endpoints worth knowing about — fetch them directly, they're cheap:
 | `/api/graphs.jsonl` | Every example as one JSON line (machine index of the gallery) |
 | `/examples/<id>/llms.md` | Plain-text mirror of any example page |
 
+## Canonical URL map (DO NOT GUESS paths)
+
+All URLs are under base `https://xenolithengine.github.io/xenolith-graph`. If a path you tried 404s, look it up here instead of guessing variants — there is no `/adapters/*`, no `/docs/*`, no `/api-reference/*`.
+
+**Guides** (`/guides/<slug>/`):
+- `install`, `init`, `api`, `react`, `vue`, `widgets`, `macros-templates`, `theme`, `save-export`, `events-commands`, `icons`, `plugins`
+
+**Framework integrations** (`/integrations/<slug>/`):
+- `ai-agents` — the AI / MCP / OpenAPI / LangChain end-to-end guide. **This is the entry point if you want to drive the editor.**
+- `nextjs`, `sveltekit`, `remix`
+
+**Examples** (`/examples/<id>/`) — the full list lives in `/api/graphs.jsonl`. High-signal ones for an AI evaluator:
+- `mcp-live` — Claude/Cursor builds the graph live over an MCP bridge
+- `llm-builder` — LangFlow-class LLM workflow editor
+- `step-debugger`, `time-travel`, `graph-diff`, `heatmap` — observability story
+- `audio-synth`, `image-pipeline` — non-AI domain proofs
+- `stress-test` — perf at scale
+
+**Single-page references** (top-level):
+- `/llms.txt`, `/llms-full.txt`, `/agents.md` (this file)
+- `/api/mcp-tools.json`, `/api/openapi.json`, `/api/graphs.jsonl`
+- `/.well-known/ai.txt`
+
+The README on GitHub (`https://github.com/XenolithEngine/xenolith-graph`) is the authoritative landing — start there if you want a human-readable overview.
+
 ## MCP server (if you can speak MCP)
 
 This project ships its own MCP server: `@xenolith/mcp-server`. It exposes **24 tools** and **2 resources**:

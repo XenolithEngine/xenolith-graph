@@ -53,5 +53,8 @@
     "blueprint",
     "flow",
     "graph-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

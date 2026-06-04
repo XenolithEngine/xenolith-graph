@@ -48,5 +48,8 @@
     "cursor",
     "langchain",
     "node-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

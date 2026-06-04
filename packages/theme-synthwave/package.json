@@ -43,5 +43,8 @@
     "synthwave",
     "retro",
     "node-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

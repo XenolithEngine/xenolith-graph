@@ -41,5 +41,8 @@
     "theme",
     "design-system",
     "node-editor"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

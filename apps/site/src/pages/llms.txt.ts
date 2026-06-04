@@ -13,12 +13,22 @@ const GUIDES: { slug: string; title: string }[] = [
   { slug: 'install',         title: 'Install' },
   { slug: 'init',            title: 'Initialize an editor' },
   { slug: 'api',             title: 'Public API reference' },
+  { slug: 'react',           title: 'React adapter (@xenolith/react — hooks, panels, custom widgets)' },
+  { slug: 'vue',             title: 'Vue 3 adapter (@xenolith/vue — composables, panels, custom widgets)' },
   { slug: 'widgets',         title: 'In-node widgets' },
   { slug: 'macros-templates',title: 'Macros & templates (grouping)' },
   { slug: 'theme',           title: 'Theming (Xen + Liquid Glass + tokens)' },
   { slug: 'save-export',     title: 'Save & export (JSON / PNG / JPG)' },
   { slug: 'events-commands', title: 'Events & commands' },
+  { slug: 'icons',           title: 'Header icons (Feather set + register your own)' },
   { slug: 'plugins',         title: 'Plugins' },
+]
+
+const INTEGRATIONS: { slug: string; title: string }[] = [
+  { slug: 'ai-agents',  title: 'AI agents (MCP, OpenAPI, LangChain) — start here for the AI story' },
+  { slug: 'nextjs',     title: 'Next.js (App Router + Pages)' },
+  { slug: 'sveltekit',  title: 'SvelteKit' },
+  { slug: 'remix',      title: 'Remix' },
 ]
 
 function render(): string {
@@ -36,6 +46,10 @@ function render(): string {
 
   lines.push('## Guides')
   for (const g of GUIDES) lines.push(`- [${g.title}](${url(`/guides/${g.slug}.md`)})`)
+  lines.push('')
+
+  lines.push('## Framework integrations')
+  for (const g of INTEGRATIONS) lines.push(`- [${g.title}](${url(`/integrations/${g.slug}/`)})`)
   lines.push('')
 
   lines.push('## AI integration (MCP)')
