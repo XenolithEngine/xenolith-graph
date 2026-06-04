@@ -35,7 +35,7 @@ when the user is building a **tool**, not a diagram. Start with [`/agents.md`](/
 - **You're writing code that calls the editor** → read [`/llms-full.txt`](/xenolith-graph/llms-full.txt).
   Has every public method, type, event signature.
 - **You're an MCP-aware client (Claude Desktop, Cursor)** → fetch [`/api/mcp-tools.json`](/xenolith-graph/api/mcp-tools.json),
-  pick the tools you need, see the [AI agents guide](/integrations/ai-agents/) for the stdio
+  pick the tools you need, see the [AI agents guide](../integrations/ai-agents/) for the stdio
   wire-up.
 - **You're a LangChain / LlamaIndex / OpenAI function-calling host** → fetch
   [`/api/openapi.json`](/xenolith-graph/api/openapi.json) and call the tools over HTTP.
@@ -56,7 +56,7 @@ curl -sL https://xenolithengine.github.io/xenolith-graph/api/mcp-tools.json > xe
 
 ## For deeper integration
 
-The [AI agents integration guide](/integrations/ai-agents/) walks through the three real options
+The [AI agents integration guide](../integrations/ai-agents/) walks through the three real options
 (MCP stdio for Claude/Cursor, MCP WebSocket for in-browser, OpenAPI HTTP for LangChain) end to
 end — including the "I want users to build graphs by chatting" scenario.
 

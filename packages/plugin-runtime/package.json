@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/plugin-runtime",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Blueprint-style node runtime for XenolithGraph: typed exec/data primitives + a headless interpreter that runs a graph as a simulation. Installs as an editor plugin.",
   "license": "MIT",
   "type": "module",
@@ -33,5 +33,12 @@
   "devDependencies": {
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "node-editor",
+    "runtime",
+    "blueprint",
+    "executor",
+    "dataflow"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/editor",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "XenolithGraph editor — composes core, renderer, interaction, and plugins.",
   "license": "MIT",
   "type": "module",
@@ -37,5 +37,22 @@
     "pixi.js": "^8.6.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "node-editor",
+    "node-graph",
+    "graph-editor",
+    "blueprint",
+    "flow-editor",
+    "react-flow-alternative",
+    "mcp",
+    "ai-agents",
+    "pixi",
+    "webgl",
+    "comfyui",
+    "langflow",
+    "visual-programming",
+    "dataflow",
+    "shader-editor"
+  ]
 }

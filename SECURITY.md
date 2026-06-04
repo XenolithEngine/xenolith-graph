@@ -16,7 +16,7 @@ XenolithGraph is pre-1.0. Only the latest published release receives security fi
 Report privately via one of these channels:
 
 - **GitHub Security Advisory** (preferred): use the "Report a vulnerability" button on the [Security tab](https://github.com/XenolithEngine/xenolith-graph/security) of the repository.
-- **Email**: `security@xenolithengine.dev`
+- **Email**: `security@xenolith.studio`
 
 Include:
 1. A description of the issue (what you can do, what you observed).

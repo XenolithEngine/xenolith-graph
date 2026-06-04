@@ -56,7 +56,7 @@ All mutations flow through the editor's command bus — undo/redo and events fir
 
 - **Pin labels are stable, pin ids are not.** When you connect, prefer labels ("Output", "In", "Hint") to ids.
 - **Category is a colour tag**, not a behaviour. `category: 'macro'` paints the node yellow; it does NOT make it an expandable Macro — those are a separate node type.
-- **Use `auto_layout` after a batch of inserts.** The editor doesn't auto-arrange; manual positions almost always overlap.
+- **Use `auto_layout` after a batch of inserts.** `add_node` places nodes wherever you tell it; there is no implicit arrangement, so manual positions in a batch will overlap. Always call `auto_layout` once at the end.
 - **Don't invent variant schemas.** If `register_node_schema` errors with "already registered", use `add_node({type: 'X'})` on the existing one — do NOT register `X2`, `X-v2`, `X Bare`. Schemas are graph-wide.
 - **Combo widgets need a `values` array.** Slider/number widgets need `min`/`max`/`step`.
 - **For node-level config widgets (LLM model picker, threshold, etc.) the engine treats them as free-floating automatically** when there's no matching pin. Just register them with a `key` and they'll render below the pins.

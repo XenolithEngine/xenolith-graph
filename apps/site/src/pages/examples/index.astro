@@ -26,6 +26,24 @@ const fwLabels = (e: (typeof EXAMPLES)[number]): string =>
     Drag nodes, pull connections, edit widgets right in the preview.
   </p>
 
+  <section style="margin-bottom:36px;">
+    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#7a7a7a;margin:0 0 14px;">Aspirational</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+      {/* Extra-large external demo — has its own layout, runtime + AssemblyScript codegen. We
+          link out instead of squeezing into the standard `<DemoFrame>` per-id page. */}
+      <a href={`${base}/wasm/`} class="ex-tile ex-tile-special">
+        <div class="ex-thumb ex-thumb-wasm" aria-hidden="true">
+          <span class="ex-badge">AS-WASM</span>
+        </div>
+        <div class="ex-tile-body">
+          <strong>Mandelbrot — graph → AssemblyScript → WASM</strong>
+          <span class="ex-tile-blurb">A graph that compiles itself to a WASM module via `@xenolith/runtime-as` — same node-graph runs at ~4 000× the baseline interpreter speed. The "what we're working toward" demo: visual editor + a real codegen runtime, end to end.</span>
+          <span class="ex-tile-fw">Standalone SPA · separate layout</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
   {byCategory.map((g) => (
     <section style="margin-bottom:36px;">
       <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#7a7a7a;margin:0 0 14px;">{g.cat}</h2>
@@ -53,5 +71,20 @@ const fwLabels = (e: (typeof EXAMPLES)[number]): string =>
     .ex-tile-body strong { font-size:15px; color:#fff; }
     .ex-tile-blurb { font-size:12.5px; color:#9a9a9a; line-height:1.45; }
     .ex-tile-fw { font-size:11px; color:#6f6f6f; margin-top:2px; }
+    /* Aspirational "Mandelbrot WASM" card — no thumb yet, generated badge + gradient instead. */
+    .ex-tile-special { border-color: rgba(252, 180, 0, 0.35); }
+    .ex-thumb-wasm {
+      display: grid; place-items: center; height: 150px;
+      background: radial-gradient(ellipse at 35% 30%, #2a1d05 0%, #0f0f0f 70%);
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .ex-badge {
+      font: 600 11px/1 'JetBrains Mono', ui-monospace, monospace;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #FCB400;
+      border: 1px solid rgba(252, 180, 0, 0.55);
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(252, 180, 0, 0.08);
+    }
   </style>
 </ExamplesLayout>

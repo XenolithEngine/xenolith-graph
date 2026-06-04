@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/theme-xen",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Xen — the default original design system for XenolithGraph. Dark / gold palette with typed pins, categorical headers, and glassmorphic effects.",
   "license": "MIT",
   "type": "module",
@@ -35,5 +35,11 @@
   "devDependencies": {
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "xenolith",
+    "theme",
+    "design-system",
+    "node-editor"
+  ]
 }

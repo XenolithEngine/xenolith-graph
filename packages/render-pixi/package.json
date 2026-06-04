@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/render-pixi",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "PIXI v8 renderer for XenolithGraph. PIXI is a peer dependency.",
   "license": "MIT",
   "type": "module",
@@ -38,5 +38,13 @@
     "pixi.js": "^8.6.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "node-editor",
+    "webgl",
+    "pixi",
+    "pixijs",
+    "renderer",
+    "graph-renderer"
+  ]
 }

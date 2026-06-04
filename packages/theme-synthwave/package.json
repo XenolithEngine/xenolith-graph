@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/theme-synthwave",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Synthwave / retro-future neon theme for XenolithGraph — TRON / Blade Runner / 80s arcade marquee aesthetic.",
   "license": "MIT",
   "type": "module",
@@ -37,5 +37,11 @@
     "pixi.js": "^8.6.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "theme",
+    "synthwave",
+    "retro",
+    "node-editor"
+  ]
 }

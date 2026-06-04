@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/core",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Headless graph model, type system, command bus, and event emitter for XenolithGraph. Zero runtime dependencies.",
   "license": "MIT",
   "type": "module",
@@ -29,5 +29,14 @@
   "devDependencies": {
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "node-editor",
+    "node-graph",
+    "graph",
+    "blueprint",
+    "headless",
+    "zero-dep",
+    "typescript"
+  ]
 }

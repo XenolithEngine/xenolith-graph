@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/adapter-core",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Framework-agnostic binding for XenolithGraph — mount, reactive props, events. Foundation for the Web Component and React/Vue/Svelte/Solid adapters.",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
@@ -34,5 +37,10 @@
     "pixi.js": "^8.6.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "node-editor",
+    "framework-adapter",
+    "internal"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@xenolith/theme-holographic",
-  "version": "0.0.0",
+  "version": "0.7.0-beta.0",
   "description": "Holographic / Iridescent theme for XenolithGraph — translucent glass panels + rainbow iridescent borders + parallax shift. Apple Vision OS / Y2K vibe.",
   "license": "MIT",
   "type": "module",
@@ -37,5 +37,10 @@
     "pixi.js": "^8.6.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "theme",
+    "holographic",
+    "node-editor"
+  ]
 }

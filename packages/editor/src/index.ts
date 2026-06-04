@@ -201,7 +201,7 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolith/core'
 
-export const VERSION = '0.0.0'
+export const VERSION = '0.7.0-beta.0'
 
 const MARQUEE_DRAG_THRESHOLD = 4
 const NODE_DRAG_THRESHOLD = 4
@@ -976,10 +976,22 @@ export class XenolithEditor {
       window.addEventListener('resize', this.#onResize)
     } else if (typeof ResizeObserver !== 'undefined') {
       // Embedded mode: fit the host element (panels, framework islands) instead of the window.
+      // First-real-size guard: if the editor was mounted while its host was display:none (e.g.
+      // a chip-switched framework pane in DemoFrame), init painted into a 1×1 PIXI stage and
+      // every fitView() call inside `onReady` centred the graph in that 1×1 frame. Detect the
+      // initial collapsed state and run one extra fitView() the first time the host gains real
+      // dimensions, otherwise the graph stays invisible at a zoom that was correct for 1px.
+      let wasCollapsed = host.clientWidth < 50 || host.clientHeight < 50
       const fit = (): void => {
         const w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight)
         this.#app.renderer.resize(w, h)
         this.#onResize()
+        if (wasCollapsed && w >= 50 && h >= 50) {
+          wasCollapsed = false
+          // Defer one tick so any pending loadJSON / fitOnLoad inside onReady has committed before
+          // we re-frame. fitView snaps the world to whatever the graph contains right now.
+          requestAnimationFrame(() => { if (!this.#destroyed) this.fitView({ padding: 80, maxZoom: 1 }) })
+        }
       }
       fit()
       this.#hostResizeObserver = new ResizeObserver(fit)
