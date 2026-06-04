@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolith/react'
-import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolith/demo/properties-sidebar'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 import { DemoStage } from '../Layout.js'
 
 // Canon: sidebar open-state lives in the panel — only the panel needs it. Open/close are direct

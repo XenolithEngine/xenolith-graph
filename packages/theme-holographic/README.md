@@ -1,4 +1,4 @@
-# @xenolith/theme-holographic
+# @xenolithengine/theme-holographic
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/theme-holographic pixi.js
+pnpm add @xenolithengine/theme-holographic pixi.js
 ```
 
 Peer dependency: `pixi.js@^8.6.0`.
@@ -20,8 +20,8 @@ Peer dependency: `pixi.js@^8.6.0`.
 ## Usage
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { holographicTheme } from '@xenolith/theme-holographic'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { holographicTheme } from '@xenolithengine/theme-holographic'
 
 const editor = await XenolithEditor.init('#graph', { theme: holographicTheme })
 

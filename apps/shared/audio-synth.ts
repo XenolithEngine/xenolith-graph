@@ -7,8 +7,8 @@
 // re-wires the audio + re-lights the chain (cutting Filter→Gain silences and darkens everything past
 // it). reachableFrom keeps a node past a broken/deleted edge out of the live chain.
 
-import { reachableFrom } from '@xenolith/core'
-import type { XenolithEditor, NodeId } from '@xenolith/editor'
+import { reachableFrom } from '@xenolithengine/core'
+import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
 import graph from './audio-synth.json'
 
 export interface AudioSynthHandle {

@@ -1,6 +1,6 @@
 import type { Graphics } from 'pixi.js'
-import { computeEdgePath, sampleBezier, bezierMidpoint, type RenderEdgeOptions, type PinLayout } from '@xenolith/render-pixi'
-import type { XenTokens } from '@xenolith/theme-xen'
+import { computeEdgePath, sampleBezier, bezierMidpoint, type RenderEdgeOptions, type PinLayout } from '@xenolithengine/render-pixi'
+import type { XenTokens } from '@xenolithengine/theme-xen'
 
 // Holographic wire renderer — bezier path drawn as a sequence of short coloured segments that
 // rotate through the HSV wheel along the curve. Result is a rainbow GRADIENT stroke (PIXI

@@ -1,5 +1,5 @@
 // Interpreter vs compiler perf — what's the prototype win? Run via:
-//   pnpm --filter @xenolith/plugin-runtime vitest bench --run compiler
+//   pnpm --filter @xenolithengine/plugin-runtime vitest bench --run compiler
 // Each scenario runs N ticks under both engines and prints relative throughput.
 
 import { bench, describe } from 'vitest'

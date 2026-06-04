@@ -5,7 +5,7 @@ Thanks for considering a contribution. This document covers what you need to kno
 ## TL;DR
 
 - Test-first. Every change starts with a failing test. See [TDD](#tdd-is-mandatory) below — it's not optional.
-- Headless `@xenolith/core` stays zero-dep. Render and adapter packages may add deps but each one needs justification in the PR.
+- Headless `@xenolithengine/core` stays zero-dep. Render and adapter packages may add deps but each one needs justification in the PR.
 - Public API change → Vitest test. Interaction change → Playwright test. Visual change → renderer snapshot.
 - Perf budgets in CI are hard gates, not advisory. A PR that blows them either fixes them or is reverted.
 - No comments unless the *why* is non-obvious. Identifiers say *what*; comments earn their place by explaining surprises.
@@ -19,9 +19,9 @@ cd xenolith-graph
 pnpm install
 
 # Pick one of these to start hacking:
-pnpm --filter @xenolith/playground dev      # http://localhost:5173 — theme switcher + every editor feature
-pnpm --filter @xenolith/site dev            # http://localhost:4321/xenolith-graph — docs + landing
-pnpm --filter @xenolith/demo-react dev      # http://localhost:5174 — the React showcase apps
+pnpm --filter @xenolithengine/playground dev      # http://localhost:5173 — theme switcher + every editor feature
+pnpm --filter @xenolithengine/site dev            # http://localhost:4321/xenolith-graph — docs + landing
+pnpm --filter @xenolithengine/demo-react dev      # http://localhost:5174 — the React showcase apps
 ```
 
 Useful commands:
@@ -72,11 +72,11 @@ Layered, headless-first. A layer may know about layers below it, never above.
 ┌──────────────────────────────────────────────────────────────┐
 │ Framework adapters (React / Vue / Svelte / Solid / Angular)  │
 ├──────────────────────────────────────────────────────────────┤
-│ @xenolith/editor — composes Renderer + Interaction + Plugins │
+│ @xenolithengine/editor — composes Renderer + Interaction + Plugins │
 ├─────────────────────┬────────────────────┬───────────────────┤
-│ @xenolith/render-pixi│  Interaction       │  Plugin host     │
+│ @xenolithengine/render-pixi│  Interaction       │  Plugin host     │
 ├─────────────────────┴────────────────────┴───────────────────┤
-│ @xenolith/core (headless: model, types, commands, events)    │
+│ @xenolithengine/core (headless: model, types, commands, events)    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -89,8 +89,8 @@ Full picture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Design decisions: 
 | 500 nodes / 1000 edges | 60fps on Apple Silicon / Ryzen 5 |
 | 5-second drag | 0 GC pauses |
 | Cold start with 100 nodes | < 100 ms |
-| `@xenolith/core` bundle | < 30 kB gzip |
-| `@xenolith/render-pixi` bundle | < 80 kB gzip (excluding PIXI as a peer) |
+| `@xenolithengine/core` bundle | < 30 kB gzip |
+| `@xenolithengine/render-pixi` bundle | < 80 kB gzip (excluding PIXI as a peer) |
 
 CI fails on regression. If your change blows the budget, either fix it in the same PR or open a discussion before merging.
 
@@ -101,7 +101,7 @@ CI fails on regression. If your change blows the budget, either fix it in the sa
 - [ ] If you touched the renderer/theme: snapshot baselines updated and visually reviewed.
 - [ ] If you added or changed a public API: an entry was added to the changeset (`pnpm changeset`).
 - [ ] CLAUDE.md / ADRs updated if the change affects how future contributors should reason about the code.
-- [ ] No new deps in `@xenolith/core` (zero-dep is enforced).
+- [ ] No new deps in `@xenolithengine/core` (zero-dep is enforced).
 - [ ] Bundle-size budget respected for the touched packages.
 
 ## Code style

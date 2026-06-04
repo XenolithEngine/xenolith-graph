@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/render-pixi",
+  "name": "@xenolithengine/render-pixi",
   "version": "0.7.0-beta.0",
   "description": "PIXI v8 renderer for XenolithGraph. PIXI is a peer dependency.",
   "license": "MIT",
@@ -26,11 +26,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/theme-xen": "workspace:*"
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*"
   },
   "peerDependencies": {
-    "@xenolith/theme-xen": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

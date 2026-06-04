@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls } from '@xenolith/react'
-import { xenTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls } from '@xenolithengine/react'
+import { xenTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
 

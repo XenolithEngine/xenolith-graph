@@ -3,7 +3,7 @@ title: Vue adapter
 description: Mount XenolithGraph in a Vue 3 app, drive it with composables and panel components, and bring your own Vue SFCs in via custom widgets.
 ---
 
-The Vue adapter ships as `@xenolith/vue`. Composition-API only — there is no Options-API mirror.
+The Vue adapter ships as `@xenolithengine/vue`. Composition-API only — there is no Options-API mirror.
 Like the React adapter, it is a thin layer over the headless editor: every public method on
 `XenolithEditor` works the same way the core docs describe. What the adapter adds is Vue-shaped
 sugar: one component (`<XenolithGraph>`), an injection key, a handful of composables, and four
@@ -16,7 +16,7 @@ the host reads live snapshots through composables and mutates through the editor
 ## Install
 
 ```bash
-pnpm add @xenolith/vue @xenolith/editor pixi.js vue
+pnpm add @xenolithengine/vue @xenolithengine/editor pixi.js vue
 ```
 
 `pixi.js` is a peer dependency. Vue 3.3+ is required.
@@ -33,8 +33,8 @@ pnpm add @xenolith/vue @xenolith/editor pixi.js vue
 </template>
 
 <script setup lang="ts">
-import { XenolithGraph } from '@xenolith/vue'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 function onReady(editor: XenolithEditor): void {
   editor.registry.register({
@@ -79,7 +79,7 @@ Same shape as the React adapter (kebab-cased in templates):
 />
 ```
 
-The full mapping lives in `EDITOR_EVENT_NAMES` from `@xenolith/adapter-core`. Preventable events
+The full mapping lives in `EDITOR_EVENT_NAMES` from `@xenolithengine/adapter-core`. Preventable events
 (`-ing` suffix) accept a `payload.cancel()` call from the handler.
 
 For long-tail / dynamic subscriptions in child components, use `useEditorEvent` (below).
@@ -93,7 +93,7 @@ editor via `provide(XenolithEditorKey, ref)`. Children inject the same ref.
 import {
   useEditor, useEditorOrNull, useEditorReady, useEditorEvent,
   useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo,
-} from '@xenolith/vue'
+} from '@xenolithengine/vue'
 ```
 
 | Composable | Returns | Notes |
@@ -127,7 +127,7 @@ useEditorReady((editor) => {
 
 ```vue
 <script setup lang="ts">
-import { XenolithPanel, XenolithButton, useUndoRedo } from '@xenolith/vue'
+import { XenolithPanel, XenolithButton, useUndoRedo } from '@xenolithengine/vue'
 const { canUndo, canRedo, undo, redo } = useUndoRedo()
 </script>
 
@@ -178,14 +178,14 @@ Same four primitives as the React adapter — they portal into `editor.chrome.ov
 </template>
 
 <script setup lang="ts">
-import type { WidgetProps } from '@xenolith/vue'
+import type { WidgetProps } from '@xenolithengine/vue'
 defineProps<WidgetProps>()
 </script>
 ```
 
 ```ts
 import Knob from './Knob.vue'
-import { vueWidget } from '@xenolith/vue'
+import { vueWidget } from '@xenolithengine/vue'
 
 editor.registerWidget('knob', vueWidget(Knob))
 editor.registry.register({
@@ -218,10 +218,10 @@ full story.
 ## Imperative escape hatch (no `<XenolithGraph>` parent)
 
 Need the editor outside the component tree — for instance, mounted into a third-party slot or
-a portal? Use `createEditorBinding` from `@xenolith/adapter-core` directly:
+a portal? Use `createEditorBinding` from `@xenolithengine/adapter-core` directly:
 
 ```ts
-import { createEditorBinding } from '@xenolith/adapter-core'
+import { createEditorBinding } from '@xenolithengine/adapter-core'
 
 const binding = await createEditorBinding(targetEl, { graph, fitOnLoad: true })
 binding.on('node:click', (p) => console.log(p.nodeId))
@@ -240,7 +240,7 @@ This is the same primitive `<XenolithGraph>` builds on internally.
 
 ## Related
 
-- [`@xenolith/editor` API reference](../api/) — every method exposed by `useEditor()` / `useEditorReady()`
+- [`@xenolithengine/editor` API reference](../api/) — every method exposed by `useEditor()` / `useEditorReady()`
 - [Widgets guide](../widgets/) — built-in widgets + the `WidgetSpec` shape `vueWidget` plugs into
 - [Events](../events-commands/) — the full 24-event surface and which are preventable
 - [SvelteKit integration](../../integrations/sveltekit/) — the Svelte action, for comparison

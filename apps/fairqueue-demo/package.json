@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/fairqueue-demo",
+  "name": "@xenolithengine/fairqueue-demo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,13 +13,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolith/adapter-core": "workspace:*",
-    "@xenolith/core": "workspace:*",
-    "@xenolith/editor": "workspace:*",
-    "@xenolith/plugin-runtime": "workspace:*",
-    "@xenolith/react": "workspace:*",
-    "@xenolith/render-pixi": "workspace:*",
-    "@xenolith/theme-xen": "workspace:*",
+    "@xenolithengine/adapter-core": "workspace:*",
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/editor": "workspace:*",
+    "@xenolithengine/plugin-runtime": "workspace:*",
+    "@xenolithengine/react": "workspace:*",
+    "@xenolithengine/render-pixi": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*",
     "gifenc": "^1.0.3",
     "pixi.js": "^8.6.0",
     "react": "^19.0.0",

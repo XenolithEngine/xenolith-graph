@@ -1,4 +1,4 @@
-import type { Edge, NodeId } from '@xenolith/core'
+import type { Edge, NodeId } from '@xenolithengine/core'
 
 /** When a reroute knot is deleted its wire shouldn't be severed — the nodes it merely relayed
  *  stay connected. For the reroute being removed, pair each incoming edge (upstream → reroute.in)

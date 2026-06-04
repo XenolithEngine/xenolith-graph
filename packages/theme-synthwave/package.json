@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/theme-synthwave",
+  "name": "@xenolithengine/theme-synthwave",
   "version": "0.7.0-beta.0",
   "description": "Synthwave / retro-future neon theme for XenolithGraph — TRON / Blade Runner / 80s arcade marquee aesthetic.",
   "license": "MIT",
@@ -26,9 +26,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/render-pixi": "workspace:*",
-    "@xenolith/theme-xen": "workspace:*"
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/render-pixi": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0"

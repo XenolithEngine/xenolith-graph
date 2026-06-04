@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
-import { StepDebugger, type StepRecord, type XenolithEditor, type StepExecutor } from '@xenolith/editor'
-import type { Node, NodeId, NodeSchema } from '@xenolith/core'
-import { TEMPLATE_INSTANCE_TYPE } from '@xenolith/core'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
+import { StepDebugger, type StepRecord, type XenolithEditor, type StepExecutor } from '@xenolithengine/editor'
+import type { Node, NodeId, NodeSchema } from '@xenolithengine/core'
+import { TEMPLATE_INSTANCE_TYPE } from '@xenolithengine/core'
 import { DemoStage } from '../Layout.js'
 
 // Visual stepping debugger for graph execution. Click "Start" → debugger pauses on the first

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolith/react'
-import { setupAutoLayout, runAutoLayout } from '@xenolith/demo/auto-layout'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { setupAutoLayout, runAutoLayout } from '@xenolithengine/demo/auto-layout'
 import { DemoStage } from '../Layout.js'
 
 type Direction = 'LR' | 'TB'

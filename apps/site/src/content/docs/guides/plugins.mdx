@@ -5,13 +5,13 @@ description: Auto-layout (Dagre, ELK), drag-and-drop palette sidebar, Live mode,
 
 The editor's surface stays small; richer behaviours land as plugins or opt-in features.
 
-## Auto-layout (`@xenolith/plugin-autolayout`)
+## Auto-layout (`@xenolithengine/plugin-autolayout`)
 
 One-line arrangement for any graph. Pick an engine (Dagre for layered DAGs, ELK for nested / orthogonal), pass it in, call `arrange()`:
 
 ```ts
-import { autoLayoutPlugin } from '@xenolith/plugin-autolayout'
-import { dagreEngine } from '@xenolith/plugin-autolayout/dagre'
+import { autoLayoutPlugin } from '@xenolithengine/plugin-autolayout'
+import { dagreEngine } from '@xenolithengine/plugin-autolayout/dagre'
 
 const layout = autoLayoutPlugin({
   engine: dagreEngine(),
@@ -32,7 +32,7 @@ await layout.arrange({ direction: 'TB' })     // override per-call
 ELK adapter for richer layout (orthogonal edges, nested containers):
 
 ```ts
-import { elkEngine } from '@xenolith/plugin-autolayout/elk'
+import { elkEngine } from '@xenolithengine/plugin-autolayout/elk'
 
 editor.use(autoLayoutPlugin({ engine: elkEngine(), defaults: { algorithm: 'layered' } }))
 ```

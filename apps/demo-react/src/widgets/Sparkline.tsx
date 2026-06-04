@@ -1,4 +1,4 @@
-import type { WidgetProps } from '@xenolith/react'
+import type { WidgetProps } from '@xenolithengine/react'
 
 // An SVG sparkline that reads its series from the widget value and reshuffles it on click —
 // strokes with var(--xeno-accent) so it tracks the active theme.

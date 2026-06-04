@@ -4,7 +4,7 @@
 
 import type { APIRoute } from 'astro'
 import { EXAMPLES, CATEGORY_ORDER } from '../examples/manifest.ts'
-import { TOOLS } from '@xenolith/mcp-server'
+import { TOOLS } from '@xenolithengine/mcp-server'
 
 const SITE = 'https://xenolithengine.github.io'
 const BASE = '/xenolith-graph'
@@ -55,7 +55,7 @@ function mcpSection(): string {
   const lines: string[] = []
   lines.push('# MCP tool catalogue')
   lines.push('')
-  lines.push('The `@xenolith/mcp-server` package exposes these tools to any MCP client (Claude Desktop, Cursor, etc). Mutations go through the editor command bus, so undo/redo and events fire normally.')
+  lines.push('The `@xenolithengine/mcp-server` package exposes these tools to any MCP client (Claude Desktop, Cursor, etc). Mutations go through the editor command bus, so undo/redo and events fire normally.')
   lines.push('')
   for (const [name, def] of Object.entries(TOOLS)) {
     lines.push(`## ${name}`)

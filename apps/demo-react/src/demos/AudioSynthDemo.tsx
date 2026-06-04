@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
-import { loadAudioGraph, createAudioEngine, type AudioSynthHandle } from '@xenolith/demo/audio-synth'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
+import { loadAudioGraph, createAudioEngine, type AudioSynthHandle } from '@xenolithengine/demo/audio-synth'
 import { DemoStage } from '../Layout.js'
 
 // A tiny Web Audio synth built ON the graph: Oscillator → Filter → Gain → Output.

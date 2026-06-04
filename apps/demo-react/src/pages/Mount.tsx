@@ -1,7 +1,7 @@
 import { DemoPage } from '../Layout.js'
 import { MountDemo } from '../demos/MountDemo.js'
 
-const code = `import { XenolithGraph } from '@xenolith/react'
+const code = `import { XenolithGraph } from '@xenolithengine/react'
 
 // The editor is WebGL/client-only — render it in the browser only.
 export function Editor() {

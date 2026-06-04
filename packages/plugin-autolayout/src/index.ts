@@ -1,6 +1,6 @@
-import { MoveNode } from '@xenolith/core'
-import type { NodeId, Node } from '@xenolith/core'
-import type { PluginContext, XenolithPlugin } from '@xenolith/editor'
+import { MoveNode } from '@xenolithengine/core'
+import type { NodeId, Node } from '@xenolithengine/core'
+import type { PluginContext, XenolithPlugin } from '@xenolithengine/editor'
 import type { LayoutEngine, LayoutOpts, LayoutResult } from './engine.js'
 import { buildLayoutGraph } from './build-layout-graph.js'
 

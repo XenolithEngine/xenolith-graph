@@ -1,4 +1,4 @@
-import type { CanvasWidgetController } from '@xenolith/editor'
+import type { CanvasWidgetController } from '@xenolithengine/editor'
 
 /** Default for an always-visible preview: empty string. The widget renders whatever value its
  *  bound pin is currently carrying — that's the canon's `visibility:'always'` path. */

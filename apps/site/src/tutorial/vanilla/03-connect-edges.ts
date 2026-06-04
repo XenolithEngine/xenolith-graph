@@ -8,7 +8,7 @@
 //   1. Validation — try to drag a wire from a `string` out to an `int` in: the editor refuses.
 //   2. Wire colour — the Xen theme tints each wire by its source pin type.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter',

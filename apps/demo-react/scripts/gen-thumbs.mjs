@@ -6,7 +6,7 @@
 // We do hide editor chrome (controls, minimap, breadcrumb, palette sidebar, custom toolbars) so
 // thumbnails focus on the graph itself.
 //
-// Requires the site dev server: pnpm --filter @xenolith/site dev (http://localhost:4321/xenolith-graph)
+// Requires the site dev server: pnpm --filter @xenolithengine/site dev (http://localhost:4321/xenolith-graph)
 // Then, from apps/demo-react: pnpm thumbs   (or: BASE_URL=… node scripts/gen-thumbs.mjs)
 import { chromium } from '@playwright/test'
 import { mkdir } from 'node:fs/promises'

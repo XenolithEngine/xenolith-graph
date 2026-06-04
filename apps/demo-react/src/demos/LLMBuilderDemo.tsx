@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, reactWidget, useEditor, type WidgetProps } from '@xenolith/react'
-import type { XenolithEditor } from '@xenolith/editor'
-import { loadLLMGraph, runLLM } from '@xenolith/demo/llm-builder'
+import { XenolithGraph, XenolithPanel, XenolithButton, reactWidget, useEditor, type WidgetProps } from '@xenolithengine/react'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { loadLLMGraph, runLLM } from '@xenolithengine/demo/llm-builder'
 import { DemoStage } from '../Layout.js'
 
 // LLM workflow builder built on the graph: Input → Prompt → Model → Output.

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { computeEdgePath, sampleBezier, endTangent, arrowHead, type EdgeTokens, type EdgePath } from './bezier.js'
-import { createPinId, type PinId } from '@xenolith/core'
+import { createPinId, type PinId } from '@xenolithengine/core'
 import type { PinLayout } from './layout.js'
 
 const TOKENS: EdgeTokens = {

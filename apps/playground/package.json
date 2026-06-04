@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/playground",
+  "name": "@xenolithengine/playground",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,14 +14,14 @@
     "capture": "node scripts/capture-themes.mjs"
   },
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/demo": "workspace:*",
-    "@xenolith/editor": "workspace:*",
-    "@xenolith/render-pixi": "workspace:*",
-    "@xenolith/theme-xen": "workspace:*",
-    "@xenolith/theme-liquid-glass": "workspace:*",
-    "@xenolith/theme-synthwave": "workspace:*",
-    "@xenolith/theme-holographic": "workspace:*",
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/demo": "workspace:*",
+    "@xenolithengine/editor": "workspace:*",
+    "@xenolithengine/render-pixi": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*",
+    "@xenolithengine/theme-liquid-glass": "workspace:*",
+    "@xenolithengine/theme-synthwave": "workspace:*",
+    "@xenolithengine/theme-holographic": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

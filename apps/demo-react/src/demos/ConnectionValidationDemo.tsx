@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithControls } from '@xenolith/react'
-import { buildConnectionValidation, type Attempt } from '@xenolith/demo/connection-validation'
+import { XenolithGraph, XenolithPanel, XenolithControls } from '@xenolithengine/react'
+import { buildConnectionValidation, type Attempt } from '@xenolithengine/demo/connection-validation'
 import { DemoStage } from '../Layout.js'
 
 // Showcase: typed-pin validation + a custom cycle-prevention guard. The graph + the guard live in the
-// framework-agnostic core (@xenolith/demo/connection-validation); this React file just renders the
+// framework-agnostic core (@xenolithengine/demo/connection-validation); this React file just renders the
 // live attempt log fed by the core's `log` callback.
 
 function RulesPanel({ log }: { log: Attempt[] }): React.ReactElement {

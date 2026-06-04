@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode, ReactElement, ReactPortal, ButtonHTMLAttributes } from 'react'
-import type { MinimapPosition, ControlsOptions } from '@xenolith/editor'
+import type { MinimapPosition, ControlsOptions } from '@xenolithengine/editor'
 import { useXenolithEditor } from './context.js'
 
 export type PanelPosition =

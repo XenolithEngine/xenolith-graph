@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useEdges } from '@xenolith/react'
-import { buildDiagram } from '@xenolith/demo/diagram'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useEdges } from '@xenolithengine/react'
+import { buildDiagram } from '@xenolithengine/demo/diagram'
 import { DemoStage } from '../Layout.js'
 
 // Showcase: edges as a diagramming primitive. Text nodes wired with directional edges — arrowhead

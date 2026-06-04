@@ -4,8 +4,8 @@
 // Vue is a first-class consumer — `<XenolithGraph>` is the component, `@ready` hands you the editor
 // instance the moment it's mounted. The graph itself is the same xenolith.v1 JSON the vanilla and
 // React versions load — author once, render anywhere.
-import { XenolithGraph } from '@xenolith/vue'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 const graph = {
   version: 'xenolith.v1' as const,

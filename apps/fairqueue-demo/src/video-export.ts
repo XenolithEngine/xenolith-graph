@@ -3,7 +3,7 @@
 // time, so the animation plays into the file as it happens. Public-API only (`editor.app.canvas`),
 // plugin-ready alongside gif-export.ts.
 
-import type { XenolithEditor } from '@xenolith/editor'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 // Most-preferred first: MP4/H.264 plays everywhere; VP9 is great quality in Chromium/Firefox.
 const MIME_CANDIDATES = [

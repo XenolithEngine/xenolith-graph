@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { createReroute } from '@xenolith/core'
+import { createReroute } from '@xenolithengine/core'
 import { renderRerouteNode, rerouteSize } from './reroute-renderer.js'
 import { readPinHandle } from './node-renderer.js'
-import { xenTokens } from '@xenolith/theme-xen'
+import { xenTokens } from '@xenolithengine/theme-xen'
 import type { Container } from 'pixi.js'
 
 function anyPinHandle(container: Container): boolean {

@@ -4,7 +4,7 @@
 //
 // Shared between vanilla + React demos.
 
-import type { NodeSchema, XenolithEditor } from '@xenolith/editor'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
 
 const stringPin = (dir: 'in' | 'out', label: string) =>
   ({ kind: 'data' as const, direction: dir, type: 'string', label, multiple: dir === 'out' })

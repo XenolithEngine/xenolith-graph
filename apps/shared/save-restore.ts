@@ -4,7 +4,7 @@
 // (autosave on every edit) stays in the host because it rides that framework's change subscription.
 
 import { loadDemo } from './scene.js'
-import type { XenolithEditor } from '@xenolith/editor'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 export const SAVE_KEY = 'xeno:save-restore-demo'
 

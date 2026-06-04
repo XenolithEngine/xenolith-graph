@@ -1,11 +1,11 @@
 // Angular standalone component — save & restore. Imperative IO via the shared helpers; autosave
 // rides the `(historyChanged)` Output. Editor reference is captured from `(ready)` once.
 import { Component, signal, ViewChild, ElementRef } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolith/angular'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraphComponent } from '@xenolithengine/angular'
+import type { XenolithEditor } from '@xenolithengine/editor'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
-} from '@xenolith/demo/save-restore'
+} from '@xenolithengine/demo/save-restore'
 
 @Component({
   selector: 'save-restore-demo',

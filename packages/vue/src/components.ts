@@ -2,7 +2,7 @@ import {
   Teleport, computed, defineComponent, h, normalizeStyle, onUnmounted, watch,
   type PropType, type StyleValue, type VNode,
 } from 'vue'
-import type { ControlsOptions, MinimapPosition } from '@xenolith/editor'
+import type { ControlsOptions, MinimapPosition } from '@xenolithengine/editor'
 import { useEditor, useEditorReady } from './index.js'
 
 export type PanelPosition =

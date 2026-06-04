@@ -30,19 +30,19 @@ Two themes ship in the box.
 ### Xen — default
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
 
 const editor = await XenolithEditor.init('#app')
 // Xen is the default — no `theme` option needed.
 ```
 
-Original dark/gold design system: `#0F110E` node bodies, gold accents, category-tinted headers, typed-pin colour-coded wires, animated collapse to pill. Lives in `@xenolith/theme-xen`.
+Original dark/gold design system: `#0F110E` node bodies, gold accents, category-tinted headers, typed-pin colour-coded wires, animated collapse to pill. Lives in `@xenolithengine/theme-xen`.
 
 ### Liquid Glass — frosted glass inspired by new Apple design
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 const editor = await XenolithEditor.init('#app', { theme: liquidGlassTheme })
 ```
@@ -54,8 +54,8 @@ The backdrop pass is **opt-in**: Liquid Glass sets `needsBackdrop: true`, Xen do
 ## Runtime theme switching
 
 ```ts
-import { xenTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { xenTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 editor.setTheme(liquidGlassTheme)   // every node re-rendered through the new theme
 editor.setTheme(xenTheme)           // selection, hover, collapsed state, positions preserved
@@ -110,13 +110,13 @@ editor.loadJSON({
 })
 ```
 
-Resolution order for a node's header colour: **`render.color` → `categories[category]` → theme `category` token → `utility` fallback**. Both fields are optional — graphs without them render exactly as before, using the theme's built-in categories. Types `CategoryColorSpec` / `GraphCategoryPalette` are exported from `@xenolith/render-pixi`.
+Resolution order for a node's header colour: **`render.color` → `categories[category]` → theme `category` token → `utility` fallback**. Both fields are optional — graphs without them render exactly as before, using the theme's built-in categories. Types `CategoryColorSpec` / `GraphCategoryPalette` are exported from `@xenolithengine/render-pixi`.
 
 Use **token overrides** to restyle the whole visual language; use the **`categories` palette** to colour domain categories that live in your data.
 
 ## The full token shape
 
-The full type lives in `@xenolith/theme-xen` and is `XenTokens`. Top-level groups:
+The full type lives in `@xenolithengine/theme-xen` and is `XenTokens`. Top-level groups:
 
 | Group          | Purpose                                                                  |
 |----------------|--------------------------------------------------------------------------|
@@ -137,9 +137,9 @@ The full type lives in `@xenolith/theme-xen` and is `XenTokens`. Top-level group
 For a palette-only theme, an object literal is enough:
 
 ```ts
-import type { XenolithTheme } from '@xenolith/render-pixi'
-import { xenTokens } from '@xenolith/theme-xen'
-import { mergeTheme } from '@xenolith/theme-xen'
+import type { XenolithTheme } from '@xenolithengine/render-pixi'
+import { xenTokens } from '@xenolithengine/theme-xen'
+import { mergeTheme } from '@xenolithengine/theme-xen'
 
 export const pastelTheme: XenolithTheme = {
   id: 'pastel',
@@ -159,4 +159,4 @@ export const pastelTheme: XenolithTheme = {
 }
 ```
 
-For a custom material (your own shader, your own backdrop), implement `renderNode` and optionally `createGrid`. See `@xenolith/theme-liquid-glass`'s source for a complete worked example — PIXI Mesh + GLSL with SDF refraction and backdrop sampling.
+For a custom material (your own shader, your own backdrop), implement `renderNode` and optionally `createGrid`. See `@xenolithengine/theme-liquid-glass`'s source for a complete worked example — PIXI Mesh + GLSL with SDF refraction and backdrop sampling.

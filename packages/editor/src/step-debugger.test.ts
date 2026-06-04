@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { Graph, createNodeId, createEdgeId, createPinId } from '@xenolith/core'
-import type { Node, Edge, NodeId } from '@xenolith/core'
+import { Graph, createNodeId, createEdgeId, createPinId } from '@xenolithengine/core'
+import type { Node, Edge, NodeId } from '@xenolithengine/core'
 import { StepDebugger, type StepExecutor } from './step-debugger.js'
 
 // Tiny math graph: const(2) → add ← const(3); the executor reads node.state.value or sums inputs.

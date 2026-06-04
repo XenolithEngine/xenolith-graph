@@ -16,7 +16,7 @@
 // And the secret ingredient: `displayOptions.show(state)` for CONDITIONAL widgets — the *accent*
 // colour widget appears only when *Show accent* is on. Schema-only logic, no host code.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter',

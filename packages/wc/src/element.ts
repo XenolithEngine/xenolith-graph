@@ -1,5 +1,5 @@
-import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xenolith/adapter-core'
-import type { XenolithEditor } from '@xenolith/editor'
+import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xenolithengine/adapter-core'
+import type { XenolithEditor } from '@xenolithengine/editor'
 import { readAttributes, FORWARDED_EVENTS } from './attrs.js'
 
 /** `<xenolith-graph>` — the universal adapter. Declarative attributes (`minimap`, `fit-on-load`,

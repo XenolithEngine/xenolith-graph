@@ -35,19 +35,19 @@ interface XenolithTheme {
 ### Xen — 默认
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
 
 const editor = await XenolithEditor.init('#app')
 // Xen 即默认——无需 `theme` 选项。
 ```
 
-原创 dark/gold 设计系统：`#0F110E` 节点主体、金色点缀、按类别染色的表头、按类型上色的连线、折叠到 pill 的动画。位于 `@xenolith/theme-xen`。
+原创 dark/gold 设计系统：`#0F110E` 节点主体、金色点缀、按类别染色的表头、按类型上色的连线、折叠到 pill 的动画。位于 `@xenolithengine/theme-xen`。
 
 ### Liquid Glass — 受苹果新设计启发的磨砂玻璃
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 const editor = await XenolithEditor.init('#app', { theme: liquidGlassTheme })
 ```
@@ -59,8 +59,8 @@ backdrop pass 是**可选**的：Liquid Glass 设置 `needsBackdrop: true`，Xen
 ## 运行时主题切换
 
 ```ts
-import { xenTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { xenTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 editor.setTheme(liquidGlassTheme)   // 每个节点用新主题重新渲染
 editor.setTheme(xenTheme)           // 选区、悬停、折叠状态、位置都保留
@@ -115,13 +115,13 @@ editor.loadJSON({
 })
 ```
 
-节点表头颜色解析顺序：**`render.color` → `categories[category]` → 主题 `category` token → `utility` 兜底**。两个字段均可选——没有它们的图与之前渲染一致，使用主题内置类别。类型 `CategoryColorSpec` / `GraphCategoryPalette` 从 `@xenolith/render-pixi` 导出。
+节点表头颜色解析顺序：**`render.color` → `categories[category]` → 主题 `category` token → `utility` 兜底**。两个字段均可选——没有它们的图与之前渲染一致，使用主题内置类别。类型 `CategoryColorSpec` / `GraphCategoryPalette` 从 `@xenolithengine/render-pixi` 导出。
 
 用**令牌覆盖**重塑整体视觉语言；用 **`categories`** 调色板给数据中的领域类别上色。
 
 ## 完整 token 形状
 
-完整类型位于 `@xenolith/theme-xen`，叫 `XenTokens`。顶层分组：
+完整类型位于 `@xenolithengine/theme-xen`，叫 `XenTokens`。顶层分组：
 
 | 分组            | 用途                                                                    |
 |-----------------|-------------------------------------------------------------------------|
@@ -142,9 +142,9 @@ editor.loadJSON({
 只改调色板的话，一个对象字面量就够：
 
 ```ts
-import type { XenolithTheme } from '@xenolith/render-pixi'
-import { xenTokens } from '@xenolith/theme-xen'
-import { mergeTheme } from '@xenolith/theme-xen'
+import type { XenolithTheme } from '@xenolithengine/render-pixi'
+import { xenTokens } from '@xenolithengine/theme-xen'
+import { mergeTheme } from '@xenolithengine/theme-xen'
 
 export const pastelTheme: XenolithTheme = {
   id: 'pastel',
@@ -164,4 +164,4 @@ export const pastelTheme: XenolithTheme = {
 }
 ```
 
-需要自定义材质（自己的着色器、自己的 backdrop）——实现 `renderNode`，可选实现 `createGrid`。完整示例参见 `@xenolith/theme-liquid-glass` 源码——PIXI Mesh + GLSL，SDF 折射 + backdrop 采样。
+需要自定义材质（自己的着色器、自己的 backdrop）——实现 `renderNode`，可选实现 `createGrid`。完整示例参见 `@xenolithengine/theme-liquid-glass` 源码——PIXI Mesh + GLSL，SDF 折射 + backdrop 采样。

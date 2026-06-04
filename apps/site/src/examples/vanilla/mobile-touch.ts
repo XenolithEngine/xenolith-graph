@@ -1,7 +1,7 @@
 // Vanilla mount for mobile-touch — touch-first demo for testing pinch / two-finger pan / long-press
 // on iOS Simulator and real devices. See /docs/TESTING-ON-IOS-SIMULATOR.md.
-import { XenolithEditor } from '@xenolith/editor'
-import type { NodeSchema } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
+import type { NodeSchema } from '@xenolithengine/editor'
 
 const NODE_TYPES: NodeSchema[] = [
   { type: 'Source',    title: 'Source',    category: 'data',

@@ -1,4 +1,4 @@
-# @xenolith/plugin-autolayout
+# @xenolithengine/plugin-autolayout
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,9 +12,9 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/plugin-autolayout dagre
+pnpm add @xenolithengine/plugin-autolayout dagre
 # or
-pnpm add @xenolith/plugin-autolayout elkjs
+pnpm add @xenolithengine/plugin-autolayout elkjs
 ```
 
 Optional peer deps: `dagre@^0.8.5` (lighter, layered DAGs) **or** `elkjs@^0.9 || ^0.10 || ^0.11` (nested layouts, orthogonal routing, 9 algorithms). Install whichever backend you reach for; both engines lazy-load.
@@ -22,8 +22,8 @@ Optional peer deps: `dagre@^0.8.5` (lighter, layered DAGs) **or** `elkjs@^0.9 ||
 ## Usage
 
 ```ts
-import { autoLayoutPlugin } from '@xenolith/plugin-autolayout'
-import { dagreEngine } from '@xenolith/plugin-autolayout/dagre'
+import { autoLayoutPlugin } from '@xenolithengine/plugin-autolayout'
+import { dagreEngine } from '@xenolithengine/plugin-autolayout/dagre'
 
 const layout = autoLayoutPlugin({ engine: dagreEngine({ rankdir: 'LR' }) })
 editor.use(layout)
@@ -34,7 +34,7 @@ await layout.arrange({ direction: 'LR', animate: { durationMs: 280 } })
 ELK variant — same shape:
 
 ```ts
-import { elkEngine } from '@xenolith/plugin-autolayout/elk'
+import { elkEngine } from '@xenolithengine/plugin-autolayout/elk'
 
 const layout = autoLayoutPlugin({ engine: elkEngine({ algorithm: 'layered' }) })
 editor.use(layout)
@@ -48,8 +48,8 @@ await layout.arrange()
 - `autoLayoutPlugin(config)` → `AutoLayoutPlugin` with `arrange(opts?)`
 - `AutoLayoutConfig`, `AutoLayoutPlugin`
 - `LayoutEngine`, `LayoutGraph`, `LayoutNode`, `LayoutEdge`, `LayoutOpts`, `LayoutResult`
-- Subpath `@xenolith/plugin-autolayout/dagre` → `dagreEngine`, `DagreEngineOpts`
-- Subpath `@xenolith/plugin-autolayout/elk` → `elkEngine`, `ElkEngineOpts`
+- Subpath `@xenolithengine/plugin-autolayout/dagre` → `dagreEngine`, `DagreEngineOpts`
+- Subpath `@xenolithengine/plugin-autolayout/elk` → `elkEngine`, `ElkEngineOpts`
 
 ## Docs
 

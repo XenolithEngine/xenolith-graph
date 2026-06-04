@@ -1,4 +1,4 @@
-# Testing `@xenolith/mcp-server` end-to-end
+# Testing `@xenolithengine/mcp-server` end-to-end
 
 This walks through driving the editor from Claude Desktop / Cursor through MCP. The flow is:
 
@@ -11,7 +11,7 @@ Claude Desktop ─stdio MCP─→ xenolith-mcp CLI ─WS─→ browser editor (X
 ```sh
 # From the repo root:
 pnpm install
-pnpm -r --filter '@xenolith/mcp-server' build
+pnpm -r --filter '@xenolithengine/mcp-server' build
 node packages/mcp-server/dist/cli.js --port 7777 --token devtoken
 ```
 
@@ -28,7 +28,7 @@ Leave it running.
 In another terminal, start the site:
 
 ```sh
-pnpm --filter @xenolith/site dev
+pnpm --filter @xenolithengine/site dev
 ```
 
 Open <http://localhost:4321/xenolith-graph/examples/mcp-live/>. The MCP panel is top-left:

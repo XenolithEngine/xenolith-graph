@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { listFixtures, findFixture, loadFixture, MANIFEST } from './index.js'
 
-describe('@xenolith/test-fixtures', () => {
+describe('@xenolithengine/test-fixtures', () => {
   it('exposes the manifest as a non-empty list', () => {
     expect(MANIFEST.length).toBeGreaterThanOrEqual(5)
   })

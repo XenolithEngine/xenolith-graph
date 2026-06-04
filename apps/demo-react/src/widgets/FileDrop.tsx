@@ -1,4 +1,4 @@
-import type { WidgetProps } from '@xenolith/react'
+import type { WidgetProps } from '@xenolithengine/react'
 
 // Drag-and-drop (or browse) an image; reads it to a data URL and previews it inline.
 export function FileDrop({ value, setValue }: WidgetProps) {

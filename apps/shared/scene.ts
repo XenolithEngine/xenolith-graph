@@ -3,7 +3,7 @@
 // calls this in its onReady so the registry has the schemas before loadJSON.
 
 import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from './demo-graph.js'
-import type { XenolithEditor } from '@xenolith/editor'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 export function loadDemo(editor: XenolithEditor): void {
   editor.registerWidget('curve', createCurveWidget())

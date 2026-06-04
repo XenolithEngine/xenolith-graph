@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolith/react'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolithengine/react'
+import type { XenolithEditor } from '@xenolithengine/editor'
 import { buildCompute, type ComputeHandle, type ComputeMetrics } from './build-compute.js'
 
 // `?engine=compute` — the fairqueue model as a VISIBLE node program (the runtime plugin's
@@ -26,7 +26,7 @@ export function ComputeApp() {
 
       <XenolithPanel position="top-left" style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 250 }}>
         <strong style={{ fontSize: 13 }}>Runtime · model as nodes</strong>
-        <span style={{ fontSize: 10, color: 'var(--xeno-muted)', marginTop: -6 }}>fairqueue built from @xenolith/plugin-runtime primitives</span>
+        <span style={{ fontSize: 10, color: 'var(--xeno-muted)', marginTop: -6 }}>fairqueue built from @xenolithengine/plugin-runtime primitives</span>
         <XenolithButton active={running} style={{ width: '100%' }}
           onClick={() => { if (running) handle.current?.pause(); else handle.current?.resume() }}>
           {running ? '■ Pause' : '▶ Run'}

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useXenolithEditor, XenolithButton } from '@xenolith/react'
+import { useXenolithEditor, XenolithButton } from '@xenolithengine/react'
 import { recordGraphGif, downloadBlob } from './gif-export.js'
 import { recordGraphVideo, bestVideoMime } from './video-export.js'
 

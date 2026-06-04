@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditorEvent, useSelection } from '@xenolith/react'
+import { XenolithGraph, XenolithPanel, useEditorEvent, useSelection } from '@xenolithengine/react'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
 

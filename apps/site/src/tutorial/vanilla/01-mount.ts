@@ -5,7 +5,7 @@
 // width:100%;height:100%">` and you get a working node editor — drag, pan, zoom, palette via
 // Tab — all out of the box. No theme to wire (Xen is the default).
 
-import { XenolithEditor } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
 
 // xenolith.v1 — the canonical data format. The same JSON renders in every framework adapter.
 const graph = {

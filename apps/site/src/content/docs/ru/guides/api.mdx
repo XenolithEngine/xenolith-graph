@@ -349,10 +349,10 @@ LOD переключается при уменьшении зума: full → sp
 
 ## Headless рантайм
 
-Выполнение делегируется плагинам — сам редактор **не содержит execution**. Рантайм (например `@xenolith/plugin-runtime`, Blueprint VM, в работе) ставится плагином и использует [API делегирования рантайма](#плагины) выше.
+Выполнение делегируется плагинам — сам редактор **не содержит execution**. Рантайм (например `@xenolithengine/plugin-runtime`, Blueprint VM, в работе) ставится плагином и использует [API делегирования рантайма](#плагины) выше.
 
 ```ts
-import { runtime } from '@xenolith/plugin-runtime'   // будущий пакет
+import { runtime } from '@xenolithengine/plugin-runtime'   // будущий пакет
 editor.use(runtime({ /* опции */ }))
 editor.startLoop()    // запускает тики — рантайм решает, что выполнять
 editor.step()         // один кадр

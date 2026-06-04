@@ -1,10 +1,10 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js'
-import type { Node, Pin } from '@xenolith/core'
+import type { Node, Pin } from '@xenolithengine/core'
 import {
   computeNodeLayout, renderWidgets, markPinInteractive,
   type NodeView, type NodeVisualState, type RenderNodeOptions,
-} from '@xenolith/render-pixi'
-import type { XenTokens } from '@xenolith/theme-xen'
+} from '@xenolithengine/render-pixi'
+import type { XenTokens } from '@xenolithengine/theme-xen'
 import { createIridescentMesh, type IridescentMeshHandle } from './iridescent-mesh.js'
 
 // Module-scoped registry of every live iridescent mesh + its host container. The theme's

@@ -1,7 +1,7 @@
-import { XenolithEditor } from '@xenolith/editor'
-import { xenTheme, type XenolithTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
-import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolith/demo'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolithengine/demo'
 
 const THEMES: Record<string, XenolithTheme> = {
   xen: xenTheme,

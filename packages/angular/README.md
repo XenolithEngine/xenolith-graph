@@ -1,4 +1,4 @@
-# @xenolith/angular
+# @xenolithengine/angular
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/angular pixi.js rxjs
+pnpm add @xenolithengine/angular pixi.js rxjs
 ```
 
 Peer deps: `@angular/core >= 17`, `rxjs >= 7`, `pixi.js@^8.6.0`. WebGL/client-only.
@@ -21,8 +21,8 @@ Peer deps: `@angular/core >= 17`, `rxjs >= 7`, `pixi.js@^8.6.0`. WebGL/client-on
 
 ```ts
 import { Component } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolith/angular'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraphComponent } from '@xenolithengine/angular'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 @Component({
   selector: 'app-editor',

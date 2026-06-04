@@ -3,8 +3,8 @@
 //
 // Boot from localStorage when available, otherwise from the seed. The toolbar lives in a child
 // component that uses `useEditor()` + `useEditorEvent('history:changed')` for autosave.
-import { XenolithGraph } from '@xenolith/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
 import Chapter06Toolbar from './Chapter06Toolbar.vue'
 
 const greeterSchema: NodeSchema = {

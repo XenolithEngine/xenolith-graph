@@ -88,7 +88,7 @@ Heavy on big graphs — pair with `editor.withOverlay('Exporting…', async () =
 
 ## ComfyUI import
 
-A workflow importer that consumes the JSON ComfyUI writes when you save a workflow lives in the internal `@xenolith/demo` package (private, not yet published). To use it before it lands in a public package, copy [`comfy-import.ts`](https://github.com/XenolithEngine/xenolith-graph/blob/main/apps/shared/comfy-import.ts) into your app:
+A workflow importer that consumes the JSON ComfyUI writes when you save a workflow lives in the internal `@xenolithengine/demo` package (private, not yet published). To use it before it lands in a public package, copy [`comfy-import.ts`](https://github.com/XenolithEngine/xenolith-graph/blob/main/apps/shared/comfy-import.ts) into your app:
 
 ```ts
 import { importComfyWorkflow } from './comfy-import'
@@ -96,7 +96,7 @@ const { graph } = importComfyWorkflow(json)
 editor.loadJSON(graph)
 ```
 
-Pin types, widget defaults, and node positions are translated into `xenolith.v1` shape. Reroutes are preserved as inline knots. A public package (`@xenolith/comfy-import`) is planned for v0.8.
+Pin types, widget defaults, and node positions are translated into `xenolith.v1` shape. Reroutes are preserved as inline knots. A public package (`@xenolithengine/comfy-import`) is planned for v0.8.
 
 ## Deterministic output
 

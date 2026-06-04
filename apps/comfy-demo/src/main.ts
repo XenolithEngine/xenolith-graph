@@ -1,7 +1,7 @@
-import { XenolithEditor } from '@xenolith/editor'
-import { xenTheme, type XenolithTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
-import { importComfyWorkflow } from '@xenolith/demo/comfy'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { importComfyWorkflow } from '@xenolithengine/demo/comfy'
 import { generateXxlWorkflow } from './fixtures/xxl.js'
 
 // Wider zoom range than the default [0.25, 2] so the 1391-node monster can be zoomed out far

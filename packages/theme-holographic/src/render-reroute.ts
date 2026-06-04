@@ -1,7 +1,7 @@
 import { Container, Graphics } from 'pixi.js'
-import type { Node } from '@xenolith/core'
-import { rerouteSize, rerouteBoxSize, markPinInteractive, type NodeView, type NodeVisualState, type RenderNodeOptions } from '@xenolith/render-pixi'
-import type { XenTokens } from '@xenolith/theme-xen'
+import type { Node } from '@xenolithengine/core'
+import { rerouteSize, rerouteBoxSize, markPinInteractive, type NodeView, type NodeVisualState, type RenderNodeOptions } from '@xenolithengine/render-pixi'
+import type { XenTokens } from '@xenolithengine/theme-xen'
 import { createIridescentMesh } from './iridescent-mesh.js'
 
 // Holographic reroute renderers — the inline knot ($reroute) and the palette Reroute node box.

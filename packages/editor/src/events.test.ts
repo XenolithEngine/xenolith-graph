@@ -15,7 +15,7 @@ import {
   type CoreEvents,
   type Node,
   type Edge,
-} from '@xenolith/core'
+} from '@xenolithengine/core'
 import { createGraphEventBridge, firePreventable, type EditorEvents } from './events.js'
 
 function makeNode(): Node {

@@ -17,11 +17,11 @@ import {
   type TextStyleFontWeight,
   type LinearGradientOptions,
 } from 'pixi.js'
-import type { StateStyle } from '@xenolith/theme-xen'
-import type { Node, Pin, TypeRegistry } from '@xenolith/core'
-import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolith/core'
+import type { StateStyle } from '@xenolithengine/theme-xen'
+import type { Node, Pin, TypeRegistry } from '@xenolithengine/core'
+import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolithengine/core'
 import { pinRowIndexFor } from './layout.js'
-import type { XenTokens } from '@xenolith/theme-xen'
+import type { XenTokens } from '@xenolithengine/theme-xen'
 import { computeNodeLayout } from './layout.js'
 import { renderWidgets, type WidgetHit, type WidgetLayoutTokens, type CustomWidgetController } from './widget-renderer.js'
 import { execPinColors, hexToRgba, resolveCategoryAccent, resolveCategoryGradient, resolvePinFill, resolvePinShape, resolvePinStroke, type GraphCategoryPalette } from './style.js'

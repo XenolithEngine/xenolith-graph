@@ -9,7 +9,7 @@ import {
   type NodeId,
   type Unsubscribe,
   type Vec2,
-} from '@xenolith/core'
+} from '@xenolithengine/core'
 
 /** The public event surface of the editor — observe these via `editor.on(name, handler)`.
  *  Graph-mutation events fire on every path that changes the graph (programmatic API, palette

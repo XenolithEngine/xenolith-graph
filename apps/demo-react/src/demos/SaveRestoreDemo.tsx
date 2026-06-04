@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolith/react'
-import { initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved } from '@xenolith/demo/save-restore'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolithengine/react'
+import { initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved } from '@xenolithengine/demo/save-restore'
 import { DemoStage } from '../Layout.js'
 
 // Persistence: the whole graph is JSON (editor.toJSON ⇄ loadJSON). The file + localStorage helpers

@@ -1,10 +1,10 @@
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, reactWidget, type WidgetProps } from '@xenolith/react'
-import type { XenolithEditor } from '@xenolith/editor'
-import { buildImagePipeline, downloadImageResult } from '@xenolith/demo/image-pipeline'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, reactWidget, type WidgetProps } from '@xenolithengine/react'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { buildImagePipeline, downloadImageResult } from '@xenolithengine/demo/image-pipeline'
 import { DemoStage } from '../Layout.js'
 
 // Showcase: a real WebGL image pipeline. All the framework-agnostic logic (GLSL runner, filter
-// schemas, chain layout, live re-processing, download) lives in @xenolith/demo/image-pipeline.
+// schemas, chain layout, live re-processing, download) lives in @xenolithengine/demo/image-pipeline.
 // Setup runs synchronously in `onReady` (event subscriptions live on the editor — no handle to
 // thread around); the panel's Download button reads the current result via `useEditor()`.
 

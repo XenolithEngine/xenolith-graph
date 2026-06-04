@@ -35,19 +35,19 @@ interface XenolithTheme {
 ### Xen — дефолт
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
 
 const editor = await XenolithEditor.init('#app')
 // Xen — дефолт, опция `theme` не нужна.
 ```
 
-Оригинальная dark/gold дизайн-система: тела нод `#0F110E`, золотые акценты, тонированные по категориям шапки, типизированные провода, анимированный коллапс в pill. Живёт в `@xenolith/theme-xen`.
+Оригинальная dark/gold дизайн-система: тела нод `#0F110E`, золотые акценты, тонированные по категориям шапки, типизированные провода, анимированный коллапс в pill. Живёт в `@xenolithengine/theme-xen`.
 
 ### Liquid Glass — матовое стекло, вдохновлённое новым Apple-дизайном
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 const editor = await XenolithEditor.init('#app', { theme: liquidGlassTheme })
 ```
@@ -59,8 +59,8 @@ Backdrop-пасс **опциональный**: Liquid Glass ставит `needs
 ## Переключение темы в рантайме
 
 ```ts
-import { xenTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { xenTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 editor.setTheme(liquidGlassTheme)   // каждая нода перерисовывается через новую тему
 editor.setTheme(xenTheme)           // выделение, hover, свёрнутость, позиции сохраняются
@@ -115,13 +115,13 @@ editor.loadJSON({
 })
 ```
 
-Приоритет цвета шапки ноды: **`render.color` → `categories[category]` → токен темы `category` → fallback `utility`**. Оба поля необязательны — графы без них рисуются как раньше, через встроенные категории темы. Типы `CategoryColorSpec` / `GraphCategoryPalette` экспортируются из `@xenolith/render-pixi`.
+Приоритет цвета шапки ноды: **`render.color` → `categories[category]` → токен темы `category` → fallback `utility`**. Оба поля необязательны — графы без них рисуются как раньше, через встроенные категории темы. Типы `CategoryColorSpec` / `GraphCategoryPalette` экспортируются из `@xenolithengine/render-pixi`.
 
 Используйте **override токенов** для смены всего визуального языка; используйте палитру **`categories`** для доменных категорий, живущих в данных.
 
 ## Полная форма токенов
 
-Полный тип лежит в `@xenolith/theme-xen` и называется `XenTokens`. Верхнеуровневые группы:
+Полный тип лежит в `@xenolithengine/theme-xen` и называется `XenTokens`. Верхнеуровневые группы:
 
 | Группа          | Назначение                                                              |
 |-----------------|-------------------------------------------------------------------------|
@@ -142,9 +142,9 @@ editor.loadJSON({
 Для палитровой темы достаточно объекта:
 
 ```ts
-import type { XenolithTheme } from '@xenolith/render-pixi'
-import { xenTokens } from '@xenolith/theme-xen'
-import { mergeTheme } from '@xenolith/theme-xen'
+import type { XenolithTheme } from '@xenolithengine/render-pixi'
+import { xenTokens } from '@xenolithengine/theme-xen'
+import { mergeTheme } from '@xenolithengine/theme-xen'
 
 export const pastelTheme: XenolithTheme = {
   id: 'pastel',
@@ -164,4 +164,4 @@ export const pastelTheme: XenolithTheme = {
 }
 ```
 
-Для кастомного материала (свой шейдер, свой backdrop) — реализуйте `renderNode` и опционально `createGrid`. Полный пример см. в исходниках `@xenolith/theme-liquid-glass` — PIXI Mesh + GLSL с SDF-рефракцией и сэмплингом backdrop.
+Для кастомного материала (свой шейдер, свой backdrop) — реализуйте `renderNode` и опционально `createGrid`. Полный пример см. в исходниках `@xenolithengine/theme-liquid-glass` — PIXI Mesh + GLSL с SDF-рефракцией и сэмплингом backdrop.

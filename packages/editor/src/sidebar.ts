@@ -8,8 +8,8 @@
 // machinery designed for the in-node canvas; reusing them in a DOM panel needs separate plumbing.
 // Hosts that need a custom-widget sidebar render right now can author a normal DOM widget.
 
-import type { Node, NodeId, WidgetSpec } from '@xenolith/core'
-import { widgetValue, widgetIsVisible } from '@xenolith/core'
+import type { Node, NodeId, WidgetSpec } from '@xenolithengine/core'
+import { widgetValue, widgetIsVisible } from '@xenolithengine/core'
 
 export interface SidebarManagerOpts {
   /** Editor's DOM overlay root — the panel mounts here as a child. */

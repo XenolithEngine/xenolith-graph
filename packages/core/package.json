@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/core",
+  "name": "@xenolithengine/core",
   "version": "0.7.0-beta.0",
   "description": "Headless graph model, type system, command bus, and event emitter for XenolithGraph. Zero runtime dependencies.",
   "license": "MIT",

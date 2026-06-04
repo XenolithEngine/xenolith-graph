@@ -44,7 +44,7 @@ Adopt the **hybrid mutable-storage + read-only API** model.
 
 - Pin storage layout (in-Node array vs side index). Deferred to the cycle that introduces TypeRegistry.
 - Cascade semantics on `_removeNode` (does it also remove attached edges, or does the caller handle it). Deferred to the CommandBus cycle — `RemoveNode` command will be responsible for the cascade explicitly.
-- Persistence format. The internal mutable Maps are not the file format. `serialize()` will produce a plain JSON object; the file format lives in `@xenolith/plugin-serialize`.
+- Persistence format. The internal mutable Maps are not the file format. `serialize()` will produce a plain JSON object; the file format lives in `@xenolithengine/plugin-serialize`.
 
 ## Consequences
 

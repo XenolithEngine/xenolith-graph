@@ -1,12 +1,12 @@
 // The "assemble the model" view: the WHOLE fairqueue model rendered as a node graph of
-// @xenolith/plugin-runtime primitives (+ the Allocate verb). Installs the runtime plugin (primitives
+// @xenolithengine/plugin-runtime primitives (+ the Allocate verb). Installs the runtime plugin (primitives
 // in the Tab palette, semantic pin colours), loads the runtime graph as renderable nodes, and DRIVES
 // THE ON-SCREEN GRAPH: each tick it snapshots editor.graph and runs the VM on it. The model's state
 // (priorities, …) lives in VM variables and feeds back through the Set/Get nodes — rewire the graph
 // and the simulation changes. Same model proven == native step() (runtime-graph.test.ts).
 
-import type { XenolithEditor, NodeId } from '@xenolith/editor'
-import { Runtime, runtimePlugin } from '@xenolith/plugin-runtime'
+import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
+import { Runtime, runtimePlugin } from '@xenolithengine/plugin-runtime'
 import { fairqueueComputeGraph, FAIRQUEUE_DEFS } from './runtime-graph.js'
 import type { Agent, GoodieSpec } from './fairqueue.js'
 

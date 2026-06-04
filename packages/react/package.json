@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/react",
+  "name": "@xenolithengine/react",
   "version": "0.7.0-beta.0",
   "description": "React adapter for XenolithGraph — <XenolithGraph> component + useXenolith hook.",
   "license": "MIT",
@@ -26,8 +26,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolith/adapter-core": "workspace:*",
-    "@xenolith/editor": "workspace:*"
+    "@xenolithengine/adapter-core": "workspace:*",
+    "@xenolithengine/editor": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0",

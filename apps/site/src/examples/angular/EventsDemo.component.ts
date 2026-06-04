@@ -2,9 +2,9 @@
 // bind with `(nodeClick)="…"` etc. Selection state + event log live in component fields.
 import { Component, signal } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { XenolithGraphComponent } from '@xenolith/angular'
-import type { XenolithEditor, EditorEvents } from '@xenolith/editor'
-import { loadDemo } from '@xenolith/demo/scene'
+import { XenolithGraphComponent } from '@xenolithengine/angular'
+import type { XenolithEditor, EditorEvents } from '@xenolithengine/editor'
+import { loadDemo } from '@xenolithengine/demo/scene'
 
 @Component({
   selector: 'events-demo',

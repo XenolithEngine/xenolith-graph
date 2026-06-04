@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel } from '@xenolith/react'
-import type { XenolithEditor, NodeId } from '@xenolith/editor'
-import { buildCanvasWidget } from '@xenolith/demo/canvas-widget'
+import { XenolithGraph, XenolithPanel } from '@xenolithengine/react'
+import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
+import { buildCanvasWidget } from '@xenolithengine/demo/canvas-widget'
 import { DemoStage } from '../Layout.js'
 
 // The simplest custom widget — a click/drag level bar — lives in the framework-agnostic core
-// (@xenolith/demo/canvas-widget): two functions, no DOM. This React file registers it via the core,
+// (@xenolithengine/demo/canvas-widget): two functions, no DOM. This React file registers it via the core,
 // then catches the value through onWidgetChange and shows it (and a slider that writes it back).
 export function CanvasWidgetDemo() {
   const [gain, setGain] = useState(0.6)

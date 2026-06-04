@@ -2,7 +2,7 @@
 // WASM (or beat it — Binaryen's optimiser is aggressive) and crush JS by 1-2 orders of magnitude.
 
 import { bench, describe } from 'vitest'
-import { Runtime, BUILTIN_PRIMITIVES, type RtGraph, type RtNode, type RtEdge } from '@xenolith/plugin-runtime'
+import { Runtime, BUILTIN_PRIMITIVES, type RtGraph, type RtNode, type RtEdge } from '@xenolithengine/plugin-runtime'
 // Import the in-package codegen + wasm-codegen via the source paths — they're not exported.
 import { codegen } from '../../plugin-runtime/src/vm/codegen.js'
 import { wasmCodegen } from '../../plugin-runtime/src/vm/wasm-codegen.js'

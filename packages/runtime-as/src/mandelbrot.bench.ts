@@ -2,7 +2,7 @@
 // (a point inside the set so all 100 iterations actually execute), repeated. ops/s = pixels/s.
 
 import { bench, describe } from 'vitest'
-import { Runtime, BUILTIN_PRIMITIVES, mandelbrotPixelGraph, mandelbrotPixelReference } from '@xenolith/plugin-runtime'
+import { Runtime, BUILTIN_PRIMITIVES, mandelbrotPixelGraph, mandelbrotPixelReference } from '@xenolithengine/plugin-runtime'
 import { codegen } from '../../plugin-runtime/src/vm/codegen.js'
 import { compile } from './index.js'
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 // The public events API (`editor.on(...)`) — interaction-fired events that the headless unit test
-// in @xenolith/editor (events.test.ts) cannot cover.
+// in @xenolithengine/editor (events.test.ts) cannot cover.
 test.describe('public events API', () => {
   test('fires node:click + selection:changed on a node click, node:moved on drag', async ({ page }) => {
     await page.goto('/')

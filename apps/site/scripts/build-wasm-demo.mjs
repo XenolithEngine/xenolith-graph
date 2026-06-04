@@ -12,11 +12,11 @@ const repoRoot = resolve(here, '..', '..', '..')
 const demoDist = resolve(repoRoot, 'apps', 'wasm-demo', 'dist')
 const out = resolve(here, '..', 'public', 'wasm')
 
-// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolith/*
+// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolithengine/*
 // via aliases to each package's src, so no built .d.ts/dist is required — same pattern as
 // build-fairqueue.mjs.
-console.log('[wasm-demo] building @xenolith/wasm-demo (vite)…')
-execSync('pnpm --filter @xenolith/wasm-demo exec vite build', { stdio: 'inherit', cwd: repoRoot })
+console.log('[wasm-demo] building @xenolithengine/wasm-demo (vite)…')
+execSync('pnpm --filter @xenolithengine/wasm-demo exec vite build', { stdio: 'inherit', cwd: repoRoot })
 
 rmSync(out, { recursive: true, force: true })
 cpSync(demoDist, out, { recursive: true })

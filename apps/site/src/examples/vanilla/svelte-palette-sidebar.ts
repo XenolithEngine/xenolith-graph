@@ -1,7 +1,7 @@
 // Svelte adapter — palette sidebar. Schemas + sidebar config come from the shared package; the
 // editor's built-in `node:drop` handler spawns the dragged node at the drop point.
-import { createXenolithGraph } from '@xenolith/svelte'
-import { buildPaletteSidebar } from '@xenolith/demo/palette-sidebar'
+import { createXenolithGraph } from '@xenolithengine/svelte'
+import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const slot = document.createElement('div')

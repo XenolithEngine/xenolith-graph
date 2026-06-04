@@ -72,12 +72,12 @@ The strict rule: a layer may know about layers below it, never above. The core h
 
 | Package | Role |
 |---|---|
-| `@xenolith/core` | Headless graph model, type system, command bus, events. Zero deps. |
-| `@xenolith/render-pixi` | PIXI v8 renderer. PIXI is a peer dependency. |
-| `@xenolith/editor` | Wires core + renderer + interaction + plugins into a usable editor. |
-| `@xenolith/react`, `@xenolith/svelte`, `@xenolith/vue` | Thin adapters. |
-| `@xenolith/theme-xen` | Default theme (Xen — original design system from the Figma source). |
-| `@xenolith/plugin-*` | Minimap, search palette, undo, serialize, clipboard, alignment. |
+| `@xenolithengine/core` | Headless graph model, type system, command bus, events. Zero deps. |
+| `@xenolithengine/render-pixi` | PIXI v8 renderer. PIXI is a peer dependency. |
+| `@xenolithengine/editor` | Wires core + renderer + interaction + plugins into a usable editor. |
+| `@xenolithengine/react`, `@xenolithengine/svelte`, `@xenolithengine/vue` | Thin adapters. |
+| `@xenolithengine/theme-xen` | Default theme (Xen — original design system from the Figma source). |
+| `@xenolithengine/plugin-*` | Minimap, search palette, undo, serialize, clipboard, alignment. |
 
 ### Tooling baseline
 
@@ -94,7 +94,7 @@ Without hard perf gates this becomes the next slow node library. Targets:
 - 500 nodes / 1000 edges at 60fps on Apple Silicon / Ryzen 5.
 - 0 GC pauses during a 5-second drag.
 - Cold-start with 100 nodes under 100 ms.
-- `@xenolith/core` bundle < 30 kB gzip; `@xenolith/render-pixi` < 80 kB gzip (excluding PIXI as a peer).
+- `@xenolithengine/core` bundle < 30 kB gzip; `@xenolithengine/render-pixi` < 80 kB gzip (excluding PIXI as a peer).
 
 CI fails on regression.
 
@@ -139,7 +139,7 @@ All mutations flow through a `CommandBus` (every change is an `apply/undo` pair)
 
 - **No comments unless the *why* is non-obvious.** Identifiers explain the *what*. Don't add JSDoc to functions whose name says it all.
 - **No backwards-compat shims** until v1.0. Until then, breaking changes go in changesets with a clear migration note.
-- **No new dependencies in `@xenolith/core` ever.** Headless core stays zero-dep. Render and adapter layers may add deps but each addition needs justification in the PR.
+- **No new dependencies in `@xenolithengine/core` ever.** Headless core stays zero-dep. Render and adapter layers may add deps but each addition needs justification in the PR.
 - **Every public API change ships with a Vitest test.** Every interaction change ships with a Playwright test.
 - **Perf budgets are not advisory.** A PR that blows the budget either fixes it or gets reverted.
 - **PIXI shaders / filters: read the docs and source, never guess.** Custom `GlProgram` / `GpuProgram` / `Shader` / `Filter` work must be verified against the actual PIXI v8 source (or live docs at https://pixijs.com/8.x/guides) before writing. GLSL preamble handling, uniform-block conventions, and version-directive prepending differ between APIs and have burned us already. Cheap validation: ship a 5-line dummy shader (`finalColor = vec4(1, 0, 0, 1)`) into the playground and confirm it compiles before scaling up.

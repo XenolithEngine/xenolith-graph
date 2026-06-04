@@ -6,8 +6,8 @@
 // don't bring their own schemas (that would make a recipe a different kind of thing). Use
 // `register_node_schema` first if you need to extend the registry.
 
-import type { NodeId, PinId } from '@xenolith/core'
-import { createEdgeId } from '@xenolith/core'
+import type { NodeId, PinId } from '@xenolithengine/core'
+import { createEdgeId } from '@xenolithengine/core'
 
 export interface RecipeNodeDef {
   /** Placeholder id used inside this recipe's edges. Replaced with a fresh NodeId at instantiate. */
@@ -40,7 +40,7 @@ export interface RecipeDef {
  *  uses pin LABELS (case-insensitive) rather than ids so it survives schema renames as long as
  *  labels stay stable. Pin labels are matched the same way `connect_pins` resolves them.
  *
- *  All four recipes use the `demoSchemas` types shipped in `@xenolith/demo` (Source / Sample /
+ *  All four recipes use the `demoSchemas` types shipped in `@xenolithengine/demo` (Source / Sample /
  *  Filter / Cache / Transform / Validate / Enrich / Score / Resolve / Format / Display / Audit /
  *  Persist / Notify / Archive). The MCP demo registers those on startup, so the recipes are
  *  instantiable out of the box. */

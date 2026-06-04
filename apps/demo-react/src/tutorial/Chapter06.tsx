@@ -6,8 +6,8 @@
 // `<XenolithPanel>`; buttons are themed via `<XenolithButton>`.
 
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolith/react'
-import type { NodeSchema, XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolithengine/react'
+import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/editor'
 import { DemoStage } from '../Layout.js'
 
 const greeterSchema: NodeSchema = {

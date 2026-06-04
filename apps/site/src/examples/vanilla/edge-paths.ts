@@ -1,8 +1,8 @@
 // Vanilla mount for G9 — edge path styles. DOM buttons in the overlay root flip every wire's
 // pathStyle via `editor.setEdgeOptions(id, { pathStyle })`.
-import { XenolithEditor } from '@xenolith/editor'
-import type { EdgePathStyle } from '@xenolith/render-pixi'
-import { buildEdgePaths } from '@xenolith/demo/edge-paths'
+import { XenolithEditor } from '@xenolithengine/editor'
+import type { EdgePathStyle } from '@xenolithengine/render-pixi'
+import { buildEdgePaths } from '@xenolithengine/demo/edge-paths'
 
 const STYLES: EdgePathStyle[] = ['bezier', 'smoothstep', 'step', 'linear']
 

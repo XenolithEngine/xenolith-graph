@@ -18,7 +18,7 @@ const editor = {
   },
 } as any
 const binding = { editor, on: vi.fn(() => vi.fn()), setProps: vi.fn(), destroy: vi.fn() }
-vi.mock('@xenolith/adapter-core', () => ({ createEditorBinding: vi.fn(async () => binding) }))
+vi.mock('@xenolithengine/adapter-core', () => ({ createEditorBinding: vi.fn(async () => binding) }))
 
 const { XenolithGraph, useNodes, useEdges, useSelection, useViewport, useGraphJSON } = await import('./index.js')
 const flush = async (): Promise<void> => { await act(async () => { await Promise.resolve(); await Promise.resolve() }) }

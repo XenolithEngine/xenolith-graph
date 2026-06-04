@@ -2,7 +2,7 @@
 // Toolbar — child of <XenolithGraph>. Autosave rides `history:changed`; downloads/loads use
 // `useEditor()` for the imperative `getGraphReadonly()`/`loadJSON()` calls.
 import { onBeforeUnmount, ref } from 'vue'
-import { useEditor, useEditorEvent } from '@xenolith/vue'
+import { useEditor, useEditorEvent } from '@xenolithengine/vue'
 
 const props = defineProps<{ storageKey: string }>()
 const editor = useEditor()

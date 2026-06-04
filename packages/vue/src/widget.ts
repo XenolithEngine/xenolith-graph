@@ -1,5 +1,5 @@
 import { createApp, h, reactive, type App, type Component } from 'vue'
-import type { DomWidgetController } from '@xenolith/editor'
+import type { DomWidgetController } from '@xenolithengine/editor'
 
 /** Props every Vue-component widget receives. Plain (unwrapped) values — the underlying state is
  *  a `reactive` object so Vue tracks dependencies in the component template; consumers write

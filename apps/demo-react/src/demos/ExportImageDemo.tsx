@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, useEditor } from '@xenolith/react'
-import { loadDemo } from '@xenolith/demo/scene'
-import { exportGraphImage } from '@xenolith/demo/export-image'
+import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, useEditor } from '@xenolithengine/react'
+import { loadDemo } from '@xenolithengine/demo/scene'
+import { exportGraphImage } from '@xenolithengine/demo/export-image'
 import { DemoStage } from '../Layout.js'
 
 // Showcase: render the whole graph to an image. The export + download logic lives in the
-// framework-agnostic core (@xenolith/demo/export-image); this React file is just the button panel.
+// framework-agnostic core (@xenolithengine/demo/export-image); this React file is just the button panel.
 
 function ExportPanel(): React.ReactElement {
   const editor = useEditor()

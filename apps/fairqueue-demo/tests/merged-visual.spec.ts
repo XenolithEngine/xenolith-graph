@@ -143,7 +143,7 @@ test.describe('merged engine — Schema + Struct visual contract', () => {
 
   test('merged engine screenshot (baseline)', async ({ page }) => {
     await gotoMerged(page)
-    // Whole-canvas snapshot. Updates: `pnpm --filter @xenolith/fairqueue-demo test:e2e --update-snapshots`.
+    // Whole-canvas snapshot. Updates: `pnpm --filter @xenolithengine/fairqueue-demo test:e2e --update-snapshots`.
     await expect(page).toHaveScreenshot('merged-initial.png', { fullPage: false, maxDiffPixelRatio: 0.02 })
   })
 })

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-// Rounded-out PluginContext for @xenolith/plugin-runtime: tick clock, setNodePins,
+// Rounded-out PluginContext for @xenolithengine/plugin-runtime: tick clock, setNodePins,
 // expandTemplateInstance, graphSnapshot (+expandMacros flatten), setEdgeAnimated, and the
 // non-undoable ephemeral setWidgetValue — all reachable via the plugin context (not the live editor).
 

@@ -369,10 +369,10 @@ LOD switches as zoom decreases: full → sprite-baked → flat-batch. No public 
 
 ## Headless runtime
 
-Execution is delegated to plugins — the editor itself ships **no execution**. A runtime (e.g. `@xenolith/plugin-runtime`, a Blueprint VM, in progress) installs as a plugin and uses the [runtime delegation API](#plugins) above.
+Execution is delegated to plugins — the editor itself ships **no execution**. A runtime (e.g. `@xenolithengine/plugin-runtime`, a Blueprint VM, in progress) installs as a plugin and uses the [runtime delegation API](#plugins) above.
 
 ```ts
-import { runtime } from '@xenolith/plugin-runtime'   // future package
+import { runtime } from '@xenolithengine/plugin-runtime'   // future package
 editor.use(runtime({ /* options */ }))
 editor.startLoop()    // begins ticking — the runtime decides what executes
 editor.step()         // single frame

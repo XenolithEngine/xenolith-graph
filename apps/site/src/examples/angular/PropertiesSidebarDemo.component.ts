@@ -1,9 +1,9 @@
 // Angular standalone component — properties sidebar. Auto-open via the `(ready)` Output; toggle
 // is a direct editor call. Sidebar open-state lives only in the component that drives the button.
 import { Component, signal } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolith/angular'
-import type { XenolithEditor } from '@xenolith/editor'
-import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolith/demo/properties-sidebar'
+import { XenolithGraphComponent } from '@xenolithengine/angular'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 @Component({
   selector: 'properties-sidebar-demo',

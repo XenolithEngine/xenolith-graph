@@ -1,4 +1,4 @@
-import { XenolithEditor, type XenolithEditorOptions, type EditorEvents } from '@xenolith/editor'
+import { XenolithEditor, type XenolithEditorOptions, type EditorEvents } from '@xenolithengine/editor'
 import { applyProps, type XenolithProps } from './props.js'
 
 export type { XenolithProps } from './props.js'

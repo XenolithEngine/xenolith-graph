@@ -1,4 +1,4 @@
-import type { Edge, NodeId, NodeSchema, Pin } from '@xenolith/core'
+import type { Edge, NodeId, NodeSchema, Pin } from '@xenolithengine/core'
 import { canConnect } from './pin-compat.js'
 
 /** Build a throwaway Pin from a schema pin for compatibility checks (id/label are irrelevant). */

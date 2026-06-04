@@ -12,7 +12,7 @@ Early architecture drafts referred to the default theme as `theme-ue5` and frame
 
 ## Decision
 
-The default theme is **Xen**, an original design system. The package is `@xenolith/theme-xen`. The Figma source is the canonical authority.
+The default theme is **Xen**, an original design system. The package is `@xenolithengine/theme-xen`. The Figma source is the canonical authority.
 
 ### Visual invariants
 
@@ -46,7 +46,7 @@ Glassmorphic headers use `backdrop-filter: blur(4px)` semantically. Implementati
 
 ## Consequences
 
-- `@xenolith/theme-ue5` and `@xenolith/theme-ue4` are removed from the package map. Future alternative themes — light, high-contrast, brand-customised — live under `@xenolith/theme-*` post-1.0.
+- `@xenolithengine/theme-ue5` and `@xenolithengine/theme-ue4` are removed from the package map. Future alternative themes — light, high-contrast, brand-customised — live under `@xenolithengine/theme-*` post-1.0.
 - The README, ARCHITECTURE.md, and CLAUDE.md pitch the project around the Xen design system, not around Unreal Engine.
 - Visual references live under `packages/theme-xen/reference/` and are treated as ground truth in code review. A PR that ships a visual change without updating the reference frame is incomplete.
 - Other blueprint-style editors (UE5, ComfyUI, Blender geo nodes) remain useful **interaction** references — but only where Figma is silent and visual outcomes must still match Xen.

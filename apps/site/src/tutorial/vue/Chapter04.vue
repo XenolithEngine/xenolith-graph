@@ -3,8 +3,8 @@
 //
 // Same schemas + graph as the vanilla/React versions. `displayOptions.show` stays a live closure
 // inside the schema and is preserved when the schema's widgets are copied onto each instance.
-import { XenolithGraph } from '@xenolith/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

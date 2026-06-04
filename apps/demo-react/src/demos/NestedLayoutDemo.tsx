@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolith/react'
-import { setupNestedLayout, runNestedLayout, type LayoutEngineId } from '@xenolith/demo/nested-layout'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { setupNestedLayout, runNestedLayout, type LayoutEngineId } from '@xenolithengine/demo/nested-layout'
 import { DemoStage } from '../Layout.js'
 
 // Canon: engine + busy state live in the panel; arrange dispatches against the editor returned

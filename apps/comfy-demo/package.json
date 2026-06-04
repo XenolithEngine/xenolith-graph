@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/comfy-demo",
+  "name": "@xenolithengine/comfy-demo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,12 @@
     "playwright:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/demo": "workspace:*",
-    "@xenolith/editor": "workspace:*",
-    "@xenolith/render-pixi": "workspace:*",
-    "@xenolith/theme-xen": "workspace:*",
-    "@xenolith/theme-liquid-glass": "workspace:*",
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/demo": "workspace:*",
+    "@xenolithengine/editor": "workspace:*",
+    "@xenolithengine/render-pixi": "workspace:*",
+    "@xenolithengine/theme-xen": "workspace:*",
+    "@xenolithengine/theme-liquid-glass": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

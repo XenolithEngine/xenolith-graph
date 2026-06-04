@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/plugin-runtime",
+  "name": "@xenolithengine/plugin-runtime",
   "version": "0.7.0-beta.0",
   "description": "Blueprint-style node runtime for XenolithGraph: typed exec/data primitives + a headless interpreter that runs a graph as a simulation. Installs as an editor plugin.",
   "license": "MIT",
@@ -19,8 +19,8 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/editor": "workspace:*"
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/editor": "workspace:*"
   },
   "scripts": {
     "build": "tsc -b",

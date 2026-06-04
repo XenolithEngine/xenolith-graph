@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TypeRegistry, type Pin } from '@xenolith/core'
+import { TypeRegistry, type Pin } from '@xenolithengine/core'
 import { canConnect } from './pin-compat.js'
 
 const pin = (over: Partial<Pin> & Pick<Pin, 'id' | 'direction'>): Pin => ({

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useEditor } from '@xenolith/vue'
-import { PROPERTIES_SIDEBAR_NODE_ID } from '@xenolith/demo/properties-sidebar'
+import { useEditor } from '@xenolithengine/vue'
+import { PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 const editor = useEditor()
 const open = ref(true)

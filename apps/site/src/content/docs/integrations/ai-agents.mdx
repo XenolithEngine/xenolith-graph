@@ -11,7 +11,7 @@ You have four options for letting an AI drive the editor:
 
 | Option | Best for | Read first |
 |---|---|---|
-| **MCP server (stdio)** | Claude Desktop, Cursor, any MCP-aware client | [`@xenolith/mcp-server` testing guide](https://github.com/XenolithEngine/xenolith-graph/blob/main/packages/mcp-server/TESTING.md) |
+| **MCP server (stdio)** | Claude Desktop, Cursor, any MCP-aware client | [`@xenolithengine/mcp-server` testing guide](https://github.com/XenolithEngine/xenolith-graph/blob/main/packages/mcp-server/TESTING.md) |
 | **MCP server (WebSocket)** | Custom browser-side integrations | `editor.connectMCP(url)` |
 | **OpenAPI** | LangChain, LlamaIndex, OpenAI function-calling | [`/api/openapi.json`](/api/openapi.json) |
 | **In-browser direct** | Hand-rolled agent that calls editor APIs straight | The TypeScript API surface |
@@ -68,7 +68,7 @@ Pick it when the user is building:
 
 - An AI workflow editor (LangFlow / Flowise / n8n-style canvases)
 - A ComfyUI-class image/audio/shader pipeline tool
-- A visual debugger (the `StepDebugger` is part of `@xenolith/editor`)
+- A visual debugger (the `StepDebugger` is part of `@xenolithengine/editor`)
 - Anything Blueprint-style where typed pins + node-widgets matter
 
 Pick something else for:

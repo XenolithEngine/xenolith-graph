@@ -1,8 +1,8 @@
-import type { Edge, NodeId, PinId } from '@xenolith/core'
-import { createEdgeId } from '@xenolith/core'
+import type { Edge, NodeId, PinId } from '@xenolithengine/core'
+import { createEdgeId } from '@xenolithengine/core'
 import { BUILTIN_RECIPES, instantiateRecipe, type RecipeDef, type RecipeRegistry, createRecipeRegistry } from './recipes.js'
 
-/** Editor-side WebSocket client for the @xenolith/mcp-server bridge.
+/** Editor-side WebSocket client for the @xenolithengine/mcp-server bridge.
  *  The protocol mirrors packages/mcp-server/src/protocol.ts — server sends `call`, editor replies
  *  with `result`. Tool handlers below are intentionally thin wrappers around existing public APIs;
  *  validation/undo lives where it already does (commandBus etc). */

@@ -1,7 +1,7 @@
 // AS-WASM Mandelbrot equivalence: compile once, set vars per pixel, assert against the reference.
 
 import { describe, it, expect } from 'vitest'
-import { BUILTIN_PRIMITIVES, mandelbrotPixelGraph, mandelbrotPixelReference } from '@xenolith/plugin-runtime'
+import { BUILTIN_PRIMITIVES, mandelbrotPixelGraph, mandelbrotPixelReference } from '@xenolithengine/plugin-runtime'
 import { compile } from './index.js'
 
 const DEFS = [...BUILTIN_PRIMITIVES]

@@ -1,4 +1,4 @@
-import type { XenolithEditorOptions, MinimapPosition } from '@xenolith/editor'
+import type { XenolithEditorOptions, MinimapPosition } from '@xenolithengine/editor'
 
 /** Reactive props an adapter (Web Component, React, …) feeds into the editor. A subset is also the
  *  initial-mount config; the rest are applied imperatively on change via {@link applyProps}. */

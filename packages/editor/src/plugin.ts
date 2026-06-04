@@ -1,6 +1,6 @@
-import type { CommandBus, Graph, NodeRegistry, TypeRegistry, NodeId, EdgeId, Pin, WidgetSpec, FlattenedTemplate } from '@xenolith/core'
+import type { CommandBus, Graph, NodeRegistry, TypeRegistry, NodeId, EdgeId, Pin, WidgetSpec, FlattenedTemplate } from '@xenolithengine/core'
 import type { Application } from 'pixi.js'
-import type { CustomWidgetController, IconRegistry } from '@xenolith/render-pixi'
+import type { CustomWidgetController, IconRegistry } from '@xenolithengine/render-pixi'
 import type { EditorEvents } from './events.js'
 import type { ConnectionRequest, GraphSnapshot } from './index.js'
 

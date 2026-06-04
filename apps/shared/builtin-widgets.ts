@@ -2,7 +2,7 @@
 // WebGL and editable inline. No custom code: just a node with a `widgets` array, defined as DATA in
 // builtin-widgets.json and loaded with editor.loadJSON.
 
-import type { XenolithEditor } from '@xenolith/editor'
+import type { XenolithEditor } from '@xenolithengine/editor'
 import graph from './builtin-widgets.json'
 
 export function buildBuiltinWidgets(editor: XenolithEditor): void {

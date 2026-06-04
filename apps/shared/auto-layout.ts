@@ -3,10 +3,10 @@
 // messy original). Reused by both the React demo wrapper and the vanilla mounter — no framework
 // in the core; same data + same setup + same plugin.
 
-import type { XenolithEditor } from '@xenolith/editor'
-import { autoLayoutPlugin, type AutoLayoutPlugin, type LayoutOpts } from '@xenolith/plugin-autolayout'
-import { dagreEngine } from '@xenolith/plugin-autolayout/dagre'
-import type { Node, Edge, NodeId, PinId, EdgeId } from '@xenolith/core'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { autoLayoutPlugin, type AutoLayoutPlugin, type LayoutOpts } from '@xenolithengine/plugin-autolayout'
+import { dagreEngine } from '@xenolithengine/plugin-autolayout/dagre'
+import type { Node, Edge, NodeId, PinId, EdgeId } from '@xenolithengine/core'
 
 const NODES: { id: string; title: string; x: number; y: number }[] = [
   { id: 'in',  title: 'Input',     x: 480, y: 60  },

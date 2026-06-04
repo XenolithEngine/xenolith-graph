@@ -1,5 +1,5 @@
-import type { Node, Pin, PinId, WidgetSpec } from '@xenolith/core'
-import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolith/core'
+import type { Node, Pin, PinId, WidgetSpec } from '@xenolithengine/core'
+import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolithengine/core'
 
 export interface WidgetGeometry {
   rowHeight: number

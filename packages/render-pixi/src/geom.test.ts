@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createNodeId, createPinId, type Node } from '@xenolith/core'
+import { createNodeId, createPinId, type Node } from '@xenolithengine/core'
 import {
   computeOverlapBackdropPlan,
   rectFromPoints,

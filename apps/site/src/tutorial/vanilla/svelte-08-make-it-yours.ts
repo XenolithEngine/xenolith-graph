@@ -1,9 +1,9 @@
 // CHAPTER 8 — Make it yours (Svelte adapter). Theme switcher panel, minimap via props,
 // custom canvas-drawn level widget.
-import { createXenolithGraph } from '@xenolith/svelte'
-import type { NodeSchema, CanvasWidgetController } from '@xenolith/editor'
-import { xenTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { createXenolithGraph } from '@xenolithengine/svelte'
+import type { NodeSchema, CanvasWidgetController } from '@xenolithengine/editor'
+import { xenTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 const levelWidget: CanvasWidgetController = {
   draw(ctx, { value, width, height, accent, muted }) {

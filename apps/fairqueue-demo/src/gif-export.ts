@@ -1,14 +1,14 @@
 // Record the animated graph to a GIF — framework-agnostic, public-API only. Captures whole-graph
 // frames via `editor.exportImage()` over `seconds` (awaiting between grabs so the editor ticker
 // advances animated edges + the sim ticks), then encodes them with gifenc. Designed to be lifted
-// out of the demo into a `@xenolith/plugin-gif` later: it depends on nothing but XenolithEditor.
+// out of the demo into a `@xenolithengine/plugin-gif` later: it depends on nothing but XenolithEditor.
 //
 // Frame size = the graph's bounds (constant as long as no node is moved/added during recording), so
 // the caller should freeze topology while recording. PNG export is transparent, so each frame is
 // composited over `background` to avoid GIF's broken alpha.
 
 import { GIFEncoder, quantize, applyPalette } from 'gifenc'
-import type { XenolithEditor } from '@xenolith/editor'
+import type { XenolithEditor } from '@xenolithengine/editor'
 
 export interface GifOptions {
   seconds: number

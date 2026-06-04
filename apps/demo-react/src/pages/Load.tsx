@@ -1,7 +1,7 @@
 import { DemoPage } from '../Layout.js'
 import { LoadDemo } from '../demos/LoadDemo.js'
 
-const code = `import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolith/demo'
+const code = `import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolithengine/demo'
 
 onReady={(editor) => {
   // Register the custom widgets + node types this graph uses…

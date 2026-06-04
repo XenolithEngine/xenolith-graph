@@ -10,8 +10,8 @@
 //     consumed directly via the multi-pin.
 //   - Read `leftovers` VM var into the warehouse counter (until the warehouse becomes a node).
 
-import type { XenolithEditor } from '@xenolith/editor'
-import { Runtime, runtimePlugin, attachRuntimeBridge } from '@xenolith/plugin-runtime'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { Runtime, runtimePlugin, attachRuntimeBridge } from '@xenolithengine/plugin-runtime'
 import { fairqueueMergedGraph, MERGED_DEFS } from './runtime-graph.js'
 import { subscriptionsFromWires, type SubEdge } from './subscriptions.js'
 import type { Agent, GoodieSpec } from './fairqueue.js'

@@ -12,7 +12,7 @@ const { handlers, binding, createEditorBinding } = vi.hoisted(() => {
   const createEditorBinding = vi.fn(async (_t: unknown, _p?: unknown) => binding)
   return { handlers, binding, createEditorBinding }
 })
-vi.mock('@xenolith/adapter-core', () => ({
+vi.mock('@xenolithengine/adapter-core', () => ({
   createEditorBinding,
   EDITOR_EVENT_NAMES: ['node:click', 'selection:changed'],
 }))

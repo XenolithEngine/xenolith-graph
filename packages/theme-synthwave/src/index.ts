@@ -1,5 +1,5 @@
-import { xenTokens, mergeTheme } from '@xenolith/theme-xen'
-import type { XenolithTheme } from '@xenolith/render-pixi'
+import { xenTokens, mergeTheme } from '@xenolithengine/theme-xen'
+import type { XenolithTheme } from '@xenolithengine/render-pixi'
 import { createSynthwaveBackdrop } from './backdrop.js'
 import { renderNodeSynthwave } from './render-node.js'
 import { drawEdgeSynthwave } from './draw-edge.js'

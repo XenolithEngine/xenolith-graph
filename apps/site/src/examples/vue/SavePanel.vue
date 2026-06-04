@@ -2,10 +2,10 @@
 // Autosave on every edit: subscribe to `graph:loaded` + `history:changed` (post-edit signal). The
 // shared helpers do the actual IO; we only debounce + flash a status string.
 import { ref } from 'vue'
-import { useEditor, useEditorEvent } from '@xenolith/vue'
+import { useEditor, useEditorEvent } from '@xenolithengine/vue'
 import {
   downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
-} from '@xenolith/demo/save-restore'
+} from '@xenolithengine/demo/save-restore'
 
 const editor = useEditor()
 const savedAt = ref<number | null>(null)

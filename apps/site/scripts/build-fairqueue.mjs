@@ -12,11 +12,11 @@ const repoRoot = resolve(here, '..', '..', '..')
 const demoDist = resolve(repoRoot, 'apps', 'fairqueue-demo', 'dist')
 const out = resolve(here, '..', 'public', 'fairqueue')
 
-// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolith/*
+// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolithengine/*
 // via aliases to each package's src, so no built .d.ts/dist is required — which the CI build-site
 // job (packages unbuilt) doesn't have. Typecheck stays in the `test` job.
-console.log('[fairqueue] building @xenolith/fairqueue-demo (vite)…')
-execSync('pnpm --filter @xenolith/fairqueue-demo exec vite build', { stdio: 'inherit', cwd: repoRoot })
+console.log('[fairqueue] building @xenolithengine/fairqueue-demo (vite)…')
+execSync('pnpm --filter @xenolithengine/fairqueue-demo exec vite build', { stdio: 'inherit', cwd: repoRoot })
 
 rmSync(out, { recursive: true, force: true })
 cpSync(demoDist, out, { recursive: true })

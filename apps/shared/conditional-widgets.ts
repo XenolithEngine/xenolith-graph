@@ -5,8 +5,8 @@
 // Switch the combos: the node grows/shrinks, widget rects relayout, edges stay attached.
 // Pure schema — no `setNodeWidgets` plumbing in the host.
 
-import type { XenolithEditor } from '@xenolith/editor'
-import type { NodeId, PinId } from '@xenolith/core'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import type { NodeId, PinId } from '@xenolithengine/core'
 
 export interface ConditionalWidgetsScene {
   nodeId: NodeId

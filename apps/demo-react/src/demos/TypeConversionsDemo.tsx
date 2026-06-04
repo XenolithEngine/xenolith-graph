@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent } from '@xenolith/react'
-import { setupTypeConversions, setConversionEnabled } from '@xenolith/demo/type-conversions'
+import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent } from '@xenolithengine/react'
+import { setupTypeConversions, setConversionEnabled } from '@xenolithengine/demo/type-conversions'
 import { DemoStage } from '../Layout.js'
 
 // Canon: toggle + log live in the panel. `setupTypeConversions` runs in `onReady` (loads nodes,

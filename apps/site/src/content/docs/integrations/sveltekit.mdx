@@ -3,14 +3,14 @@ title: SvelteKit
 description: How to embed XenolithGraph in a SvelteKit app via the WebComponent or Svelte adapter. Browser-only — gated behind the `browser` flag.
 ---
 
-XenolithGraph ships a **Svelte adapter** (`@xenolith/svelte`) and a **framework-agnostic Web Component** (`@xenolith/wc`). Both run only in the browser, so SvelteKit needs to be told to skip them on the server.
+XenolithGraph ships a **Svelte adapter** (`@xenolithengine/svelte`) and a **framework-agnostic Web Component** (`@xenolithengine/wc`). Both run only in the browser, so SvelteKit needs to be told to skip them on the server.
 
 ## Install
 
 ```sh
-pnpm add @xenolith/editor @xenolith/svelte pixi.js
+pnpm add @xenolithengine/editor @xenolithengine/svelte pixi.js
 # or, for the framework-agnostic web-component path:
-pnpm add @xenolith/editor @xenolith/wc pixi.js
+pnpm add @xenolithengine/editor @xenolithengine/wc pixi.js
 ```
 
 `pixi.js` is a peer dependency.
@@ -39,7 +39,7 @@ pnpm add @xenolith/editor @xenolith/wc pixi.js
 ```svelte
 <!-- src/lib/Editor.svelte -->
 <script lang="ts">
-  import { xenolith } from '@xenolith/svelte'
+  import { xenolith } from '@xenolithengine/svelte'
   import { myGraph } from '$lib/data'
 
   const onNodeClick = (e: CustomEvent) => console.log('clicked', e.detail.nodeId)
@@ -66,7 +66,7 @@ The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a compone
   let el: HTMLElement
   onMount(async () => {
     if (!browser) return
-    const { register } = await import('@xenolith/wc')
+    const { register } = await import('@xenolithengine/wc')
     register() // defines <xenolith-graph>
     // The WC takes `graph` via the JS property — set it after the element is in the DOM and the
     // editor mounts itself + loads it. For imperative work (registering schemas, plugins) poll

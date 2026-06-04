@@ -1,4 +1,4 @@
-# @xenolith/theme-synthwave
+# @xenolithengine/theme-synthwave
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/theme-synthwave pixi.js
+pnpm add @xenolithengine/theme-synthwave pixi.js
 ```
 
 Peer dependency: `pixi.js@^8.6.0`.
@@ -20,8 +20,8 @@ Peer dependency: `pixi.js@^8.6.0`.
 ## Usage
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { synthwaveTheme } from '@xenolith/theme-synthwave'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { synthwaveTheme } from '@xenolithengine/theme-synthwave'
 
 const editor = await XenolithEditor.init('#graph', { theme: synthwaveTheme })
 

@@ -1,10 +1,10 @@
 // Svelte adapter — save & restore. Imperative primitive (`createXenolithGraph`) for editor access;
 // shared helpers (`downloadGraph` / `uploadGraph` / `saveToLocal` / `restoreFromLocal`) do the IO.
 // Autosave rides the binding's `history:changed` event.
-import { createXenolithGraph } from '@xenolith/svelte'
+import { createXenolithGraph } from '@xenolithengine/svelte'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
-} from '@xenolith/demo/save-restore'
+} from '@xenolithengine/demo/save-restore'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const slot = document.createElement('div')

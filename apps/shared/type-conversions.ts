@@ -6,8 +6,8 @@
 // value live on the consumer pin. Toggle off → existing edges are disconnected with a log line
 // so the demo shows the round-trip, not just the one-way activation.
 
-import type { XenolithEditor } from '@xenolith/editor'
-import { DisconnectEdge, type Edge, type NodeId } from '@xenolith/core'
+import type { XenolithEditor } from '@xenolithengine/editor'
+import { DisconnectEdge, type Edge, type NodeId } from '@xenolithengine/core'
 
 export interface TypeConversionsScene {
   /** Whether the `number → text` conversion is currently registered. */

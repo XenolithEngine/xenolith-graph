@@ -1,10 +1,10 @@
 // Solid adapter — save & restore. Mirrors the Svelte adapter version; uses the imperative
 // `createXenolithGraph` primitive so we can register schemas and drive autosave via the binding's
 // event channel. Solid hosts using the directive would do this via `createEffect` + `on:` bindings.
-import { createXenolithGraph } from '@xenolith/solid'
+import { createXenolithGraph } from '@xenolithengine/solid'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
-} from '@xenolith/demo/save-restore'
+} from '@xenolithengine/demo/save-restore'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const slot = document.createElement('div')

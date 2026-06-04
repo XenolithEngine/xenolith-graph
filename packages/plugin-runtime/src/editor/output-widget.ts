@@ -2,7 +2,7 @@
 // straight into the node. Generic: supports number / string / bool / array / object. Registered by
 // `runtimePlugin.install` so any host that uses the plugin gets Output rendering out of the box.
 
-import type { CanvasWidgetController } from '@xenolith/editor'
+import type { CanvasWidgetController } from '@xenolithengine/editor'
 
 function format(value: unknown): string {
   if (value === undefined || value === null) return '—'

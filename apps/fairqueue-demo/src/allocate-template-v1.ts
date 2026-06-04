@@ -5,8 +5,8 @@
 //
 // V1 serialization shape: `templates: TemplateDefinition[]` + outer `nodes: [..., $templateInstance]`.
 
-import type { XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolith/editor'
-import type { TemplateDefinition } from '@xenolith/core'
+import type { XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolithengine/editor'
+import type { TemplateDefinition } from '@xenolithengine/core'
 import { buildAllocateSubgraphV1 } from './allocate-graph-v1.js'
 
 const TPL_INPUT  = '$templateInput'  as const

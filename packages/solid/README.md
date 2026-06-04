@@ -1,4 +1,4 @@
-# @xenolith/solid
+# @xenolithengine/solid
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/solid pixi.js
+pnpm add @xenolithengine/solid pixi.js
 ```
 
 Peer deps: `solid-js >= 1.8`, `pixi.js@^8.6.0`. WebGL/client-only.
@@ -20,7 +20,7 @@ Peer deps: `solid-js >= 1.8`, `pixi.js@^8.6.0`. WebGL/client-only.
 ## Usage
 
 ```tsx
-import { xenolith } from '@xenolith/solid'
+import { xenolith } from '@xenolithengine/solid'
 import savedGraph from './graph.json'
 
 // Re-import is required for Solid to pick up the directive in JSX.

@@ -4,7 +4,7 @@
 // Tick / Init / Sequence / SetVar / Branch  +  Const / GetVar / Add / Sub / Mul / Floor / Gt / Gte / Eq.
 // String/array/object primitives need AS-side types and live in a follow-up.
 
-import type { RtGraph, RtNode, RtPin, NodeDef } from '@xenolith/plugin-runtime'
+import type { RtGraph, RtNode, RtPin, NodeDef } from '@xenolithengine/plugin-runtime'
 
 const dataIns  = (n: RtNode): RtPin[] => n.pins.filter((p) => p.kind === 'data' && p.direction === 'in')
 const dataOuts = (n: RtNode): RtPin[] => n.pins.filter((p) => p.kind === 'data' && p.direction === 'out')

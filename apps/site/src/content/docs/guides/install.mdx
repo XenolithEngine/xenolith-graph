@@ -6,7 +6,7 @@ description: Install XenolithGraph and mount your first editor.
 ## Install
 
 ```sh
-npm install @xenolith/editor @xenolith/core @xenolith/theme-xen pixi.js
+npm install @xenolithengine/editor @xenolithengine/core @xenolithengine/theme-xen pixi.js
 ```
 
 `pixi.js` is a peer dependency — pin it in your app so you stay in control of the renderer version.
@@ -14,7 +14,7 @@ npm install @xenolith/editor @xenolith/core @xenolith/theme-xen pixi.js
 ## Mount
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
+import { XenolithEditor } from '@xenolithengine/editor'
 
 const editor = await XenolithEditor.init('#app')
 ```
@@ -31,7 +31,7 @@ There is no second setup step. If you `npm install`, you can `init`.
 ## Add nodes and edges
 
 ```ts
-import { createNodeId, createPinId } from '@xenolith/core'
+import { createNodeId, createPinId } from '@xenolithengine/core'
 
 const a = {
   id: createNodeId(),

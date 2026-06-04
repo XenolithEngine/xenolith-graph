@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Runtime } from '@xenolith/plugin-runtime'
+import { Runtime } from '@xenolithengine/plugin-runtime'
 import { createSim, step, type Agent, type GoodieSpec } from './fairqueue.js'
 import { fairqueueStepGraph, FAIRQUEUE_DEFS } from './runtime-graph.js'
 

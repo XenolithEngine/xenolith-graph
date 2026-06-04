@@ -1,6 +1,6 @@
 import { BitmapText, Color, Container, Graphics, FillGradient } from 'pixi.js'
-import type { XenTokens } from '@xenolith/theme-xen'
-import type { Comment } from '@xenolith/core'
+import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { Comment } from '@xenolithengine/core'
 
 export type CommentVisualState = 'default' | 'hover' | 'selected'
 

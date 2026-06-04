@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolith/react'
-import type { XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolithengine/react'
+import type { XenolithEditor } from '@xenolithengine/editor'
 import { buildMerged, type MergedHandle, type MergedMetrics } from './build-merged.js'
 import { EngineSwitch } from './EngineSwitch.js'
 

@@ -1,6 +1,6 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { json } from '@codemirror/lang-json'
-import type { WidgetProps } from '@xenolith/react'
+import type { WidgetProps } from '@xenolithengine/react'
 
 // A real CodeMirror editor mounted inside a node — proof that any DOM-heavy component works.
 export function CodeEditor({ value, setValue }: WidgetProps) {

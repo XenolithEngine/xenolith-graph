@@ -2,8 +2,8 @@
 // host node as a kebab-named CustomEvent (`node-click`, `selection-changed`, …) — Svelte hosts
 // bind these via `on:node-click`. Here we mount via the imperative primitive (to also load the
 // shared demo) and attach the same kebab listeners on the node for parity with the action.
-import { createXenolithGraph, svelteEventName } from '@xenolith/svelte'
-import { loadDemo } from '@xenolith/demo/scene'
+import { createXenolithGraph, svelteEventName } from '@xenolithengine/svelte'
+import { loadDemo } from '@xenolithengine/demo/scene'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const slot = document.createElement('div')

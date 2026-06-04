@@ -1,4 +1,4 @@
-# @xenolith/plugin-runtime
+# @xenolithengine/plugin-runtime
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/plugin-runtime
+pnpm add @xenolithengine/plugin-runtime
 ```
 
 ## Usage
@@ -20,8 +20,8 @@ pnpm add @xenolith/plugin-runtime
 Register primitives + pin types into an editor:
 
 ```ts
-import { XenolithEditor } from '@xenolith/editor'
-import { runtimePlugin, attachRuntimeBridge } from '@xenolith/plugin-runtime'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { runtimePlugin, attachRuntimeBridge } from '@xenolithengine/plugin-runtime'
 
 const editor = await XenolithEditor.init('#graph')
 editor.use(runtimePlugin)
@@ -31,7 +31,7 @@ attachRuntimeBridge(editor)        // drives the live graph + mirrors outputs in
 Headless VM (no editor):
 
 ```ts
-import { Runtime, BUILTIN_PRIMITIVES, type RtGraph } from '@xenolith/plugin-runtime'
+import { Runtime, BUILTIN_PRIMITIVES, type RtGraph } from '@xenolithengine/plugin-runtime'
 
 const rt = new Runtime(BUILTIN_PRIMITIVES)
 rt.setVar('x', 3)

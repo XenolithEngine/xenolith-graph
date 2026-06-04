@@ -1,7 +1,7 @@
 'use client'
 import { createRoot, type Root } from 'react-dom/client'
 import type { ReactNode } from 'react'
-import type { DomWidgetController } from '@xenolith/editor'
+import type { DomWidgetController } from '@xenolithengine/editor'
 
 /** Props every React-component widget receives. `value` is the widget's stored value (node.state),
  *  `setValue` commits a change (undoable). `accent`/`text`/`muted` come from the active theme. */

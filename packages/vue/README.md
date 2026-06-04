@@ -1,4 +1,4 @@
-# @xenolith/vue
+# @xenolithengine/vue
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolith/vue pixi.js
+pnpm add @xenolithengine/vue pixi.js
 ```
 
 Peer deps: `vue@^3.4.0`, `pixi.js@^8.6.0`. WebGL/client-only.
@@ -21,7 +21,7 @@ Peer deps: `vue@^3.4.0`, `pixi.js@^8.6.0`. WebGL/client-only.
 
 ```vue
 <script setup lang="ts">
-import { XenolithGraph, XenolithControls, XenolithMiniMap } from '@xenolith/vue'
+import { XenolithGraph, XenolithControls, XenolithMiniMap } from '@xenolithengine/vue'
 import savedGraph from './graph.json'
 
 const onReady = (editor) => editor.fitView()

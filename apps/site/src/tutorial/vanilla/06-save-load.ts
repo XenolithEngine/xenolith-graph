@@ -9,7 +9,7 @@
 //   2. "Download .json" — save the current graph to disk via a Blob URL.
 //   3. "Load .json" — open a file picker, parse, load into the editor.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

@@ -3,7 +3,7 @@
 // (Xen dark/gold and Liquid Glass). Pin ORDER in each schema is the contract the index-addressed
 // interpreter relies on (see vm/interpreter.ts) — keep it aligned with each primitive's evaluator.
 
-import type { NodeSchema, PinSchema, TypeDescriptor } from '@xenolith/core'
+import type { NodeSchema, PinSchema, TypeDescriptor } from '@xenolithengine/core'
 
 export const PIN_TYPES: TypeDescriptor[] = [
   { id: 'exec', color: '#E8E8E8', shape: 'arrow' }, // control flow

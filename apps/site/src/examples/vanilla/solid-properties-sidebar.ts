@@ -1,6 +1,6 @@
 // Solid adapter — properties sidebar.
-import { createXenolithGraph } from '@xenolith/solid'
-import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolith/demo/properties-sidebar'
+import { createXenolithGraph } from '@xenolithengine/solid'
+import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const slot = document.createElement('div')

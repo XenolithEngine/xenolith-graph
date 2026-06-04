@@ -22,7 +22,7 @@ async function loadDagre(): Promise<DagreModule> {
     _dagre = (mod.default ?? mod) as DagreModule
     return _dagre
   } catch {
-    throw new Error('@xenolith/plugin-autolayout/dagre: peer dependency `dagre` is not installed. Run `pnpm add dagre`.')
+    throw new Error('@xenolithengine/plugin-autolayout/dagre: peer dependency `dagre` is not installed. Run `pnpm add dagre`.')
   }
 }
 

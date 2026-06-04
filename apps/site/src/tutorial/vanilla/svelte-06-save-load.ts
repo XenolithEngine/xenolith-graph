@@ -2,8 +2,8 @@
 //
 // Autosave rides the binding's `history:changed` event. Imperative IO via the editor reference
 // the `createXenolithGraph` primitive returns.
-import { createXenolithGraph } from '@xenolith/svelte'
-import type { NodeSchema } from '@xenolith/editor'
+import { createXenolithGraph } from '@xenolithengine/svelte'
+import type { NodeSchema } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

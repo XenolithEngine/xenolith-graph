@@ -1,4 +1,4 @@
-import type { XenolithTheme } from '@xenolith/render-pixi'
+import type { XenolithTheme } from '@xenolithengine/render-pixi'
 import { holographicTokens } from './tokens.js'
 import { createHolographicBackdrop } from './backdrop.js'
 import { renderNodeHolographic } from './render-node.js'
@@ -13,7 +13,7 @@ import { drawEdgeHolographic } from './draw-edge.js'
  * Built from scratch — does NOT wrap the base Xen renderer. Custom `renderNode` builds the
  * geometry directly; `drawEdge` paints rainbow segments by sampling the bezier. The only pieces
  * shared with Xen are layout maths (`computeNodeLayout`) and the widget renderer (`renderWidgets`)
- * — both theme-agnostic primitives in `@xenolith/render-pixi`.
+ * — both theme-agnostic primitives in `@xenolithengine/render-pixi`.
  */
 export const holographicTheme: XenolithTheme = {
   id: 'holographic',

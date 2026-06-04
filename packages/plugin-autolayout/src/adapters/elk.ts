@@ -27,7 +27,7 @@ async function loadElk(): Promise<ElkCtor> {
     _ElkCtor = ((mod as { default?: ElkCtor }).default ?? (mod as unknown as ElkCtor))
     return _ElkCtor!
   } catch {
-    throw new Error('@xenolith/plugin-autolayout/elk: peer dependency `elkjs` is not installed. Run `pnpm add elkjs`.')
+    throw new Error('@xenolithengine/plugin-autolayout/elk: peer dependency `elkjs` is not installed. Run `pnpm add elkjs`.')
   }
 }
 

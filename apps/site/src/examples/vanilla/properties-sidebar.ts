@@ -1,6 +1,6 @@
 // Vanilla mount for G4 — properties sidebar. Same auto-open + toggle button as React.
-import { XenolithEditor } from '@xenolith/editor'
-import { buildPropertiesSidebar } from '@xenolith/demo/properties-sidebar'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { buildPropertiesSidebar } from '@xenolithengine/demo/properties-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const editor = await XenolithEditor.init(target, { minimap: false })

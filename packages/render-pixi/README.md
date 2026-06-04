@@ -1,4 +1,4 @@
-# @xenolith/render-pixi
+# @xenolithengine/render-pixi
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -9,21 +9,21 @@ PIXI v8 renderer for XenolithGraph — node/edge/widget rendering, viewport math
 
 Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an AI-native, embeddable node-graph editor for the web with its own visual design language (Xen).
 
-Most hosts don't import this directly — `@xenolith/editor` wires it in. Reach for this package if you're writing a theme or a custom renderer pipeline.
+Most hosts don't import this directly — `@xenolithengine/editor` wires it in. Reach for this package if you're writing a theme or a custom renderer pipeline.
 
 ## Install
 
 ```bash
-pnpm add @xenolith/render-pixi pixi.js
+pnpm add @xenolithengine/render-pixi pixi.js
 ```
 
-Peer dependency: `pixi.js@^8.6.0`. Themes pair with `@xenolith/theme-xen` (also a peer).
+Peer dependency: `pixi.js@^8.6.0`. Themes pair with `@xenolithengine/theme-xen` (also a peer).
 
 ## Usage
 
 ```ts
-import { renderNode, computeNodeLayout, createPixiTextMeasurer } from '@xenolith/render-pixi'
-import { xenTheme } from '@xenolith/render-pixi'
+import { renderNode, computeNodeLayout, createPixiTextMeasurer } from '@xenolithengine/render-pixi'
+import { xenTheme } from '@xenolithengine/render-pixi'
 
 const measurer = createPixiTextMeasurer()
 const layout = computeNodeLayout(node, xenTheme.tokens, measurer)

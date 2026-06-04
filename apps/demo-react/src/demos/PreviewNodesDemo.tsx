@@ -1,5 +1,5 @@
-import { XenolithGraph } from '@xenolith/react'
-import { setupPreviewNodes } from '@xenolith/demo/preview-nodes'
+import { XenolithGraph } from '@xenolithengine/react'
+import { setupPreviewNodes } from '@xenolithengine/demo/preview-nodes'
 import { DemoStage } from '../Layout.js'
 
 // Canon: this demo has no React UI of its own — the panel is the canvas. Setup runs in `onReady`;

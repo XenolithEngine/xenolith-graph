@@ -1,4 +1,4 @@
-# @xenolith/test-fixtures
+# @xenolithengine/test-fixtures
 
 Real-world graph fixtures used by XenolithGraph tests, benchmarks, and demos. Internal package — `private: true`, not published to npm.
 
@@ -17,7 +17,7 @@ All five are sourced from [wyrde/wyrde-comfyui-workflows](https://github.com/wyr
 ## Usage
 
 ```ts
-import { listFixtures, loadFixture, MANIFEST } from '@xenolith/test-fixtures'
+import { listFixtures, loadFixture, MANIFEST } from '@xenolithengine/test-fixtures'
 
 // List everything (or filter by format/size)
 const small = listFixtures({ size: 's' })

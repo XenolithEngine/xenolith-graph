@@ -1,4 +1,4 @@
-import type { XenolithProps } from '@xenolith/adapter-core'
+import type { XenolithProps } from '@xenolithengine/adapter-core'
 
 /** A boolean HTML attribute is true when present unless its value is the string "false". */
 function boolAttr(el: HTMLElement, name: string): boolean | undefined {

@@ -1,9 +1,9 @@
 // `/api/mcp-tools.json` — machine-readable catalogue of every MCP tool the XenolithGraph
 // MCP server exposes. Generated from the single source of truth (`TOOLS` in
-// `@xenolith/mcp-server`) so it never drifts.
+// `@xenolithengine/mcp-server`) so it never drifts.
 
 import type { APIRoute } from 'astro'
-import { TOOLS } from '@xenolith/mcp-server'
+import { TOOLS } from '@xenolithengine/mcp-server'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
 interface ToolJson {
@@ -14,7 +14,7 @@ interface ToolJson {
 
 function render(): { server: string; version: string; tools: ToolJson[] } {
   return {
-    server: '@xenolith/mcp-server',
+    server: '@xenolithengine/mcp-server',
     version: '0.0.0',
     tools: Object.values(TOOLS).map((t) => ({
       name: t.name,

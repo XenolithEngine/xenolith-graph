@@ -1,4 +1,4 @@
-import { EventEmitter, type Unsubscribe } from '@xenolith/core'
+import { EventEmitter, type Unsubscribe } from '@xenolithengine/core'
 import type { Vec2 } from './viewport-math.js'
 
 /**

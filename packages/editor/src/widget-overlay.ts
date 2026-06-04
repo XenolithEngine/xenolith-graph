@@ -1,4 +1,4 @@
-import type { PaletteStyle } from '@xenolith/render-pixi'
+import type { PaletteStyle } from '@xenolithengine/render-pixi'
 
 const DEFAULT_STYLE: PaletteStyle = {
   panelBackground:       '#191919',

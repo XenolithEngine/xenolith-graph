@@ -37,7 +37,7 @@ export const CATEGORY_ORDER = ['Showcases', 'Nodes', 'Widgets', 'Interaction', '
 
 export const EXAMPLES: ExampleDef[] = [
   { id: 'mcp-live', title: 'MCP live (AI builds the graph)', category: 'Showcases',
-    blurb: 'Start @xenolith/mcp-server locally, click Connect, then ask Claude Desktop / Cursor to build a graph. The AI calls list_node_types → add_node → connect_pins → auto_layout. "I describe it, the editor builds it."',
+    blurb: 'Start @xenolithengine/mcp-server locally, click Connect, then ask Claude Desktop / Cursor to build a graph. The AI calls list_node_types → add_node → connect_pins → auto_layout. "I describe it, the editor builds it."',
     impls: { react: { files: ['demos/MCPDemo.tsx'] } } },
   { id: 'step-debugger', title: 'Visual stepping debugger', category: 'Showcases',
     blurb: 'Run a graph one node at a time. Yellow ring = paused; green = executed; red = breakpoint. The inspector shows live inputs/outputs and per-node timing. Debug your AI workflow on the canvas — like Chrome DevTools, but for nodes.',

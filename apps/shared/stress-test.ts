@@ -3,8 +3,8 @@
 // exception to format-first: a 1000-node JSON makes no sense), all framework-agnostic editor API. The
 // built-in stats overlay shows live FPS + counts; the handle adds nodes or resets.
 
-import type { XenolithEditor, Node, NodeSchema } from '@xenolith/editor'
-import { ConnectPins, createEdgeId } from '@xenolith/core'
+import type { XenolithEditor, Node, NodeSchema } from '@xenolithengine/editor'
+import { ConnectPins, createEdgeId } from '@xenolithengine/core'
 
 // 4 categories × 4 names × 1 glyph per category = 16 schemas. The variety makes the stress grid
 // read as an actual graph instead of a wall of identical pills; the bake cache still ends up with

@@ -1,5 +1,5 @@
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useNodes } from '@xenolith/react'
-import { setupStressTest, addStressNodes } from '@xenolith/demo/stress-test'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useNodes } from '@xenolithengine/react'
+import { setupStressTest, addStressNodes } from '@xenolithengine/demo/stress-test'
 import { DemoStage } from '../Layout.js'
 
 // Perf flex: hundreds–thousands of WebGL nodes, pan/zoom at 60fps. The count is just

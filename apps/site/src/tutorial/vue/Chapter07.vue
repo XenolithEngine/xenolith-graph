@@ -3,8 +3,8 @@
 //
 // Schemas + graph at module scope. `@ready` registers + loads + frames. The toolbar child runs
 // Kahn's algorithm over the live snapshot from `useEditor().getGraphReadonly()`.
-import { XenolithGraph } from '@xenolith/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
 import Chapter07Toolbar from './Chapter07Toolbar.vue'
 
 const constSchema: NodeSchema = {

@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/mcp-server",
+  "name": "@xenolithengine/mcp-server",
   "version": "0.7.0-beta.0",
   "description": "MCP (Model Context Protocol) server for XenolithGraph — lets Claude/Cursor/any MCP client drive a running editor over a localhost WebSocket bridge.",
   "license": "MIT",

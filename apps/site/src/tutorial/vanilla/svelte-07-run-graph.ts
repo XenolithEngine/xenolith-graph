@@ -1,6 +1,6 @@
 // CHAPTER 7 — Run the graph: a topological executor (Svelte adapter).
-import { createXenolithGraph } from '@xenolith/svelte'
-import type { NodeSchema, NodeId } from '@xenolith/editor'
+import { createXenolithGraph } from '@xenolithengine/svelte'
+import type { NodeSchema, NodeId } from '@xenolithengine/editor'
 
 const constSchema: NodeSchema = {
   type: 'Const', title: 'Const', category: 'data',

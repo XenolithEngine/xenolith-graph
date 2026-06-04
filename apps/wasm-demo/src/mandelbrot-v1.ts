@@ -7,9 +7,9 @@
 // from a tiny pure math sub-graph just below it. Reads of `zx/zy/iter` are wires from the SAME
 // Local box up to the math nodes.
 
-import type { XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, XenolithPinV1, XenolithCommentV1 } from '@xenolith/editor'
-import type { WidgetSpec } from '@xenolith/core'
-import { PRIMITIVE_CATEGORY_COLORS } from '@xenolith/plugin-runtime'
+import type { XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, XenolithPinV1, XenolithCommentV1 } from '@xenolithengine/editor'
+import type { WidgetSpec } from '@xenolithengine/core'
+import { PRIMITIVE_CATEGORY_COLORS } from '@xenolithengine/plugin-runtime'
 
 const ei = (id: string): XenolithPinV1 => ({ id, kind: 'exec', direction: 'in', type: 'exec', multiple: false, label: '' })
 const eo = (id: string, label = ''): XenolithPinV1 => ({ id, kind: 'exec', direction: 'out', type: 'exec', multiple: false, label })

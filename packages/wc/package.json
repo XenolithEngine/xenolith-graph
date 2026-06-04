@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/wc",
+  "name": "@xenolithengine/wc",
   "version": "0.7.0-beta.0",
   "description": "<xenolith-graph> Web Component — the universal adapter. Works in Angular, Vue, Svelte, Solid, Lit, Astro, and vanilla.",
   "license": "MIT",
@@ -28,8 +28,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolith/adapter-core": "workspace:*",
-    "@xenolith/editor": "workspace:*"
+    "@xenolithengine/adapter-core": "workspace:*",
+    "@xenolithengine/editor": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0"

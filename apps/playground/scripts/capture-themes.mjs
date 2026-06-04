@@ -1,4 +1,4 @@
-// Run with: pnpm --filter @xenolith/playground capture
+// Run with: pnpm --filter @xenolithengine/playground capture
 //
 // Boots a headless Chromium against `pnpm dev` (must already be running on :5173 or 5174),
 // captures the full canvas in both themes, and writes the PNGs to docs/screenshots/.

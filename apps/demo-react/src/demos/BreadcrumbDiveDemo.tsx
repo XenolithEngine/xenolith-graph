@@ -1,5 +1,5 @@
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolith/react'
-import { setupBreadcrumbDive, diveIntoSlug } from '@xenolith/demo/breadcrumb-dive'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { setupBreadcrumbDive, diveIntoSlug } from '@xenolithengine/demo/breadcrumb-dive'
 import { DemoStage } from '../Layout.js'
 
 // Canon: dive operations are pure editor methods + one helper; the panel calls them directly

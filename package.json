@@ -16,7 +16,7 @@
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "playground": "pnpm --filter @xenolith/playground dev",
+    "playground": "pnpm --filter @xenolithengine/playground dev",
     "changeset": "changeset",
     "release": "changeset publish",
     "size": "size-limit",

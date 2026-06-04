@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Theme switcher — child of <XenolithGraph>. Uses `useEditor()` to call `setTheme()` imperatively.
 import { ref } from 'vue'
-import { useEditor } from '@xenolith/vue'
-import { xenTheme, type XenolithTheme } from '@xenolith/render-pixi'
-import { liquidGlassTheme } from '@xenolith/theme-liquid-glass'
+import { useEditor } from '@xenolithengine/vue'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
 
 const themes: { label: string; theme: XenolithTheme }[] = [
   { label: 'Xen',          theme: xenTheme },

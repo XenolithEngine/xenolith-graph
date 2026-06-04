@@ -8,7 +8,7 @@ XenolithGraph is a WebGL editor that mounts PIXI into a `<canvas>`. Remix render
 ## Install
 
 ```sh
-pnpm add @xenolith/editor @xenolith/react pixi.js
+pnpm add @xenolithengine/editor @xenolithengine/react pixi.js
 ```
 
 `pixi.js` is a peer dependency.
@@ -32,7 +32,7 @@ export default function EditorRoute() {
 
 ```tsx
 // app/components/EditorClient.tsx
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
 
 function MyPanel() {
   const editor = useEditor()

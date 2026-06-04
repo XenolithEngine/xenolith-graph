@@ -1,7 +1,7 @@
 import { Container, Graphics, BlurFilter } from 'pixi.js'
-import { renderNode as baseRenderNode, type NodeView, type RenderNodeOptions } from '@xenolith/render-pixi'
-import type { XenTokens } from '@xenolith/theme-xen'
-import type { Node } from '@xenolith/core'
+import { renderNode as baseRenderNode, type NodeView, type RenderNodeOptions } from '@xenolithengine/render-pixi'
+import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { Node } from '@xenolithengine/core'
 import { createChromaticFilter } from './chromatic-filter.js'
 
 // Synthwave renderNode — wraps the base Xen renderer with an outer NEON HALO. The base node

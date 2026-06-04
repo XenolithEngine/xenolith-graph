@@ -4,7 +4,7 @@
 // point through the `node:drop` event. Hosts that don't want this can `setPaletteSidebar(false)`
 // (default) and rely on the Tab palette instead.
 
-import type { NodeRegistry, NodeSchema } from '@xenolith/core'
+import type { NodeRegistry, NodeSchema } from '@xenolithengine/core'
 
 export interface PaletteSidebarOpts {
   /** Where to anchor the panel inside the overlay root. Default 'left'. */

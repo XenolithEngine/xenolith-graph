@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/plugin-autolayout",
+  "name": "@xenolithengine/plugin-autolayout",
   "version": "0.7.0-beta.0",
   "description": "Auto-layout plugin for XenolithGraph. Engine-agnostic: bring your own layout backend (dagre / elkjs / custom) via the LayoutEngine interface.",
   "license": "MIT",
@@ -27,8 +27,8 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@xenolith/core": "workspace:*",
-    "@xenolith/editor": "workspace:*"
+    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/editor": "workspace:*"
   },
   "peerDependencies": {
     "dagre": "^0.8.5",

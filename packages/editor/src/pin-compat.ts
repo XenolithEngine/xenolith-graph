@@ -1,4 +1,4 @@
-import type { Pin, TypeRegistry } from '@xenolith/core'
+import type { Pin, TypeRegistry } from '@xenolithengine/core'
 
 export interface ConnectContext {
   /** Existing incident edges on pin `a`. Used to enforce `multiple: false` capacity. Default 0. */

@@ -1,6 +1,6 @@
 import { Container, Graphics, Rectangle, type FederatedPointerEvent } from 'pixi.js'
-import type { XenTokens } from '@xenolith/theme-xen'
-import type { ViewportState } from '@xenolith/render-pixi'
+import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { ViewportState } from '@xenolithengine/render-pixi'
 
 /** Where the minimap sits. Eight standard anchors (corners + edge centres), or exact screen-space
  *  pixel coordinates of its top-left. */

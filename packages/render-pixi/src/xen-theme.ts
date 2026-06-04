@@ -1,4 +1,4 @@
-import { xenTokens } from '@xenolith/theme-xen'
+import { xenTokens } from '@xenolithengine/theme-xen'
 import type { XenolithTheme } from './theme.js'
 
 /**

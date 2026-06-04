@@ -3,8 +3,8 @@
 // this directive, Next.js App Router fails at the first import. Same applies to react-widget.tsx,
 // hooks.ts, components.tsx, context.ts.
 import { useEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode, type Ref } from 'react'
-import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xenolith/adapter-core'
-import type { EditorEvents, XenolithEditor } from '@xenolith/editor'
+import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xenolithengine/adapter-core'
+import type { EditorEvents, XenolithEditor } from '@xenolithengine/editor'
 import { EVENT_PROP, type EventCallbacks } from './events-map.js'
 import { XenolithContext } from './context.js'
 

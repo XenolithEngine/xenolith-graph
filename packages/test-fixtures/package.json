@@ -1,5 +1,5 @@
 {
-  "name": "@xenolith/test-fixtures",
+  "name": "@xenolithengine/test-fixtures",
   "version": "0.0.0",
   "private": true,
   "description": "Real-world graph fixtures (ComfyUI workflows, etc.) used by XenolithGraph tests and benchmarks.",

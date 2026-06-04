@@ -4,8 +4,8 @@
 // scope, registration happens inside `onReady` (the editor instance is ready). The graph JSON is
 // now compact — pins and widgets come from the schema, not from every node entry.
 
-import { XenolithGraph } from '@xenolith/react'
-import type { NodeSchema, XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/react'
+import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/editor'
 import { DemoStage } from '../Layout.js'
 
 const greeterSchema: NodeSchema = {

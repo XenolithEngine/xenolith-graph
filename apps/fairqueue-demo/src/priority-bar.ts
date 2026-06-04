@@ -5,7 +5,7 @@
 // the editor commits and reports through `widget:changed`, which the host writes back into the sim —
 // that's the "drag a bar and watch the tax relax it toward 0" interaction.
 
-import type { CanvasWidgetController } from '@xenolith/editor'
+import type { CanvasWidgetController } from '@xenolithengine/editor'
 
 export const SCALE = 3 // ± priority shown full-scale; 0 reference sits at the centre
 

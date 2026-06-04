@@ -63,7 +63,7 @@ Any single listener calling `cancel()` is enough — the action doesn't run, no 
 `editor.commands` is a CommandRegistry — hosts register actions with optional hotkeys and Xenolith routes matching key chords through them. Listener fires BEFORE built-in shortcuts, so hosts can override.
 
 ```ts
-import { Commands } from '@xenolith/editor'
+import { Commands } from '@xenolithengine/editor'
 
 editor.commands.register({
   id: Commands.Undo,

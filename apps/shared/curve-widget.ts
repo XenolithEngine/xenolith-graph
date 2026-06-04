@@ -1,4 +1,4 @@
-import type { CanvasWidgetController } from '@xenolith/editor'
+import type { CanvasWidgetController } from '@xenolithengine/editor'
 
 /** A point on the curve, normalised to 0..1 (x = input, y = output, y-up). */
 export interface CurvePoint { x: number; y: number }

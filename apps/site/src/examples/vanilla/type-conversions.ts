@@ -1,6 +1,6 @@
 // Vanilla mount for Type Conversions (G2). DOM toggle + log readout in the editor overlay root.
-import { XenolithEditor } from '@xenolith/editor'
-import { buildTypeConversions } from '@xenolith/demo/type-conversions'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { buildTypeConversions } from '@xenolithengine/demo/type-conversions'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const editor = await XenolithEditor.init(target, { minimap: false })

@@ -1,4 +1,4 @@
-# @xenolith/theme-xen
+# @xenolithengine/theme-xen
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -14,8 +14,8 @@ The Figma source is the canonical authority for all visuals. Static reference as
 ## Usage
 
 ```ts
-import { xenTokens } from '@xenolith/theme-xen'
-import { Editor } from '@xenolith/editor'
+import { xenTokens } from '@xenolithengine/theme-xen'
+import { Editor } from '@xenolithengine/editor'
 
 const editor = new Editor({ theme: xenTokens })
 ```

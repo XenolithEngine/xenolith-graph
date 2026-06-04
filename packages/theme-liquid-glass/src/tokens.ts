@@ -1,4 +1,4 @@
-import { xenTokens, mergeTheme, type XenTokens, type DeepPartial } from '@xenolith/theme-xen'
+import { xenTokens, mergeTheme, type XenTokens, type DeepPartial } from '@xenolithengine/theme-xen'
 
 /**
  * Liquid Glass — Apple WWDC25-inspired material. Translucent body fills, luminous white rims

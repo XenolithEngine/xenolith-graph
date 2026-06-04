@@ -2,8 +2,8 @@ import { useState } from 'react'
 import {
   XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, XenolithMiniMap,
   useNodes, useEdges, useViewport,
-} from '@xenolith/react'
-import type { MinimapPosition } from '@xenolith/editor'
+} from '@xenolithengine/react'
+import type { MinimapPosition } from '@xenolithengine/editor'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
 

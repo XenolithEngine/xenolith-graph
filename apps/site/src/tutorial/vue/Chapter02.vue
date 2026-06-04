@@ -3,8 +3,8 @@
 //
 // Schema is plain data at module scope, registration happens inside `@ready`. The graph JSON is now
 // compact — pins and widgets come from the schema, not from every node entry.
-import { XenolithGraph } from '@xenolith/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter',

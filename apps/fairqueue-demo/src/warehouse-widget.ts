@@ -2,7 +2,7 @@
 // has no subscriber). The host pushes a { type: count } object as the widget value each tick via
 // editor.setWidgetValue; this draws one row per type. Nothing is interactive (no onPointer).
 
-import type { CanvasWidgetController } from '@xenolith/editor'
+import type { CanvasWidgetController } from '@xenolithengine/editor'
 
 export interface StockEntry {
   type: string

@@ -2,9 +2,9 @@
 // style at once, plus a "set all to X" panel that flips every wire in place via
 // `editor.setEdgeOptions(id, { pathStyle })`. No render hacks; uses the public per-edge option.
 
-import type { XenolithEditor, XenolithGraphV1 } from '@xenolith/editor'
-import type { EdgeId } from '@xenolith/core'
-import type { EdgePathStyle } from '@xenolith/render-pixi'
+import type { XenolithEditor, XenolithGraphV1 } from '@xenolithengine/editor'
+import type { EdgeId } from '@xenolithengine/core'
+import type { EdgePathStyle } from '@xenolithengine/render-pixi'
 
 const STYLES: EdgePathStyle[] = ['bezier', 'smoothstep', 'step', 'linear']
 

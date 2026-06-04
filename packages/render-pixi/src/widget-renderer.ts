@@ -1,6 +1,6 @@
 import { BitmapText, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
-import { comboOptions, widgetValue, widgetVisibility, widgetBindKey, widgetIsVisible, type Node, type WidgetSpec, type WidgetStyle } from '@xenolith/core'
-import type { XenTokens } from '@xenolith/theme-xen'
+import { comboOptions, widgetValue, widgetVisibility, widgetBindKey, widgetIsVisible, type Node, type WidgetSpec, type WidgetStyle } from '@xenolithengine/core'
+import type { XenTokens } from '@xenolithengine/theme-xen'
 import { pinRowCount, pinRowHeights, pinBandHeight, pinRowCenterY, pinRowIndexFor, isFreeFloating, freeFloatingHeight } from './layout.js'
 
 /** Context handed to a custom widget's draw/pointer callbacks. Coords are widget-local CSS px.

@@ -2,7 +2,7 @@
 //
 // The idiomatic Svelte surface is `<div use:xenolith={props}>`; for programmatic setup we use the
 // imperative `createXenolithGraph` primitive the adapter exposes alongside the action.
-import { createXenolithGraph } from '@xenolith/svelte'
+import { createXenolithGraph } from '@xenolithengine/svelte'
 
 const graph = {
   version: 'xenolith.v1' as const,

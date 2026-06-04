@@ -1,4 +1,4 @@
-// The fairqueue model expressed as a @xenolith/plugin-runtime graph (generic primitives + the one
+// The fairqueue model expressed as a @xenolithengine/plugin-runtime graph (generic primitives + the one
 // Allocate verb). State lives in variables (parallel arrays): priorities, salaries, subs, costs,
 // arrivals, alpha. One tick:
 //   priorities = ScaleArray( Allocate( ZipAdd(priorities, salaries), subs, arrivals, costs ), 1 - alpha )
@@ -10,8 +10,8 @@
 // NOT a bespoke per-node title. Returns a full xenolith.v1 graph (positions / render / categories /
 // comments) that is also structurally a valid RtGraph, so one builder serves headless + rendered.
 
-import { BUILTIN_PRIMITIVES, COLLECTION_PRIMITIVES, Allocate, PRIMITIVE_CATEGORY_COLORS, PRIMITIVE_ICONS, PRIMITIVE_SCHEMAS, type NodeDef } from '@xenolith/plugin-runtime'
-import type { XenolithGraphV1, XenolithNodeV1, XenolithPinV1, XenolithEdgeV1, XenolithCommentV1, WidgetSpec } from '@xenolith/editor'
+import { BUILTIN_PRIMITIVES, COLLECTION_PRIMITIVES, Allocate, PRIMITIVE_CATEGORY_COLORS, PRIMITIVE_ICONS, PRIMITIVE_SCHEMAS, type NodeDef } from '@xenolithengine/plugin-runtime'
+import type { XenolithGraphV1, XenolithNodeV1, XenolithPinV1, XenolithEdgeV1, XenolithCommentV1, WidgetSpec } from '@xenolithengine/editor'
 import type { Agent, GoodieSpec } from './fairqueue.js'
 import { CATEGORY_COLORS } from './sim-to-graph.js'
 import { buildAllocateSubgraphV1 } from './allocate-graph-v1.js'

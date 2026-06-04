@@ -4,8 +4,8 @@
 // `displayOptions.show` callback is a real function in code — it stays a live closure inside
 // the schema and is preserved when the schema's widgets are copied onto each instance.
 
-import { XenolithGraph } from '@xenolith/react'
-import type { NodeSchema, XenolithGraphV1 } from '@xenolith/editor'
+import { XenolithGraph } from '@xenolithengine/react'
+import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/editor'
 import { DemoStage } from '../Layout.js'
 
 const greeterSchema: NodeSchema = {

@@ -28,7 +28,7 @@ Adopt a strict four-layer architecture:
 ## Consequences
 
 - The core package can be unit-tested with Vitest in Node without jsdom or a browser.
-- Adding a new renderer (e.g. `@xenolith/render-canvas` for low-end environments) means implementing one interface, not rewriting the engine.
+- Adding a new renderer (e.g. `@xenolithengine/render-canvas` for low-end environments) means implementing one interface, not rewriting the engine.
 - Adding a new framework adapter is a ~200-line task.
 - Core has no access to convenient browser APIs (window, requestAnimationFrame, ResizeObserver). When it needs scheduling or time, it receives them as injected dependencies from the editor layer.
 

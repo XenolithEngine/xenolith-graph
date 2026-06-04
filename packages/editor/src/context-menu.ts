@@ -1,4 +1,4 @@
-import type { EdgeId, NodeId } from '@xenolith/core'
+import type { EdgeId, NodeId } from '@xenolithengine/core'
 import type { EdgeMenuItem } from './edge-menu.js'
 
 /** Context menu target — what the user right-clicked / long-pressed.

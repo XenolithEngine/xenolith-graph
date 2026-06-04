@@ -1,7 +1,7 @@
 // Vanilla mount for the Auto-Layout example. No React, no framework — just `XenolithEditor.init`,
 // the shared scene builder, and two DOM buttons in the editor's overlay root for arrange / direction.
-import { XenolithEditor } from '@xenolith/editor'
-import { buildAutoLayout } from '@xenolith/demo/auto-layout'
+import { XenolithEditor } from '@xenolithengine/editor'
+import { buildAutoLayout } from '@xenolithengine/demo/auto-layout'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
   const editor = await XenolithEditor.init(target, { minimap: false })

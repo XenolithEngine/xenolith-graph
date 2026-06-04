@@ -1,6 +1,6 @@
 'use client'
 import { useCallback, useRef, useSyncExternalStore } from 'react'
-import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1 } from '@xenolith/editor'
+import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1 } from '@xenolithengine/editor'
 import { useXenolithEditor } from './context.js'
 
 // Canonical pattern: subscribe to an external (non-React) mutable store via `useSyncExternalStore`.

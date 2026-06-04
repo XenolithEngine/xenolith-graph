@@ -10,7 +10,7 @@ const binding = {
   destroy: vi.fn(),
 }
 const createEditorBinding = vi.fn(async (_target: unknown, _props?: unknown) => binding)
-vi.mock('@xenolith/adapter-core', () => ({ createEditorBinding }))
+vi.mock('@xenolithengine/adapter-core', () => ({ createEditorBinding }))
 
 const { XenolithGraph } = await import('./index.js')
 

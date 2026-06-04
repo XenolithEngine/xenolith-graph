@@ -6,7 +6,7 @@ name: Release (publish to npm)
 # this workflow is the canonical / auditable path.
 #
 # Secrets required at the repository level:
-#   NPM_TOKEN — an "Automation" token from npmjs.com for the @xenolith scope.
+#   NPM_TOKEN — an "Automation" token from npmjs.com for the @xenolithengine scope.
 
 on:
   push:
@@ -36,17 +36,17 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
-          scope: '@xenolith'
+          scope: '@xenolithengine'
 
       - run: pnpm install --frozen-lockfile
 
       # Same build the CI workflow runs on every PR. dist/ is what gets packed into
       # the tarball — if this fails, nothing gets published.
       - name: Build all publishable packages
-        run: pnpm -r --filter '!@xenolith/playground' --filter '!@xenolith/site' --filter '!@xenolith/wasm-demo' run build
+        run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' --filter '!@xenolithengine/wasm-demo' run build
 
       - name: Run unit + integration tests
-        run: pnpm -r --filter '!@xenolith/playground' --filter '!@xenolith/site' --filter '!@xenolith/wasm-demo' run test
+        run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' --filter '!@xenolithengine/wasm-demo' run test
 
       - name: Bundle-size budgets
         run: pnpm size
@@ -91,5 +91,5 @@ jobs:
             *)   DEFAULT_TAG=latest ;;           # plain semver → publish as latest
           esac
           echo "Publishing with --tag=$DEFAULT_TAG"
-          pnpm -r --filter './packages/*' --filter '!@xenolith/test-fixtures' \
+          pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' \
             publish --access public --tag "$DEFAULT_TAG" --no-git-checks

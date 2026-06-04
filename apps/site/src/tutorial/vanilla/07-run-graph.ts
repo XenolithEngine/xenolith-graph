@@ -8,7 +8,7 @@
 // terminal sink (Output). The seed graph is 8 nodes and 7 edges so the topological order is
 // non-trivial — try `Run` and watch the highlight walk the DAG.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1, type NodeId } from '@xenolith/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1, type NodeId } from '@xenolithengine/editor'
 
 const constSchema: NodeSchema = {
   type: 'Const', title: 'Const', category: 'data',
