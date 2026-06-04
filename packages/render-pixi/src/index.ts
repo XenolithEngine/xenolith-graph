@@ -1,4 +1,4 @@
-export const VERSION = '0.7.0-beta.1'
+export const VERSION = '0.7.0-beta.2'
 
 export { computeNodeLayout, measureNodeSize, findPinByKey, pinRowIndexFor, effectivePinRowHeight } from './layout.js'
 export type { LayoutTokens, NodeLayout, PinLayout, Rect, NodeSizeTokens, TextMeasurer } from './layout.js'
@@ -51,7 +51,7 @@ export type { InteractionManagerOptions } from './interaction.js'
 
 export { createGridSprite } from './grid.js'
 
-export type { XenolithTheme, ThemeRenderContext, PaletteStyle } from './theme.js'
+export type { XenolithTheme, ThemeRenderContext, PaletteStyle, FontSpec } from './theme.js'
 export { xenTheme } from './xen-theme.js'
 
 export { rectFromPoints, rectIntersects, nodeBounds, computeOverlapBackdropPlan } from './geom.js'

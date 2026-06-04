@@ -141,7 +141,8 @@ import {
   type XenolithTheme,
   type ZoomBounds,
 } from '@xenolithengine/graph-render-pixi'
-import { xenTokens, loadXenFonts, mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
+import { xenTokens, mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
+import { loadFonts, type FontUrlMap } from './fonts.js'
 import { canConnect } from './pin-compat.js'
 import { CommandRegistry } from './commands-registry.js'
 import { SidebarManager } from './sidebar.js'
@@ -201,7 +202,7 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
-export const VERSION = '0.7.0-beta.1'
+export const VERSION = '0.7.0-beta.2'
 
 const MARQUEE_DRAG_THRESHOLD = 4
 const NODE_DRAG_THRESHOLD = 4
@@ -230,6 +231,10 @@ export interface XenolithEditorOptions {
    *  Receives the normalised out→in endpoints. Pair with `wouldCreateCycle` to forbid cycles.
    *  Update at runtime via `setIsValidConnection`. */
   isValidConnection?: (connection: ConnectionRequest) => boolean
+  /** Self-hosted font URL overrides — map keyed by `<family>|<weight>[|<style>]`.
+   *  Example: `{ 'Inter|400': '/fonts/Inter-Regular.woff2' }`. Anything not provided here is
+   *  fetched from Google Fonts (the default). Update at runtime via `editor.fonts.selfHost(...)`. */
+  fontUrls?: FontUrlMap
 }
 
 /** A would-be connection, normalised to out → in, passed to `isValidConnection`. */
@@ -698,6 +703,16 @@ export class XenolithEditor {
   #isValidConnection: ((c: ConnectionRequest) => boolean) | undefined
   #statusGfx: Graphics | null = null
   readonly #nodeStatus = new Map<NodeId, NodeStatus>()
+  /** Self-hosted font URL map (passed into init or set via `editor.fonts.selfHost(...)`). */
+  #fontUrls: FontUrlMap | undefined
+
+  /** Font management — `selfHost(urls)` overrides Google-Fonts-CDN default per (family, weight). */
+  readonly fonts = {
+    selfHost: (urls: FontUrlMap): void => {
+      this.#fontUrls = urls
+      if (this.#theme.fonts?.length) void loadFonts(this.#theme.fonts, { selfHost: urls })
+    },
+  }
 
   private constructor(app: Application, host: HTMLElement, theme: XenolithTheme, opts: XenolithEditorOptions) {
     this.#app = app
@@ -721,6 +736,7 @@ export class XenolithEditor {
     this.#commands.setExecutionMiddleware((fn) => this.#displayBus.transaction(fn))
     this.#zoomBounds = opts.zoomBounds ?? [0.25, 2]
     this.#snapSize = opts.snap ?? 8
+    if (opts.fontUrls) this.#fontUrls = opts.fontUrls
 
     this.#world = new Container({ label: 'world' })
     this.#edgesLayer = new Container({ label: 'edges' })
@@ -1032,10 +1048,24 @@ export class XenolithEditor {
       if (getComputedStyle(this.#host).position === 'static') this.#host.style.position = 'relative'
       const root = document.createElement('div')
       root.setAttribute('data-xeno-overlay-root', '')
+      // Starlight (Astro docs themes generally) drops a `margin-top: 1rem` on every
+      // adjacent-sibling pair inside `.sl-markdown-content`. When the editor mounts inside a
+      // Starlight page (landing showcases) this margin cascades into palette rows, panel buttons,
+      // controls — bloating layout. Starlight provides `.not-content` as the escape hatch; with
+      // it on the overlayRoot, the rule's `:where(.not-content *)` negation excludes every
+      // descendant. Harmless outside Starlight (just an extra class).
+      root.className = 'not-content'
       // zIndex above the DOM-widget layer (5) so chrome — panels, controls, minimap — always sits
       // on top of in-node DOM widgets (e.g. a large image-preview widget must never cover a panel).
       Object.assign(root.style, {
         position: 'absolute', inset: '0', pointerEvents: 'none', overflow: 'hidden', zIndex: '10',
+        // Typography reset — consumer apps often inherit aggressive `font` shorthands at :root
+        // (Vite React template sets `font: 18px/145%` + `letter-spacing: 0.18px`), and chrome
+        // elements (palette, panels, breadcrumb) that rely on inheriting just font-family while
+        // setting their own font-size end up with cascaded line-height / letter-spacing that
+        // bloats their layout. Force a sane default here so chrome is isolated from host CSS.
+        font: '13px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        letterSpacing: 'normal',
       } as Partial<CSSStyleDeclaration>)
       this.#host.appendChild(root)
       this.#overlayRoot = root
@@ -2023,12 +2053,14 @@ export class XenolithEditor {
         `XenolithEditor.init: target ${JSON.stringify(target)} did not resolve to an HTMLElement`,
       )
     }
-    await loadXenFonts()
-    // Node/pin/widget text uses BitmapText — all instances of a given style share one glyph atlas
-    // instead of allocating a texture per Text, which is the dominant cost on huge graphs. Bake the
-    // atlas at device resolution so it stays crisp when zoomed in.
+    // BitmapText atlas resolution — node/pin/widget text uses one shared atlas instead of a
+    // texture per Text instance. Bake at device DPR so it stays crisp when zoomed in.
     BitmapFontManager.defaultOptions.resolution = Math.ceil(window.devicePixelRatio || 1)
     const theme = resolveTheme(opts.theme)
+    if (theme.fonts?.length) {
+      const fontOpts = opts.fontUrls ? { selfHost: opts.fontUrls } : {}
+      await loadFonts(theme.fonts, fontOpts)
+    }
     const app = new Application()
     const initOpts: Parameters<Application['init']>[0] = {
       background: opts.background ?? theme.tokens.color.surface.canvas,
@@ -2039,6 +2071,10 @@ export class XenolithEditor {
     }
     if (opts.resizeToWindow !== false) initOpts.resizeTo = window
     await app.init(initOpts)
+    // Mark the host so Starlight (Astro docs themes) doesn't apply its `.sl-markdown-content`
+    // sibling-margin rules to the canvas and overlay chrome. `.not-content` is Starlight's escape
+    // hatch — harmless outside Starlight (just an additional class on the user's element).
+    el.classList.add('not-content')
     el.appendChild(app.canvas)
     const editor = new XenolithEditor(app, el, theme, opts)
     // Debug aid for screenshot tooling, e2e probes, perf measurements — always expose the most
@@ -5355,6 +5391,14 @@ export class XenolithEditor {
       : { ...this.#theme, tokens: mergeTheme(this.#theme.tokens, input as DeepPartial<XenTokens>) }
     if (next === this.#theme) return
     this.#theme = next
+
+    // Fire-and-forget font load for the new theme. We don't await — `setTheme` is sync UX and
+    // font swap-in happens via `display: swap` on the FontFace; PIXI text will pick up the new
+    // family on its next measure pass.
+    if (next.fonts?.length) {
+      const fontOpts = this.#fontUrls ? { selfHost: this.#fontUrls } : {}
+      void loadFonts(next.fonts, fontOpts)
+    }
 
     // Drop baked glow textures — geometry tokens (radii, sizes via padding) may have changed,
     // and any cached strokes from the previous theme would render with stale dimensions.

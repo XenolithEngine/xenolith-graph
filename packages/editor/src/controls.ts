@@ -4,7 +4,10 @@
 // themed entirely through the host's exported `--xeno-*` CSS vars. Includes zoom, fit, reset,
 // undo/redo (disabled when their stack is empty), a Save dropdown (JSON / PNG / JPG), and a lock.
 
-export type ControlsPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+export type ControlsPosition =
+  | 'top-left'  | 'top-right'  | 'bottom-left' | 'bottom-right'
+  | 'left-center' | 'right-center'
+  | 'top-center'  | 'bottom-center'
 
 export interface ControlsOptions {
   position?: ControlsPosition
@@ -70,10 +73,14 @@ const COARSE_POINTER = typeof window !== 'undefined' && typeof window.matchMedia
   && window.matchMedia('(pointer: coarse)').matches
 
 const POS: Record<ControlsPosition, Partial<CSSStyleDeclaration>> = {
-  'top-left':     { top: '12px', left: '12px' },
-  'top-right':    { top: '12px', right: '12px' },
-  'bottom-left':  { bottom: '12px', left: '12px' },
-  'bottom-right': { bottom: '12px', right: '12px' },
+  'top-left':      { top: '12px', left: '12px' },
+  'top-right':     { top: '12px', right: '12px' },
+  'bottom-left':   { bottom: '12px', left: '12px' },
+  'bottom-right':  { bottom: '12px', right: '12px' },
+  'left-center':   { top: '50%', left: '12px',  transform: 'translateY(-50%)' },
+  'right-center':  { top: '50%', right: '12px', transform: 'translateY(-50%)' },
+  'top-center':    { top: '12px', left: '50%',  transform: 'translateX(-50%)' },
+  'bottom-center': { bottom: '12px', left: '50%', transform: 'translateX(-50%)' },
 }
 
 export class EditorControls {

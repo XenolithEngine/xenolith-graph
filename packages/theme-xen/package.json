@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-theme-xen",
-  "version": "0.7.0-beta.1",
+  "version": "0.7.0-beta.2",
   "description": "Xen — the default original design system for XenolithGraph. Dark / gold palette with typed pins, categorical headers, and glassmorphic effects.",
   "license": "MIT",
   "type": "module",
@@ -20,7 +20,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -b && cp -R src/fonts dist/fonts",
+    "build": "tsc -b",
     "dev": "tsc -b --watch",
     "test": "vitest run",
     "lint": "eslint src",

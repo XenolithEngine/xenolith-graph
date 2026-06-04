@@ -29,10 +29,10 @@ editor.setControls({ position: 'top-right', orientation: 'horizontal' })
 // -----------------------------------------------------------------------------------------------
 const themes: { label: string; theme: XenolithTheme }[] = [
   { label: 'Xen',          theme: xenTheme },
+  { label: 'Liquid Glass', theme: liquidGlassTheme },
+  { label: 'Holographic',  theme: holographicTheme },
   // Synthwave hidden temporarily — visual fun but not in this playground pass.
   // { label: 'Synthwave',    theme: synthwaveTheme },
-  { label: 'Holographic',  theme: holographicTheme },
-  { label: 'Liquid Glass', theme: liquidGlassTheme },
 ]
 // Lives in the editor's overlay root and styles itself purely from the theme's `--xeno-*` design
 // tokens (the editor re-writes them on setTheme), so the panel restyles with the active theme — no
@@ -42,7 +42,7 @@ switcher.setAttribute('data-xeno-panel', '')
 switcher.style.cssText = `
   position: absolute; top: 60px; right: 12px; pointer-events: auto;
   display: flex; gap: 4px;
-  background: var(--xeno-panel); padding: 4px; border-radius: var(--xeno-radius);
+  background: var(--xeno-panel); padding: 6px; border-radius: var(--xeno-radius);
   border: 1px solid var(--xeno-border);
   font-family: 'Inter', system-ui, sans-serif; font-size: 12px;
 `

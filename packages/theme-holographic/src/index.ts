@@ -17,6 +17,7 @@ import { drawEdgeHolographic } from './draw-edge.js'
  */
 export const holographicTheme: XenolithTheme = {
   id: 'holographic',
+  fonts: [{ family: 'Inter', weights: [400, 600, 700] }],
   tokens: holographicTokens,
   // Per-node Sprite for the iridescent frame + 3 fill passes adds non-trivial draw weight; the
   // Apple Vision OS feel asks for big visible glass plates, not 1000 micro-nodes. Lower the
@@ -43,4 +44,4 @@ export const holographicTheme: XenolithTheme = {
 }
 
 export { holographicTokens } from './tokens.js'
-export const VERSION = '0.7.0-beta.1'
+export const VERSION = '0.7.0-beta.2'

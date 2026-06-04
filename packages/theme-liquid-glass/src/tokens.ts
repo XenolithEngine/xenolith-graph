@@ -95,6 +95,10 @@ const liquidGlassOverride: DeepPartial<XenTokens> = {
       // use ~50% radius on small pills; for our larger node bodies a moderate bump lands well.
       radius:     14,
       pillRadius: 22,
+      // The glass material extends rim highlight + dropshadow blur right to the corner — a header
+      // icon flush against that visual edge looks pinched. Xen has a hairline-stroke chrome that
+      // visually contains the icon at 2px; LG needs more breathing room.
+      headerPadding: 10,
     },
   },
   background: {

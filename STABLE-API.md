@@ -123,7 +123,7 @@ Peer dep: `pixi.js@^8.6.0`.
 
 | Package | Export |
 |---|---|
-| `@xenolithengine/graph-theme-xen` | `xenTheme` (default), `xenTokens`, `loadXenFonts`, `mergeTheme`. |
+| `@xenolithengine/graph-theme-xen` | `xenTheme` (default), `xenTokens`, `mergeTheme`. Fonts are declared on each theme (`theme.fonts: FontSpec[]`) and auto-loaded by the editor — Google Fonts CDN by default, opt-in self-host via `editor.fonts.selfHost({ 'Inter|400': '/url.woff2', ... })` or `XenolithEditor.init(host, { fontUrls: {...} })`. |
 | `@xenolithengine/graph-theme-liquid-glass` | `liquidGlassTheme`. |
 | `@xenolithengine/graph-theme-holographic` | `holographicTheme`. |
 | `@xenolithengine/graph-theme-synthwave` | `synthwaveTheme`. |

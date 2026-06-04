@@ -160,3 +160,62 @@ export const pastelTheme: XenolithTheme = {
 ```
 
 For a custom material (your own shader, your own backdrop), implement `renderNode` and optionally `createGrid`. See `@xenolithengine/graph-theme-liquid-glass`'s source for a complete worked example — PIXI Mesh + GLSL with SDF refraction and backdrop sampling.
+
+## Fonts
+
+Themes **declare** what font families they need; the editor loads them. A theme exposes a
+`fonts: FontSpec[]` field — `FontSpec` is `{ family: string; weights?: number[]; styles?: ('normal' | 'italic')[] }`.
+
+```ts
+import type { XenolithTheme } from '@xenolithengine/graph-render-pixi'
+
+export const myTheme: XenolithTheme = {
+  id: 'mine',
+  tokens: { /* ... */ },
+  fonts: [{ family: 'Inter', weights: [400, 600, 700] }],
+  // ...
+}
+```
+
+By default, the editor fetches the listed families from the **Google Fonts CDN** (`fonts.gstatic.com`). Zero shipped binaries, zero bundler config — works in any host out of the box.
+
+### Self-hosting (airgap, strict CSP, privacy)
+
+Pass per-`(family, weight, style?)` URLs to override the CDN. Keys follow the pattern `<family>|<weight>` or `<family>|<weight>|<style>` (style defaults to `normal`):
+
+```ts
+const editor = await XenolithEditor.init('#app', {
+  fontUrls: {
+    'Inter|400': '/static/Inter-Regular.woff2',
+    'Inter|600': '/static/Inter-SemiBold.woff2',
+    'Inter|700': '/static/Inter-Bold.woff2',
+  },
+})
+```
+
+Or at runtime (e.g. lazy-load after auth check):
+
+```ts
+editor.fonts.selfHost({
+  'Inter|400': '/static/Inter-Regular.woff2',
+  // ...
+})
+```
+
+Anything **not** in the map still falls back to Google Fonts — so partial self-host is allowed (cover just the weights you have local). To download Inter WOFF2 binaries, grab them from <https://fonts.google.com/specimen/Inter> and host alongside your app assets.
+
+### Custom fonts (any family, not just Inter)
+
+A theme can list any Google-Fonts-available family:
+
+```ts
+fonts: [
+  { family: 'Inter',           weights: [400, 600, 700] },
+  { family: 'JetBrains Mono',  weights: [500] },
+  { family: 'Orbitron',        weights: [500, 700] },
+]
+```
+
+The editor builds one Google Fonts API URL per call covering every requested family + weight, so even multi-family themes incur a single network round-trip.
+
+If the family isn't on Google Fonts (your own brand typeface), self-host every weight — the loader falls back to CDN only for families it has no URL for.

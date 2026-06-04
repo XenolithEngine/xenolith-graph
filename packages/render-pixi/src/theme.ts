@@ -39,10 +39,29 @@ export interface PaletteStyle {
   inputBorder?: string
 }
 
+/**
+ * Declarative font requirement for a theme. The editor reads `theme.fonts` on init/setTheme
+ * and loads the listed families automatically — from Google Fonts CDN by default, or from
+ * URLs the host supplied via `editor.fonts.selfHost({ ... })`.
+ *
+ * Themes only DECLARE what they need; they don't load anything themselves.
+ */
+export interface FontSpec {
+  /** Family name as it appears in CSS (`'Inter'`, `'JetBrains Mono'`). The same string must be
+   *  used by the theme's tokens (e.g. `tokens.fontFamily`) and by the Google Fonts CSS URL. */
+  family: string
+  /** Numeric weights to load. Default `[400]`. */
+  weights?: readonly number[]
+  /** Default `['normal']`. */
+  styles?: readonly ('normal' | 'italic')[]
+}
+
 export interface XenolithTheme {
   /** Stable identifier used for diffing in setTheme and for telemetry. */
   id: string
   tokens: XenTokens
+  /** Fonts this theme needs. The editor auto-loads them on init and on each setTheme(). */
+  fonts?: readonly FontSpec[]
   /** CSS styling for DOM chrome (insert palette). Falls back to a Xen-derived default. */
   paletteStyle?: PaletteStyle
   /** Opt-in flag — when true, the editor maintains a per-frame backdrop RenderTexture and

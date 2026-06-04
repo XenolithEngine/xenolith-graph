@@ -8,6 +8,7 @@ import type { XenolithTheme } from './theme.js'
  */
 export const xenTheme: XenolithTheme = {
   id: 'xen',
+  fonts: [{ family: 'Inter', weights: [400, 600, 700] }],
   tokens: xenTokens,
   paletteStyle: {
     panelBackground:       '#191919',

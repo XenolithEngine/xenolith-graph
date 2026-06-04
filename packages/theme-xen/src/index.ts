@@ -5,7 +5,6 @@ export const xenTokens = tokens as unknown as XenTokens
 
 export const VERSION = xenTokens.version
 
-export { loadXenFonts } from './fonts.js'
 export { mergeTheme } from './merge.js'
 export type { DeepPartial } from './merge.js'
 

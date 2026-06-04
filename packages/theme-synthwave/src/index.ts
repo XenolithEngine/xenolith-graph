@@ -96,6 +96,7 @@ export const synthwaveTokens = mergeTheme(xenTokens, synthwaveOverrides as never
  */
 export const synthwaveTheme: XenolithTheme = {
   id: 'synthwave',
+  fonts: [{ family: 'Inter', weights: [400, 600, 700] }],
   tokens: synthwaveTokens,
   createGrid: () => createSynthwaveBackdrop(),
   // Glow halo per node bakes a non-trivial extra Graphics + BlurFilter — virtualise earlier than
@@ -117,4 +118,4 @@ export const synthwaveTheme: XenolithTheme = {
   },
 }
 
-export const VERSION = '0.7.0-beta.1'
+export const VERSION = '0.7.0-beta.2'

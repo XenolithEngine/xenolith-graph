@@ -20,6 +20,7 @@ import { createLiquidGlassBackdrop } from './backdrop.js'
  */
 export const liquidGlassTheme: XenolithTheme = {
   id: 'liquid-glass',
+  fonts: [{ family: 'Inter', weights: [400, 600, 700] }],
   tokens: liquidGlassTokens,
   needsBackdrop: true,
   // Disabled for now: the freeze/unfreeze at gesture start/end causes a hitch that hurts
@@ -59,4 +60,4 @@ export const liquidGlassTheme: XenolithTheme = {
 
 export { liquidGlassTokens } from './tokens.js'
 
-export const VERSION = '0.7.0-beta.1'
+export const VERSION = '0.7.0-beta.2'

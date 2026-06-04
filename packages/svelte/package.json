@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-svelte",
-  "version": "0.7.0-beta.1",
+  "version": "0.7.0-beta.2",
   "description": "Svelte adapter for XenolithGraph — the `use:xenolith` action.",
   "license": "MIT",
   "type": "module",

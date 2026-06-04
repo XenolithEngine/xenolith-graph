@@ -44,13 +44,13 @@ import HeadMeta from '../components/HeadMeta.astro'
       .playground-toolbar a:hover { color: var(--xn-gold-bright); }
       .playground-switcher {
         position: fixed; top: 16px; right: 16px; z-index: 10;
-        display: flex; gap: 4px;
+        display: flex; gap: 6px;
         background: rgba(0, 0, 0, 0.45);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        padding: 4px;
-        border-radius: 8px;
+        padding: 8px;
+        border-radius: 10px;
       }
       .playground-switcher button {
         font-family: var(--xn-display);
@@ -61,8 +61,8 @@ import HeadMeta from '../components/HeadMeta.astro'
         background: transparent;
         border: none;
         color: rgba(255, 255, 255, 0.7);
-        padding: 6px 12px;
-        border-radius: 5px;
+        padding: 7px 14px;
+        border-radius: 6px;
         cursor: pointer;
       }
       .playground-switcher button.active {
@@ -95,8 +95,9 @@ import HeadMeta from '../components/HeadMeta.astro'
       <a href="/xenolith-graph/">← Back to site</a>
     </div>
     <div class="playground-switcher" id="theme-switcher">
-      <button data-theme="liquid-glass" class="active">Liquid Glass</button>
-      <button data-theme="xen">Xen</button>
+      <button data-theme="xen" class="active">Xen</button>
+      <button data-theme="liquid-glass">Liquid Glass</button>
+      <button data-theme="holographic">Holographic</button>
     </div>
     <div id="app"></div>
     <div class="playground-hint">
@@ -110,14 +111,16 @@ import HeadMeta from '../components/HeadMeta.astro'
       import { XenolithEditor } from '@xenolithengine/graph-editor'
       import { xenTheme } from '@xenolithengine/graph-render-pixi'
       import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
+      import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
       import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolithengine/demo'
 
-      const THEMES = { 'liquid-glass': liquidGlassTheme, xen: xenTheme }
+      const THEMES = { xen: xenTheme, 'liquid-glass': liquidGlassTheme, holographic: holographicTheme }
 
       const editor = await XenolithEditor.init('#app', {
-        theme: liquidGlassTheme,
+        theme: xenTheme,
         zoomBounds: [0.1, 2],
         minimap: true,
+        controls: { position: 'right-center', orientation: 'vertical' },
       })
 
       const switcher = document.getElementById('theme-switcher')

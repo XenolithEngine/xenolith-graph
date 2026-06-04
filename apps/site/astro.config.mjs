@@ -9,9 +9,10 @@ export default defineConfig({
   // Redirects for URLs we promised in already-published artifacts (npm READMEs, social posts).
   // Keep these forever — bumping the React adapter from npm with a different link would mean
   // republishing all packages.
+  // NOTE: Astro does NOT prepend `base` to redirect targets — must include `/xenolith-graph` here.
   redirects: {
-    '/guides/quickstart/': '/guides/install/',
-    '/guides/quickstart':  '/guides/install/',
+    '/guides/quickstart/': '/xenolith-graph/guides/install/',
+    '/guides/quickstart':  '/xenolith-graph/guides/install/',
   },
   vite: {
     // Force a single physical copy of PIXI (its extensions self-register on import; two copies →

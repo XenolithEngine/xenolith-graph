@@ -77,23 +77,50 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
         run: |
-          # Pick dist-tag: pre-1.0 → beta, 1.x+ → latest. Overridable via workflow_dispatch input.
-          DEFAULT_TAG=beta
+          # Tagging strategy:
+          #   - All v0.x BETAs: publish AS --tag latest. There is no stable yet, so `latest`
+          #     should be the most recent working BETA — that's what `npm i <pkg>` will install.
+          #     ALSO add the `beta` dist-tag so users who pinned to `@beta` keep working.
+          #   - v1.0.0+ stable: publish AS --tag latest. (Beta tag stays on whatever the
+          #     last pre-release was.)
+          #   - v1.0.x-beta.N (post-1.0 prereleases): publish AS --tag beta only — must NOT
+          #     overwrite latest, since latest now means "stable".
+          # Overridable via workflow_dispatch input.
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             DEFAULT_TAG="${{ github.event.inputs.tag }}"
-          elif [ "${GITHUB_REF#refs/tags/v}" != "${GITHUB_REF#refs/tags/v0.}" ] && \
-               [ "${GITHUB_REF#refs/tags/v}" != "${GITHUB_REF#refs/tags/v}-beta" ]; then
-            : # stays beta
+            ALSO_BETA="no"
+          else
+            case "$TAG_VERSION" in
+              0.*-*)
+                # v0.x prerelease (the entire pre-v1 cycle is BETA): latest + beta both.
+                DEFAULT_TAG=latest
+                ALSO_BETA="yes"
+                ;;
+              *-*)
+                # v1.x+ prerelease: beta only, don't touch latest.
+                DEFAULT_TAG=beta
+                ALSO_BETA="no"
+                ;;
+              *)
+                # Plain semver (any major): publish as latest.
+                DEFAULT_TAG=latest
+                ALSO_BETA="no"
+                ;;
+            esac
           fi
-          # If the version string has no -beta./-alpha./-rc. suffix → ship as @latest.
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          case "$TAG_VERSION" in
-            *-*) ;;                              # has a prerelease suffix → keep beta
-            *)   DEFAULT_TAG=latest ;;           # plain semver → publish as latest
-          esac
-          echo "Publishing with --tag=$DEFAULT_TAG"
+          echo "Publishing $TAG_VERSION with --tag=$DEFAULT_TAG (also tag as beta? $ALSO_BETA)"
           pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' \
             publish --access public --tag "$DEFAULT_TAG" --no-git-checks
+          # Optional second dist-tag in the same publish flow (no second tarball — just the alias).
+          if [ "$ALSO_BETA" = "yes" ]; then
+            echo "Aliasing $TAG_VERSION under 'beta' dist-tag too"
+            for f in packages/*/package.json; do
+              [ "$(jq -r '.private // false' "$f")" = "true" ] && continue
+              NAME=$(jq -r '.name' "$f")
+              npm dist-tag add "$NAME@$TAG_VERSION" beta
+            done
+          fi
 
       # After npm publish succeeds, mint a GitHub Release for the tag so the Releases tab is not
       # empty. Body comes from docs/release-notes/<tag>.md if present; otherwise GitHub auto-
