@@ -40,13 +40,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Same build the CI workflow runs on every PR. dist/ is what gets packed into
-      # the tarball — if this fails, nothing gets published.
-      - name: Build all publishable packages
-        run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' --filter '!@xenolithengine/wasm-demo' run build
+      # ONLY the 18 publishable packages — apps/ (playground, site, comfy/fairqueue/wasm/
+      # react demos) are private and irrelevant for the npm publish. dist/ from this step is
+      # exactly what gets packed into the npm tarballs.
+      - name: Build publishable packages
+        run: pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' run build
 
-      - name: Run unit + integration tests
-        run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' --filter '!@xenolithengine/wasm-demo' run test
+      - name: Run unit + integration tests for publishable packages
+        run: pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' run test
 
       - name: Bundle-size budgets
         run: pnpm size
