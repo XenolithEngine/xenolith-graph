@@ -49,5 +49,15 @@
   ],
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XenolithEngine/xenolith-graph.git",
+    "directory": "packages/solid"
+  },
+  "homepage": "https://xenolithengine.github.io/xenolith-graph/",
+  "bugs": {
+    "url": "https://github.com/XenolithEngine/xenolith-graph/issues"
+  },
+  "author": "XenolithEngine"
 }
