@@ -11,8 +11,9 @@ export default defineConfig({
   // republishing all packages.
   // NOTE: Astro does NOT prepend `base` to redirect targets — must include `/xenolith-graph` here.
   redirects: {
-    '/guides/quickstart/': '/xenolith-graph/guides/install/',
-    '/guides/quickstart':  '/xenolith-graph/guides/install/',
+    // Astro normalises trailing-slash variants — declaring both forms collides. Single canonical
+    // entry covers both `/guides/quickstart` and `/guides/quickstart/` requests.
+    '/guides/quickstart': '/xenolith-graph/guides/install/',
   },
   vite: {
     // Force a single physical copy of PIXI (its extensions self-register on import; two copies →

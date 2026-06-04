@@ -214,6 +214,10 @@ Coverage report and visual baselines live in `coverage/` and `apps/playground/te
 
 [![Star History](https://api.star-history.com/svg?repos=XenolithEngine/xenolith-graph&type=Date)](https://star-history.com/#XenolithEngine/xenolith-graph&Date)
 
+## History
+
+XenolithGraph is the spiritual successor to [BluePrintRenderer](https://github.com/strelok2012/BluePrintRenderer) (2019, 109★, now archived) — a complete rewrite in TypeScript + WebGL (PIXI v8) with modern bundler support, framework adapters (React / Vue / Svelte / Solid / Angular / Web Components), an opinionated visual design system (Xen), and AI-agent integration via MCP. If you used the old project — same author, much sharper tooling.
+
 ## License
 
 MIT.
