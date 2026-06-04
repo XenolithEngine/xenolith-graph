@@ -83,37 +83,35 @@ const jsonLd = {
   <h1 style="margin:8px 0 4px;font-size:26px;">{example.title}</h1>
   <p style="margin:0 0 18px;color:#9a9a9a;max-width:70ch;">{example.blurb}</p>
 
-  {/* Active framework defaults to the FIRST one in FRAMEWORKS order that has an impl. All other
-       panes start `.dfr-hidden` so they don't stack absolutely on top of the active one — the
-       chip switcher then toggles `.dfr-hidden` per pane on click. */}
+  {/* LIVE preview: render exactly ONE framework's mount in the DOM. Multi-framework live preview
+       fundamentally cannot work with Astro `client:only` — every island hydrates on page load
+       regardless of CSS `display:none`, so N frameworks = N parallel PIXI Application instances
+       sharing a global filter-extension registry → BindGroup conflicts, dead clicks.
+       Priority: vanilla > react > vue > svelte > solid > angular (matches `FRAMEWORKS` order).
+       CODE tabs still render every implemented framework via DemoFrame's source switcher. */}
   <DemoFrame example={example} files={files}>
-    {hasVanilla && (
+    {hasVanilla ? (
       <div data-fw="vanilla" style="position:absolute;inset:0;">
         <div data-xeno-vanilla data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
       </div>
-    )}
-    {hasReact && (
-      <div data-fw="react" class={hasVanilla ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+    ) : hasReact ? (
+      <div data-fw="react" style="position:absolute;inset:0;">
         <ReactExample id={example.id} client:only="react" />
       </div>
-    )}
-    {hasVue && (
-      <div data-fw="vue" class={(hasVanilla || hasReact) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+    ) : hasVue ? (
+      <div data-fw="vue" style="position:absolute;inset:0;">
         <VueExample id={example.id} client:only="vue" />
       </div>
-    )}
-    {hasSvelte && (
-      <div data-fw="svelte" class={(hasVanilla || hasReact || hasVue) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+    ) : hasSvelte ? (
+      <div data-fw="svelte" style="position:absolute;inset:0;">
         <div data-xeno-svelte data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
       </div>
-    )}
-    {hasSolid && (
-      <div data-fw="solid" class={(hasVanilla || hasReact || hasVue || hasSvelte) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+    ) : hasSolid ? (
+      <div data-fw="solid" style="position:absolute;inset:0;">
         <div data-xeno-solid data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
       </div>
-    )}
-    {hasAngular && (
-      <div data-fw="angular" class={(hasVanilla || hasReact || hasVue || hasSvelte || hasSolid) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;display:grid;place-items:center;color:#9a9a9a;font:13px Inter,system-ui,sans-serif;text-align:center;padding:24px;">
+    ) : hasAngular && (
+      <div data-fw="angular" style="position:absolute;inset:0;display:grid;place-items:center;color:#9a9a9a;font:13px Inter,system-ui,sans-serif;text-align:center;padding:24px;">
         <div>
           <p style="margin:0 0 6px;color:#cfcfcf;">Angular live preview not available.</p>
           <p style="margin:0;font-size:12px;">Angular requires its own build pipeline. The source on the right is the idiomatic standalone component — drop it into an Angular project that depends on <code style="color:#FCB400;">@xenolithengine/graph-angular</code>.</p>

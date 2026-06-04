@@ -115,10 +115,12 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
 <script>
   for (const root of document.querySelectorAll<HTMLElement>('[data-demoframe]')) {
     const q = <T extends Element>(s: string) => Array.from(root.querySelectorAll<T>(s))
-    // Framework switch: swap active chip, the preview panel, and the code group.
+    // Framework switch: swap active chip + code group. Live preview is single-framework per page
+    // (see comment in /examples/[id].astro — multi-framework live preview conflicts on PIXI
+    // singletons), so we do NOT toggle preview panels here; the chip switcher only navigates the
+    // source view between framework implementations.
     const setFw = (fw: string): void => {
       for (const c of q<HTMLButtonElement>('.dfr-chip')) c.classList.toggle('active', c.dataset.fwChip === fw)
-      for (const p of q<HTMLElement>('[data-fw]')) p.classList.toggle('dfr-hidden', p.dataset.fw !== fw)
       for (const g of q<HTMLElement>('[data-fw-code]')) g.classList.toggle('dfr-hidden', g.dataset.fwCode !== fw)
     }
     for (const chip of q<HTMLButtonElement>('.dfr-chip[data-fw-chip]')) {
