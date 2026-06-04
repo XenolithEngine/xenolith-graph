@@ -165,9 +165,9 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 
 - Yjs adapter on the command bus, `Y.Text` for comments and text widgets, awareness markers in the overlay DOM. Shipped on a concrete partner request, not speculatively.
 
-### 🌍 Post-v1.0 — RTL / i18n (industry first)
+### 🌍 Post-v1.0 — RTL / i18n (first-class)
 
-- **Full right-to-left support** with runtime direction switching: pin layout mirrors, exec flow points left-to-right reverses, palette / panels / breadcrumb / minimap re-anchor to opposite edges, drag-from-pin physics flips. One `editor.setDirection('rtl')` call — no rebuild, no reload. To our knowledge no other web node-graph editor supports this; Arabic / Hebrew / Persian / Urdu LLM-workflow audiences are currently locked out of every React-Flow-class tool.
+- **Native right-to-left support** with runtime direction switching: pin layout mirrors, exec flow reverses, palette / panels / breadcrumb / minimap re-anchor to opposite edges, drag-from-pin physics flips. One `editor.setDirection('rtl')` call — no rebuild, no reload. As of mid-2026 no competitor ships native RTL — React Flow has an [open RTL bug since 2023](https://github.com/xyflow/xyflow/issues/3116), bpmn-js leaves it to a [community-maintained example](https://github.com/bpmn-io/bpmn-js-rtl-example), Rete / LiteGraph / Drawflow / Baklava / Flume have no RTL mentions in their codebases at all. Arabic / Hebrew / Persian / Urdu LLM-workflow audiences are currently locked out of every React-Flow-class tool.
 
 ### Opt-in / on-demand
 
