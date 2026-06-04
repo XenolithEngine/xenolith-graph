@@ -39,7 +39,6 @@ editor.fitView()
 import { XenolithGraph } from '@xenolithengine/react'
 
 <XenolithGraph
-  style={{ position: 'absolute', inset: 0 }}
   graph={graphDoc}
   fitOnLoad
   onReady={(editor) => editor.registry.register(MyNodeSchema)}
@@ -54,7 +53,7 @@ import { XenolithGraph } from '@xenolithengine/vue'
 function onReady(editor) { editor.registry.register(MyNodeSchema) }
 </script>
 <template>
-  <XenolithGraph :graph="graphDoc" fit-on-load @ready="onReady" style="position:absolute;inset:0" />
+  <XenolithGraph :graph="graphDoc" fit-on-load @ready="onReady" />
 </template>
 ```
 
