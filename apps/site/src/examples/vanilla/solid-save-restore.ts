@@ -15,7 +15,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;width:180px;padding:10px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;width:180px;padding:10px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
   const fileInput = document.createElement('input')
   fileInput.type = 'file'; fileInput.accept = 'application/json,.json'; fileInput.hidden = true
 

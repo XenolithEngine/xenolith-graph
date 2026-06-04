@@ -3,12 +3,12 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildTypeConversions } from '@xenolithengine/demo/type-conversions'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildTypeConversions(editor)
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;padding:8px;min-width:280px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;padding:8px;min-width:280px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
 
   const btn = document.createElement('button')
   const paintBtn = (): void => {

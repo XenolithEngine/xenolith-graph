@@ -33,7 +33,7 @@ const SEED = {
 }
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { controls: { position: 'bottom-right' } })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, controls: { position: 'bottom-right' } })
   NODE_TYPES.forEach((s) => editor.registry.register(s))
   editor.loadJSON(SEED)
   editor.view.fitView({ padding: 60, maxZoom: 1 })

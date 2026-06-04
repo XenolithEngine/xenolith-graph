@@ -5,7 +5,7 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   buildPaletteSidebar(editor)
   editor.view.fitView({ padding: 80, maxZoom: 1 })
   return () => editor.destroy()

@@ -29,7 +29,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
 function renderPanel() {
   const root = document.createElement('div')
   root.setAttribute('data-xeno-panel', '')
-  root.style.cssText = 'position:absolute;top:12px;right:12px;width:280px;max-height:calc(100% - 24px);overflow-y:auto;padding:12px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
+  root.style.cssText = 'position:absolute;pointer-events:auto;top:12px;right:12px;width:280px;max-height:calc(100% - 24px);overflow-y:auto;padding:12px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
   root.innerHTML = '<h3 style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9a9a9a;">Selection</h3><div data-sel></div><h3 style="margin:16px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9a9a9a;">Widget values</h3><div data-widgets></div><h3 style="margin:16px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9a9a9a;">Event log</h3><div data-log style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;"></div>'
   const $sel = root.querySelector<HTMLElement>('[data-sel]')!
   const $widgets = root.querySelector<HTMLElement>('[data-widgets]')!

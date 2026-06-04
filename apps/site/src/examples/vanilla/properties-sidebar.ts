@@ -3,13 +3,13 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildPropertiesSidebar } from '@xenolithengine/demo/properties-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildPropertiesSidebar(editor)
   scene.open()
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;z-index:5;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;z-index:5;'
   const btn = document.createElement('button')
   const paint = (): void => {
     const open = scene.isOpen()

@@ -8,7 +8,8 @@
     "build": "node scripts/generate-og.mjs && node scripts/build-fairqueue.mjs && node scripts/build-wasm-demo.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "og": "node scripts/generate-og.mjs"
+    "og": "node scripts/generate-og.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.5",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.2.3",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "@playwright/test": "^1.49.0"
   }
 }

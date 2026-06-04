@@ -4,13 +4,13 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildNestedLayout, type LayoutEngineId } from '@xenolithengine/demo/nested-layout'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildNestedLayout(editor)
   let busy = false
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
 
   const mkBtn = (label: string, primary: () => boolean, onClick: () => Promise<void>): HTMLButtonElement => {
     const b = document.createElement('button')

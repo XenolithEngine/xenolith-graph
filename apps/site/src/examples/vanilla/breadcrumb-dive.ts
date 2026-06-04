@@ -3,12 +3,12 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildBreadcrumbDive } from '@xenolithengine/demo/breadcrumb-dive'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildBreadcrumbDive(editor)
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
 
   const mkBtn = (text: string, onClick: () => void): HTMLButtonElement => {
     const b = document.createElement('button')

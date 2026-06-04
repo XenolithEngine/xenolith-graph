@@ -12,7 +12,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;z-index:5;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;z-index:5;'
   const btn = document.createElement('button')
   let open = true
   const paint = (): void => {

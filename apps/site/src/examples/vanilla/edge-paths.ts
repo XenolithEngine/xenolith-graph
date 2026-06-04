@@ -7,13 +7,13 @@ import { buildEdgePaths } from '@xenolithengine/demo/edge-paths'
 const STYLES: EdgePathStyle[] = ['bezier', 'smoothstep', 'step', 'linear']
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildEdgePaths(editor)
   let active: EdgePathStyle | null = null
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;padding:8px;min-width:200px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;padding:8px;min-width:200px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
 
   const hdr = document.createElement('div')
   hdr.style.cssText = 'font-size:11px;color:var(--xeno-muted,#999);text-transform:uppercase;letter-spacing:0.6px;'

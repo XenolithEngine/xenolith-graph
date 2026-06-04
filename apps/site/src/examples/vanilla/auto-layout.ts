@@ -4,7 +4,10 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildAutoLayout } from '@xenolithengine/demo/auto-layout'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  // resizeToWindow:false — this demo is embedded in a fixed-size DemoFrame, not full-window.
+  // Default `true` would size the canvas to window dimensions, overflowing the container and
+  // visually colliding with the chip switcher below (`.dfr-bar`).
+  const editor = await XenolithEditor.init(target, { minimap: false, resizeToWindow: false })
   const scene = buildAutoLayout(editor)
 
   type Direction = 'LR' | 'TB'
@@ -14,7 +17,9 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   // Tiny in-editor panel — themed by --xeno-* tokens like every other panel.
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
+  // pointer-events:auto opts back in — overlayRoot has pointer-events:none so the editor canvas
+  // underneath stays interactive; every chrome element that needs clicks must opt in explicitly.
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;gap:6px;padding:6px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;'
   const mkBtn = (label: string, primary: () => boolean, onClick: () => Promise<void>): HTMLButtonElement => {
     const b = document.createElement('button')
     b.textContent = label

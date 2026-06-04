@@ -6,12 +6,12 @@ import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildConditionalWidgets } from '@xenolithengine/demo/conditional-widgets'
 
 export async function mount(target: HTMLElement): Promise<() => void> {
-  const editor = await XenolithEditor.init(target, { minimap: false })
+  const editor = await XenolithEditor.init(target, { resizeToWindow: false, minimap: false })
   const scene = buildConditionalWidgets(editor)
 
   const panel = document.createElement('div')
   panel.setAttribute('data-xeno-panel', '')
-  panel.style.cssText = 'position:absolute;top:12px;left:12px;display:flex;gap:8px;align-items:center;padding:8px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
+  panel.style.cssText = 'position:absolute;pointer-events:auto;top:12px;left:12px;display:flex;gap:8px;align-items:center;padding:8px;background:var(--xeno-panel,#1d1d1d);border:1px solid var(--xeno-border,#333);border-radius:8px;font:12px Inter,system-ui,sans-serif;color:var(--xeno-text,#cfcfcf);z-index:5;'
   panel.innerHTML = `
     <span>method</span>
     <select data-method style="background:transparent;color:inherit;border:1px solid var(--xeno-border,#333);border-radius:4px;padding:3px 6px;">
