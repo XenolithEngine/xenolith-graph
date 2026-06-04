@@ -115,8 +115,12 @@ export class InsertPalette {
       width:         '280px',
       maxHeight:     '340px',
       overflow:      'hidden',
-      fontFamily:    'ui-sans-serif, system-ui, -apple-system, Inter, sans-serif',
-      fontSize:      '13px',
+      // FULL `font` shorthand — resets ALL inherited font props (size, weight, style, line-height,
+      // family) so palette typography is fully isolated from the consumer app's :root cascade.
+      // Without this, hosts that set `font: 18px/145%` on :root leak the 145% line-height into
+      // every palette row, bloating each item to ~3× its intended height.
+      font:          '13px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      letterSpacing: 'normal',
     } satisfies Partial<CSSStyleDeclaration>)
 
     const input = document.createElement('input')
@@ -136,7 +140,11 @@ export class InsertPalette {
       borderRadius: '7px',
       width:      'calc(100% - 16px)',
       boxSizing:  'border-box',
+      // <input> is a replaced element — it does NOT inherit `font` from its ancestors by default.
+      // Setting fontSize alone leaves line-height to UA default which can blow up the input height.
       fontSize:   coarse ? '16px' : '13px',
+      fontFamily: 'inherit',
+      lineHeight: '1.3',
     } satisfies Partial<CSSStyleDeclaration>)
 
     const list = document.createElement('div')

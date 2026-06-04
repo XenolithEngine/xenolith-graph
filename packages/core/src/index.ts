@@ -1,4 +1,4 @@
-export const VERSION = '0.7.0-beta.2'
+export const VERSION = '0.7.0-beta.3'
 
 export { EventEmitter } from './event-emitter.js'
 export type { EventMap, Listener, Unsubscribe, ErrorListener } from './event-emitter.js'

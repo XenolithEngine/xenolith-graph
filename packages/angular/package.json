@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-angular",
-  "version": "0.7.0-beta.2",
+  "version": "0.7.0-beta.3",
   "description": "Angular adapter for XenolithGraph — standalone <xenolith-graph> component (consumed from source).",
   "license": "MIT",
   "type": "module",

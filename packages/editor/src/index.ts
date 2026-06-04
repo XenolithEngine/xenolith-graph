@@ -202,7 +202,7 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
-export const VERSION = '0.7.0-beta.2'
+export const VERSION = '0.7.0-beta.3'
 
 const MARQUEE_DRAG_THRESHOLD = 4
 const NODE_DRAG_THRESHOLD = 4
@@ -1066,6 +1066,10 @@ export class XenolithEditor {
         // bloats their layout. Force a sane default here so chrome is isolated from host CSS.
         font: '13px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
         letterSpacing: 'normal',
+        // `text-align` also inherits — and the Vite React template sets it to `center` on #root.
+        // Without this reset every palette section header, item title and description ends up
+        // centred. Force `left` (LTR) — descendants that need centering override locally.
+        textAlign: 'left',
       } as Partial<CSSStyleDeclaration>)
       this.#host.appendChild(root)
       this.#overlayRoot = root

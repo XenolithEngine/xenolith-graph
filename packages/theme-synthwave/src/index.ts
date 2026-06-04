@@ -118,4 +118,4 @@ export const synthwaveTheme: XenolithTheme = {
   },
 }
 
-export const VERSION = '0.7.0-beta.2'
+export const VERSION = '0.7.0-beta.3'

@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-runtime-as",
-  "version": "0.7.0-beta.2",
+  "version": "0.7.0-beta.3",
   "description": "AssemblyScript-based WASM code generator for the XenolithGraph Blueprint runtime. Emits AS source from an RtGraph + NodeDef set, compiles to a WebAssembly module via asc, exposes the same call surface as the JS codegen.",
   "license": "MIT",
   "type": "module",
