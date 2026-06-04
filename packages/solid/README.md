@@ -5,7 +5,7 @@
 
 Solid adapter for XenolithGraph — the `use:xenolith` directive.
 
-> **Beta** — public API in `STABLE-API.md` is frozen for v0.7; some corners may still change before v1.0.
+> **Beta** — public API in `STABLE-API.md` is the surface we plan to freeze, but it is **NOT frozen yet** — breaking changes can land at any point before v1.0. If you adopt now, pin an exact version.
 
 Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an AI-native, embeddable node-graph editor for the web with its own visual design language (Xen).
 

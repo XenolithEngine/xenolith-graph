@@ -5,7 +5,7 @@
 
 MCP (Model Context Protocol) server for XenolithGraph. Lets Claude Desktop, Cursor, or any MCP client drive a live editor in your browser over a localhost WebSocket bridge.
 
-> **Beta** — public API in `STABLE-API.md` is frozen for v0.7; some corners may still change before v1.0.
+> **Beta** — public API in `STABLE-API.md` is the surface we plan to freeze, but it is **NOT frozen yet** — breaking changes can land at any point before v1.0. If you adopt now, pin an exact version.
 
 ## Architecture (Scenario A — desktop dev)
 

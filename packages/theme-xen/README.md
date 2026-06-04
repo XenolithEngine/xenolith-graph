@@ -5,7 +5,7 @@
 
 **Xen** — the default original design system for XenolithGraph.
 
-> **Beta** — public API in `STABLE-API.md` is frozen for v0.7; some corners may still change before v1.0.
+> **Beta** — public API in `STABLE-API.md` is the surface we plan to freeze, but it is **NOT frozen yet** — breaking changes can land at any point before v1.0. If you adopt now, pin an exact version.
 
 A dark, gold-accented visual language with typed pins (circle / empty-circle / chevron), four category-coloured headers (logic green / data blue / macro purple / utility white), and glassmorphic header effects.
 

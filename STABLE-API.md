@@ -1,8 +1,9 @@
 # STABLE-API.md — v0.7 BETA
 
-This document lists the public API surface that is **frozen for v0.7 BETA**. Anything in the
-[Stable](#stable) section will not break in a minor release of v0.7.x; breaking changes to it
-ship in a major (v1.0 onward) with a clear migration note.
+This document lists the public API surface we plan to freeze at v1.0. **At v0.7 BETA it is NOT
+frozen yet** — breaking changes can still land in any 0.7.x release. Pin an exact version if you
+adopt now. The [Stable](#stable) section is the surface we have highest confidence in; the rest
+of the v0.7.x cycle is for shaking out the corners before we commit to the freeze.
 
 Everything outside [Stable](#stable) is one of:
 
