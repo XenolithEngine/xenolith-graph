@@ -1,6 +1,36 @@
 import { describe, it, expect, vi } from 'vitest'
 import { CommandRegistry, Commands, parseHotkey, matchHotkey } from './commands-registry.js'
 
+describe('CommandRegistry — execution middleware (transaction wrapping)', () => {
+  it('default execute() runs directly — no wrapping needed in headless tests', () => {
+    const reg = new CommandRegistry()
+    const fn = vi.fn()
+    reg.register({ id: 'a', label: 'A', execute: fn })
+    reg.execute('a')
+    expect(fn).toHaveBeenCalledOnce()
+  })
+
+  it('setExecutionMiddleware wraps every execute() — multi-step commands collapse to one txn', () => {
+    const reg = new CommandRegistry()
+    const calls: string[] = []
+    reg.setExecutionMiddleware((fn) => { calls.push('open'); fn(); calls.push('close') })
+    const inside = vi.fn(() => { calls.push('inside') })
+    reg.register({ id: 'demo.clearAll', label: 'Clear all', execute: inside })
+    reg.execute('demo.clearAll')
+    expect(calls).toEqual(['open', 'inside', 'close'])
+    expect(inside).toHaveBeenCalledOnce()
+  })
+
+  it('middleware does NOT run when canExecute() is false (gate first, then wrap)', () => {
+    const reg = new CommandRegistry()
+    const open = vi.fn()
+    reg.setExecutionMiddleware((fn) => { open(); fn() })
+    reg.register({ id: 'foo', label: 'Foo', execute: () => {}, canExecute: () => false })
+    expect(reg.execute('foo')).toBe(false)
+    expect(open).not.toHaveBeenCalled()
+  })
+})
+
 describe('CommandRegistry — registration', () => {
   it('register + execute calls the command function', () => {
     const reg = new CommandRegistry()

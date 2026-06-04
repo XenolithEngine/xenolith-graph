@@ -2,6 +2,11 @@
 import TutorialLayout from '../../layouts/TutorialLayout.astro'
 import DemoFrame from '../../components/DemoFrame.astro'
 import TutorialReactChapter from '../../tutorial/TutorialReactChapter.tsx'
+// Vue/Svelte tutorial chapters exist under tutorial/vue + tutorial/vanilla/svelte-* but are not
+// wired into the Learn page yet. Astro mounts all islands immediately; with 4 PIXI editors per
+// chapter (vanilla+react+vue+svelte) we hit a BitmapFontManager singleton race + the inactive
+// panels visually stack despite `display:none` because of overlay portal positioning. Re-enable
+// after a proper lazy-mount layer lands (see memory: project_xeno_learn_multifw_lazy_mount).
 import { TUTORIAL, prevChapter, nextChapter, chapterImpls, type TutorialChapter } from '../../tutorial/manifest.ts'
 import type { ExampleDef, Framework } from '../../examples/manifest.ts'
 
@@ -15,19 +20,27 @@ const base = import.meta.env.BASE_URL
 const REACT_RAW   = import.meta.glob('../../../../demo-react/src/**/*.{tsx,ts,css}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const SHARED_RAW  = import.meta.glob('../../../../shared/**/*.{ts,tsx,json}',        { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const VANILLA_RAW = import.meta.glob('../../tutorial/vanilla/**/*.{ts,tsx,css}',     { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const VUE_RAW     = import.meta.glob('../../tutorial/vue/**/*.{vue,ts}',             { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const codeFor = (rel: string): string => {
   const raw = rel.startsWith('shared/')
     ? SHARED_RAW[`../../../../shared/${rel.slice('shared/'.length)}`]
     : rel.startsWith('vanilla/')
       ? VANILLA_RAW[`../../tutorial/${rel}`]
-      : REACT_RAW[`../../../../demo-react/src/${rel}`]
+      : rel.startsWith('vue/')
+        ? VUE_RAW[`../../tutorial/${rel}`]
+        : REACT_RAW[`../../../../demo-react/src/${rel}`]
   return (raw ?? `// missing: ${rel}`).trimEnd()
 }
 const langOf = (rel: string): string => {
   const ext = rel.split('.').pop()
-  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : 'tsx'
+  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : ext === 'vue' ? 'vue' : 'tsx'
 }
-const impls = chapterImpls(chapter)
+// Filter out vue/svelte until lazy-mount lands (PIXI singleton race + panel overlap with 4
+// editors per page). Files + chips stay vanilla+react only.
+const rawImpls = chapterImpls(chapter)
+const impls: typeof rawImpls = Object.fromEntries(
+  Object.entries(rawImpls).filter(([fw]) => fw === 'vanilla' || fw === 'react'),
+) as typeof rawImpls
 const files = Object.entries(impls).flatMap(([fw, impl]) =>
   impl!.files.map((rel) => ({ framework: fw as Framework, name: rel.split('/').pop()!, code: codeFor(rel), lang: langOf(rel) })),
 )
@@ -41,6 +54,7 @@ const exampleForFrame: ExampleDef = {
 
 const hasReact   = !!impls.react
 const hasVanilla = !!impls.vanilla
+// Vue/Svelte intentionally not rendered as islands on Learn pages — see import comment above.
 const prev = prevChapter(chapter.id)
 const next = nextChapter(chapter.id)
 const step = TUTORIAL.findIndex((c) => c.id === chapter.id) + 1
@@ -94,7 +108,6 @@ const { Content } = chapter
       }
     </script>
   )}
-
   <article class="tut-narrative">
     <Content />
   </article>

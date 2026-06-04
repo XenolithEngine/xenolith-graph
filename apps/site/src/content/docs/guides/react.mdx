@@ -1,0 +1,232 @@
+---
+title: React adapter
+description: Mount XenolithGraph in a React app, drive it with hooks and panel components, and bring your own UI in via custom widgets.
+---
+
+The React adapter ships as `@xenolith/react`. It is a thin layer over the core editor — every
+public method on `XenolithEditor` works the same way the headless docs describe it. What the
+adapter adds is React-shaped sugar: one component (`<XenolithGraph>`), one Context, a handful of
+selective subscription hooks, and four in-editor panel components.
+
+The adapter does **not** introduce a controlled `nodes={...}` / `edges={...}` mode. The editor
+owns its WebGL state; passing 1000-node arrays from React on every render would defeat the perf
+budget the WebGL renderer is designed to hit. Instead the host reads live snapshots through hooks
+and mutates through the editor's imperative API.
+
+## Install
+
+```bash
+pnpm add @xenolith/react @xenolith/editor pixi.js
+```
+
+`pixi.js` is a peer dependency. React 18 or 19 is required.
+
+## Mount the editor
+
+```tsx
+import { XenolithGraph } from '@xenolith/react'
+import type { XenolithEditor } from '@xenolith/editor'
+
+function App() {
+  return (
+    <XenolithGraph
+      style={{ position: 'absolute', inset: 0 }}
+      resizeToWindow={false}
+      onReady={(editor: XenolithEditor) => {
+        editor.registry.register({
+          type: 'Hello', title: 'Hello', category: 'data',
+          pins: [{ kind: 'data', direction: 'out', type: 'string', label: 'msg' }],
+        })
+        editor.insertNode('Hello', { x: 0, y: 0 })
+        editor.view.fitView({ padding: 80 })
+      }}
+    />
+  )
+}
+```
+
+`onReady` fires once with the live `XenolithEditor` instance after PIXI has booted. Treat it as
+the React equivalent of `useEffect(() => editor.init(), [])` — register schemas, seed the graph,
+fit the view, all inside.
+
+### `<XenolithGraph>` props
+
+| Prop | Type | Notes |
+|---|---|---|
+| `theme` | `XenolithTheme` | Default is the Xen theme. |
+| `graph` | `XenolithGraphV1` | Initial scene. Same shape `editor.loadJSON` accepts. |
+| `zoomBounds` | `[min, max]` | Defaults to `[0.05, 16]`. |
+| `minimap` | `boolean \| { position }` | `true` shows it bottom-right. Prefer `<XenolithMiniMap>` (declarative). |
+| `snap` | `number` | Grid snap step in world px. |
+| `disableGrid` | `boolean` | Hide the background grid. |
+| `resizeToWindow` | `boolean` | Defaults to `true`. Set `false` to fit the parent container. |
+| `fitOnLoad` | `boolean` | After `graph` mounts, call `fitView`. |
+| `isValidConnection` | `(from, to) => boolean` | Gate pin connections. |
+| `className`, `style` | — | Forwarded to the host `<div>`. |
+| `containerRef` | `Ref<HTMLDivElement>` | The host div ref. |
+| `onReady` | `(editor) => void` | One-shot setup hook. |
+| `children` | `ReactNode` | In-editor overlays — panels, controls, custom UI. |
+| `on*` event props | — | One callback per editor event — see [Events](#events). |
+
+`<XenolithGraph>` is **client-only** (the package ships `'use client'` directives). It works inside
+the Next.js App Router; the editor will not render during SSR.
+
+## Hooks
+
+Every hook is a subscribe-to-store hook backed by [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore).
+They must be called inside a `<XenolithGraph>` subtree.
+
+```tsx
+import {
+  useEditor, useNodes, useEdges, useSelection, useViewport, useGraphJSON,
+  useUndoRedo, useEditorEvent,
+} from '@xenolith/react'
+```
+
+| Hook | Returns | Re-renders on |
+|---|---|---|
+| `useEditor()` | `XenolithEditor` (throws outside) | never (stable handle) |
+| `useXenolithEditor()` | `XenolithEditor \| null` | never |
+| `useNodes()` | `readonly Node[]` | node added / removed / moved, graph load, undo/redo |
+| `useEdges()` | `readonly Edge[]` | edge connected / disconnected, node removed, load, undo/redo |
+| `useSelection()` | `readonly NodeId[]` | `selection:changed` |
+| `useViewport()` | `{ x, y, zoom }` | `viewport:changed` |
+| `useGraphJSON()` | `XenolithGraphV1 \| null` | any graph mutation, load, undo/redo |
+| `useUndoRedo()` | `{ canUndo, canRedo, undo, redo }` | `history:changed` |
+| `useEditorEvent(event, handler)` | `void` | one-shot subscribe; cleans up on unmount |
+
+### Subscribe to any event
+
+`useEditorEvent` is the long-tail escape hatch — one generic call covers all 24 public events.
+
+```tsx
+useEditorEvent('node:removing', (p) => {
+  if (lockedIds.includes(p.nodeId)) p.cancel()    // veto removal
+})
+useEditorEvent('widget:changed', ({ nodeId, widgetId, value }) => {
+  console.log(nodeId, widgetId, '→', value)
+})
+useEditorEvent('viewport:changed', ({ zoom }) => setZoomDisplay(zoom))
+```
+
+### Build a toolbar with `useUndoRedo`
+
+```tsx
+function Toolbar() {
+  const { canUndo, canRedo, undo, redo } = useUndoRedo()
+  return (
+    <XenolithPanel position="top-right">
+      <XenolithButton disabled={!canUndo} onClick={undo}>Undo</XenolithButton>
+      <XenolithButton disabled={!canRedo} onClick={redo}>Redo</XenolithButton>
+    </XenolithPanel>
+  )
+}
+```
+
+## In-editor panel components
+
+Four primitives render into the editor's overlay layer (anchored to the canvas, themed via the
+active theme's `--xeno-*` CSS variables — they restyle with `setTheme(...)` for free).
+
+| Component | What it does |
+|---|---|
+| `<XenolithPanel position bare>` | Absolute-positioned floating card. Pass `bare` to drop the chrome and only position the slot. |
+| `<XenolithButton active disabled>` | Themed button. `active` paints with the accent colour. |
+| `<XenolithControls position showZoom showFit … />` | Declarative wrapper over `editor.chrome.setControls(...)`. Built-in viewport controls (zoom / fit / undo / save / lock). Renders no DOM of its own. |
+| `<XenolithMiniMap position />` | Declarative minimap toggle. Renders no DOM (the minimap is WebGL). Mount → visible; unmount → hidden. |
+
+```tsx
+import {
+  XenolithGraph, XenolithPanel, XenolithButton,
+  XenolithControls, XenolithMiniMap, useUndoRedo,
+} from '@xenolith/react'
+
+function Editor() {
+  return (
+    <XenolithGraph style={{ position: 'absolute', inset: 0 }} resizeToWindow={false} onReady={seed}>
+      <XenolithControls position="bottom-left" />
+      <XenolithMiniMap position="bottom-right" />
+      <Toolbar />
+    </XenolithGraph>
+  )
+}
+```
+
+## Custom React widgets
+
+`reactWidget(Component)` wraps a React component as a node widget. The component receives `value`,
+`setValue` (commits a change through the command bus — undoable), plus reactive theme tokens
+(`accent`, `text`, `muted`) and the widget cell's `width`/`height`.
+
+```tsx
+import { reactWidget, type WidgetProps } from '@xenolith/react'
+
+function Knob({ value, setValue, accent }: WidgetProps) {
+  const v = Number(value ?? 0)
+  return (
+    <input
+      type="range" min={0} max={100} step={1} value={v}
+      onChange={(e) => setValue(Number(e.target.value))}
+      style={{ width: '100%', accentColor: accent }}
+    />
+  )
+}
+
+editor.registerWidget('knob', reactWidget(Knob))
+editor.registry.register({
+  type: 'Volume', title: 'Volume', category: 'data',
+  pins: [{ kind: 'data', direction: 'out', type: 'number', label: 'v' }],
+  widgets: [{ id: 'v', type: 'custom', renderer: 'knob', key: 'v', label: 'Volume' }],
+})
+```
+
+The wrapped component is mounted once per widget instance. Subsequent value changes mutate props
+in place — no remount.
+
+## Events
+
+Every editor event has a matching `on*` callback prop (so `node:click` → `onNodeClick`, `node:removing`
+→ `onNodeRemoving`, etc.). The full mapping lives in `EVENT_PROP`. Preventable events accept a
+`payload.cancel()` call from the handler to veto the mutation:
+
+```tsx
+<XenolithGraph
+  onNodeRemoving={(p) => { if (p.nodeId === protectedNodeId) p.cancel() }}
+  onEdgeConnecting={(p) => { if (!host.allowsType(p.edge.from.pin)) p.cancel() }}
+/>
+```
+
+For events that don't fit the prop pattern (one-off subscriptions inside child components),
+reach for `useEditorEvent(event, handler)`.
+
+## Imperative escape hatch
+
+```tsx
+import { useXenolith } from '@xenolith/react'
+
+function ExternallyMounted() {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const editor = useXenolith(hostRef, { graph, fitOnLoad: true, resizeToWindow: false })
+  return <div ref={hostRef} style={{ position: 'absolute', inset: 0 }} />
+}
+```
+
+`useXenolith(ref, props)` mounts the editor directly on a ref'd element and returns the live
+`XenolithEditor | null`. Use it when you need the editor outside a `<XenolithGraph>` tree — for
+example, mounting into a portal or a third-party slot.
+
+## What's NOT in this adapter
+
+- **No `nodes={…}` / `edges={…}` controlled-component mode.** The editor owns state; this is a
+  deliberate divergence from React Flow's design. See the linked doc on the architectural choice
+  if you're migrating.
+- **No SSR.** `<XenolithGraph>` renders nothing on the server and paints client-side after hydration.
+- **No external CDN.** All fonts and assets ship inside the npm package; the editor will work
+  offline once installed.
+
+## Related
+
+- [`@xenolith/editor` API reference](/guides/api/) — every method exposed via `useEditor()`
+- [Widgets guide](/guides/widgets/) — built-in widgets + the `WidgetSpec` shape `reactWidget` plugs into
+- [Save / export](/guides/save-export/) — `toJSON` / `loadJSON` / `exportImage` patterns
+- [Events](/guides/events-commands/) — the full 24-event surface and which are preventable

@@ -83,11 +83,13 @@ function makeExecutor(editor: XenolithEditor): StepExecutor {
         return out
       }
       const subValues = new Map<string, Map<string, unknown>>()
+      const subSnap = editor.getGraphReadonly()
+      const subNodeById = new Map(subSnap.nodes.map((n) => [String(n.id), n]))
       for (const mid of memberIds) {
-        const member = editor.graph.getNode(mid as NodeId)
+        const member = subNodeById.get(String(mid))
         if (!member) continue
         const memberInputs = new Map<string, unknown>()
-        for (const e of editor.graph.edges()) {
+        for (const e of subSnap.edges) {
           if (e.to.node !== mid) continue
           if (memberIds.includes(e.from.node as NodeId)) {
             const upstream = subValues.get(e.from.node)
@@ -139,11 +141,11 @@ function buildDemoGraph(editor: XenolithEditor): void {
   editor.addEdge({ id: crypto.randomUUID(), from: { node: idn.id, pin: out0(idn) }, to: { node: out.id, pin: inAt(out, 0) } } as never)
   editor.createMacroFromSelection([add.id, mul.id], 'Compute')
   editor.createTemplateFromSelection([idn.id], 'Probe')
-  editor.fitView({ padding: 80 })
+  editor.view.fitView({ padding: 80 })
 }
 
 function findMacroId(editor: XenolithEditor): NodeId | null {
-  for (const n of editor.graph.nodes()) if (n.type === 'Macro') return n.id
+  for (const n of editor.getGraphReadonly().nodes) if (n.type === 'Macro') return n.id as NodeId
   return null
 }
 
@@ -185,9 +187,9 @@ function DebuggerPanel() {
     dbg.on('paused', ({ nodeId, node, inputs }) => {
       setNodeStatus(nodeId, 'running')
       clearAnimatedEdges(editor, animatedEdgesRef.current)
-      for (const e of editor.graph.edges()) {
+      for (const e of editor.getGraphReadonly().edges) {
         if (e.to.node !== nodeId) continue
-        editor.setEdgeOptions(e.id, { animated: true })
+        editor.setEdgeOptions(e.id as never, { animated: true })
         animatedEdgesRef.current.add(String(e.id))
       }
       syncAnimatedMirror(animatedEdgesRef.current)
@@ -203,14 +205,14 @@ function DebuggerPanel() {
     })
     dbg.on('stepped', (r) => {
       setNodeStatus(r.nodeId, 'ok')
-      for (const n of editor.graph.nodes()) {
+      for (const n of editor.getGraphReadonly().nodes) {
         if (n.type !== 'Macro') continue
         const members = (((n.state ?? {}) as { members?: string[] }).members ?? []) as string[]
         if (members.length === 0) continue
         if (!members.includes(String(r.nodeId))) continue
         const statuses = (window as unknown as { __xenoNodeStatus?: Record<string, string> }).__xenoNodeStatus ?? {}
         const allOk = members.every((m) => statuses[m] === 'ok')
-        if (allOk) setNodeStatus(n.id, 'ok')
+        if (allOk) setNodeStatus(n.id as NodeId, 'ok')
       }
       setHistory([...dbg.history])
     })
@@ -240,7 +242,7 @@ function DebuggerPanel() {
   }, [editor])
 
   const clearStatuses = (): void => {
-    for (const n of editor.graph.nodes()) setNodeStatus(n.id, 'idle')
+    for (const n of editor.getGraphReadonly().nodes) setNodeStatus(n.id as NodeId, 'idle')
     for (const id of breakpoints) setNodeStatus(id as never, 'error')
   }
 
@@ -256,8 +258,10 @@ function DebuggerPanel() {
     setPaused(null)
     setStatus('running')
     await debuggerRef.current!.start()
+    const plannedSnap = editor.getGraphReadonly()
+    const plannedNodeById = new Map(plannedSnap.nodes.map((nn) => [String(nn.id), nn]))
     setPlanned(debuggerRef.current!.order.map((id) => {
-      const n = editor.graph.getNode(id as never)
+      const n = plannedNodeById.get(String(id))
       return n ? `${n.type}` : String(id).slice(0, 6)
     }))
   })
@@ -277,7 +281,7 @@ function DebuggerPanel() {
     if (!id || !dbg) return
     const wasActive = dbg.status === 'paused' || dbg.status === 'running'
     const visited = new Set<string>(dbg.history.map((r) => String(r.nodeId)))
-    const macroMembers = ((editor.graph.getNode(id)?.state as { members?: string[] } | undefined)?.members ?? [])
+    const macroMembers = ((editor.getGraphReadonly().nodes.find((n) => n.id === id)?.state as { members?: string[] } | undefined)?.members ?? [])
     if (macroExpanded) {
       if (macroMembers.length > 0 && macroMembers.every((m) => visited.has(String(m)))) visited.add(String(id))
     } else {
@@ -297,7 +301,9 @@ function DebuggerPanel() {
       dbg.advance()
     }
     setStatus(dbg.status as never)
-    setPlanned(dbg.order.map((nid) => editor.graph.getNode(nid as never)?.type ?? '?'))
+    const expandSnap = editor.getGraphReadonly()
+    const expandNodeById = new Map(expandSnap.nodes.map((nn) => [String(nn.id), nn]))
+    setPlanned(dbg.order.map((nid) => expandNodeById.get(String(nid))?.type ?? '?'))
   }
 
   const canStart    = status === 'idle' || status === 'finished' || status === 'error'
@@ -402,7 +408,7 @@ function addBreakpointDot(editor: XenolithEditor, store: Map<string, HTMLDivElem
     transform: 'translate(-50%, -50%)', zIndex: '20',
   } as Partial<CSSStyleDeclaration>)
   dot.setAttribute('data-breakpoint', nodeId)
-  editor.overlayRoot.appendChild(dot)
+  editor.chrome.overlayRoot.appendChild(dot)
   store.set(nodeId, dot)
   positionBreakpointDot(editor, dot, nodeId)
 }
@@ -413,9 +419,9 @@ function removeBreakpointDot(store: Map<string, HTMLDivElement>, nodeId: string)
   store.delete(nodeId)
 }
 function positionBreakpointDot(editor: XenolithEditor, dot: HTMLDivElement, nodeId: string): void {
-  const node = editor.graph.getNode(nodeId as never)
+  const node = editor.getGraphReadonly().nodes.find((n) => String(n.id) === String(nodeId))
   if (!node) { dot.style.display = 'none'; return }
-  const p = editor.worldToScreen({ x: node.position.x, y: node.position.y })
+  const p = editor.view.worldToScreen({ x: node.position.x, y: node.position.y })
   dot.style.left = `${p.x}px`
   dot.style.top = `${p.y}px`
   dot.style.display = ''

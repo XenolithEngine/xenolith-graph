@@ -78,61 +78,60 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   const editor = await XenolithEditor.init(target, { minimap: false })
   ;[constSchema, addSchema, mulSchema, outSchema].forEach((s) => editor.registry.register(s))
   editor.loadJSON(seedGraph)
-  editor.fitView({ padding: 80, maxZoom: 1 })
+  editor.view.fitView({ padding: 80, maxZoom: 1 })
 
-  // ── Topological sort (Kahn's algorithm). Returns null if the graph has a cycle — execution is
-  //    refused, the toolbar shows "cycle" instead of stepping endlessly.
-  const toposort = (): NodeId[] | null => {
-    const indeg = new Map<NodeId, number>()
-    const outs  = new Map<NodeId, NodeId[]>()
-    for (const n of editor.graph.nodes()) { indeg.set(n.id as NodeId, 0); outs.set(n.id as NodeId, []) }
-    for (const e of editor.graph.edges()) {
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+  // ── Run pass: snapshot the graph once via `getGraphReadonly()` — the public, frozen view of the
+  //    scene — then walk a Kahn topological order over it, gather inputs per node, compute, cache
+  //    outputs, propagate. Highlight the active node by selecting it; clear after. Returns early
+  //    with "cycle" when the DAG isn't acyclic.
+  const run = async (stepMs: number): Promise<void> => {
+    const snapshot = editor.getGraphReadonly()
+    const nodeById = new Map(snapshot.nodes.map((n) => [n.id, n]))
+
+    // Kahn's algorithm.
+    const indeg = new Map<string, number>()
+    const outs  = new Map<string, string[]>()
+    for (const n of snapshot.nodes) { indeg.set(n.id, 0); outs.set(n.id, []) }
+    for (const e of snapshot.edges) {
       indeg.set(e.to.node, (indeg.get(e.to.node) ?? 0) + 1)
       outs.get(e.from.node)!.push(e.to.node)
     }
-    const ready: NodeId[] = []
+    const ready: string[] = []
     for (const [id, d] of indeg) if (d === 0) ready.push(id)
-    const order: NodeId[] = []
+    const order: string[] = []
     while (ready.length > 0) {
       const id = ready.shift()!
       order.push(id)
       for (const next of outs.get(id) ?? []) {
-        const d = (indeg.get(next) ?? 0) - 1
-        indeg.set(next, d)
+        const d = (indeg.get(next) ?? 0) - 1; indeg.set(next, d)
         if (d === 0) ready.push(next)
       }
     }
-    return order.length === indeg.size ? order : null
-  }
+    if (order.length !== indeg.size) { setStatus('cycle detected — refuse to run'); return }
 
-  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
-
-  // ── Run pass: walk the topological order, gather inputs per node, compute, cache outputs,
-  //    propagate. Highlight the active node by selecting it; clear after.
-  const run = async (stepMs: number): Promise<void> => {
-    const order = toposort()
-    if (!order) { setStatus('cycle detected — refuse to run'); return }
     const values = new Map<string, number>() // key: `${nodeId}:${pinLabel}`
     for (const id of order) {
-      editor.setSelection([id])
-      const node = editor.graph.getNode(id)!
+      editor.setSelection([id as NodeId])
+      const node = nodeById.get(id)!
       const inputs: Record<string, number> = {}
       // Read inputs by walking edges where to.node === id; resolve from `values` cache.
-      for (const e of editor.graph.edges()) {
+      for (const e of snapshot.edges) {
         if (e.to.node !== id) continue
         const inPin  = node.pins.find((p) => String(p.id) === String(e.to.pin))
         if (!inPin || !inPin.label) continue
-        const fromNode = editor.graph.getNode(e.from.node)
+        const fromNode = nodeById.get(e.from.node)
         const fromPin  = fromNode?.pins.find((p) => String(p.id) === String(e.from.pin))
         if (!fromPin || !fromPin.label) continue
         const v = values.get(`${e.from.node}:${fromPin.label}`)
         if (typeof v === 'number') inputs[inPin.label] = v
       }
       const fn = compute[node.type]
-      const outs = fn ? fn(inputs, node.state) : {}
+      const outs = fn ? fn(inputs, node.state ?? {}) : {}
       for (const [label, v] of Object.entries(outs)) values.set(`${id}:${label}`, v)
       // Sink: write the value into the Output node's `result` widget so the user sees it.
-      if (node.type === 'Output') editor.setWidgetValue(id, 'result', String(outs['In'] ?? ''))
+      if (node.type === 'Output') editor.setWidgetValue(id as NodeId, 'result', String(outs['In'] ?? ''))
       if (stepMs > 0) await sleep(stepMs)
     }
     editor.setSelection([])

@@ -11,3 +11,7 @@ coverage
 playwright-report
 test-results
 *.tsbuildinfo
+
+# Internal capability test bench — reproduces every Baklava.js example in @xenolith/vue and
+# becomes the source for the post-release migration guide. Not part of the published distribution.
+/apps/baklava-parity/

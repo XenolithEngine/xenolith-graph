@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/react": "^5.0.5",
     "@astrojs/starlight": "^0.30.0",
+    "@astrojs/vue": "^5.1.4",
     "@xenolith/adapter-core": "workspace:^",
     "@xenolith/core": "workspace:*",
     "@xenolith/demo": "workspace:*",
@@ -23,6 +24,10 @@
     "@xenolith/render-pixi": "workspace:*",
     "@xenolith/theme-liquid-glass": "workspace:*",
     "@xenolith/theme-xen": "workspace:*",
+    "@xenolith/vue": "workspace:^",
+    "@xenolith/svelte": "workspace:^",
+    "@xenolith/solid": "workspace:^",
+    "solid-js": "^1.8.0",
     "astro": "^5.0.0",
     "dagre": "^0.8.5",
     "elkjs": "^0.11.1",
@@ -30,6 +35,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.33.5",
+    "vue": "^3.4.0",
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {

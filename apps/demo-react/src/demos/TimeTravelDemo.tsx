@@ -57,7 +57,7 @@ function build(editor: XenolithEditor): void {
   editor.addEdge({ id: crypto.randomUUID(), from: { node: add.id, pin: o0(add) }, to: { node: mul.id, pin: iAt(mul, 0) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: c.id,   pin: o0(c) },   to: { node: mul.id, pin: iAt(mul, 1) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: mul.id, pin: o0(mul) }, to: { node: out.id, pin: iAt(out, 0) } } as never)
-  editor.fitView({ padding: 80 })
+  editor.view.fitView({ padding: 80 })
 }
 
 function ScrubPanel() {
@@ -118,7 +118,7 @@ function ScrubPanel() {
   const current = scrub > 0 ? history[scrub - 1] : null
   const node = useMemo<Node | undefined>(() => {
     if (!current) return undefined
-    return editor.graph.getNode(current.nodeId) as Node | undefined
+    return editor.getGraphReadonly().nodes.find((n) => n.id === current.nodeId) as Node | undefined
   }, [editor, current])
 
   return (

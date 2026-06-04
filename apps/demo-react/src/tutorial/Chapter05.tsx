@@ -5,8 +5,8 @@
 // React idiom: `useNodes()` / `useEdges()` / `useSelection()` for derived state, `useEditor()` +
 // `useEffect` for one-shot event subscriptions, `<XenolithPanel>` for in-editor overlay UI.
 
-import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useNodes, useEdges, useSelection } from '@xenolith/react'
+import { useState } from 'react'
+import { XenolithGraph, XenolithPanel, useNodes, useEdges, useSelection, useEditorEvent } from '@xenolith/react'
 import type { NodeSchema, XenolithGraphV1 } from '@xenolith/editor'
 import { DemoStage } from '../Layout.js'
 
@@ -39,18 +39,17 @@ const graph = {
 }
 
 /** Live readout — rendered INSIDE the editor via <XenolithPanel>. Pure declarative React:
- *  hooks subscribe to the editor's reactive stores; useEffect handles the one-off event we want
- *  to capture imperatively (the last widget edit). */
+ *  hooks subscribe to the editor's reactive stores; `useEditorEvent` captures the last widget edit
+ *  via the typed event bus (auto-cleans up, auto-rebinds if the editor swaps). */
 function Readout() {
-  const editor = useEditor()
   const nodes = useNodes()
   const edges = useEdges()
   const selection = useSelection()
   const [lastEdit, setLastEdit] = useState<string>('—')
 
-  useEffect(() => editor.on('widget:changed', ({ nodeId, widgetId, value }) => {
+  useEditorEvent('widget:changed', ({ nodeId, widgetId, value }) => {
     setLastEdit(`${nodeId}.${widgetId} → ${JSON.stringify(value)}`)
-  }), [editor])
+  })
 
   return (
     <XenolithPanel
@@ -84,7 +83,7 @@ export function Chapter05() {
           editor.registry.register(greeterSchema)
           editor.registry.register(toUpperSchema)
           editor.loadJSON(graph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       >
         <Readout />

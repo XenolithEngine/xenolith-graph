@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import react from '@astrojs/react'
+import vue from '@astrojs/vue'
 
 export default defineConfig({
   site: 'https://xenolithengine.github.io',
@@ -10,15 +11,19 @@ export default defineConfig({
     // "Extension type shape-builder already has a handler") and pre-bundle it so Vite optimizes in
     // ONE pass — otherwise discovering a new demo import mid-load triggers a re-optimize and PIXI
     // ends up loaded from two optimize generations on the same page.
-    optimizeDeps: { include: ['pixi.js', 'react', 'react-dom', 'react-dom/client'] },
+    optimizeDeps: { include: ['pixi.js', 'react', 'react-dom', 'react-dom/client', 'vue'] },
     resolve: {
-      dedupe: ['pixi.js', 'react', 'react-dom'],
+      dedupe: ['pixi.js', 'react', 'react-dom', 'vue'],
       alias: {
         '@xenolith/core':         new URL('../../packages/core/src/index.ts',         import.meta.url).pathname,
         '@xenolith/render-pixi':  new URL('../../packages/render-pixi/src/index.ts',  import.meta.url).pathname,
         '@xenolith/editor':       new URL('../../packages/editor/src/index.ts',       import.meta.url).pathname,
         '@xenolith/adapter-core': new URL('../../packages/adapter-core/src/index.ts', import.meta.url).pathname,
         '@xenolith/react':        new URL('../../packages/react/src/index.tsx',       import.meta.url).pathname,
+        '@xenolith/vue':          new URL('../../packages/vue/src/index.ts',          import.meta.url).pathname,
+        '@xenolith/svelte':       new URL('../../packages/svelte/src/index.ts',       import.meta.url).pathname,
+        '@xenolith/solid':        new URL('../../packages/solid/src/index.ts',        import.meta.url).pathname,
+        '@xenolith/angular':      new URL('../../packages/angular/src/index.ts',      import.meta.url).pathname,
         '@xenolith/theme-xen':           new URL('../../packages/theme-xen/src/index.ts',           import.meta.url).pathname,
         '@xenolith/theme-liquid-glass':  new URL('../../packages/theme-liquid-glass/src/index.ts',  import.meta.url).pathname,
         '@xenolith/theme-synthwave':     new URL('../../packages/theme-synthwave/src/index.ts',     import.meta.url).pathname,
@@ -33,6 +38,7 @@ export default defineConfig({
   },
   integrations: [
     react(),
+    vue(),
     starlight({
       title: 'Xenolith Graph',
       logo: { src: './src/assets/logo.png', alt: 'Xenolith Graph', replacesTitle: false },
@@ -88,6 +94,7 @@ export default defineConfig({
           translations: { ru: 'Возможности', zh: '功能' },
           items: [
             { slug: 'guides/widgets' },
+            { slug: 'guides/icons' },
             { slug: 'guides/macros-templates' },
             { slug: 'guides/events-commands' },
             { slug: 'guides/save-export' },
@@ -95,10 +102,26 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Framework adapters',
+          translations: { ru: 'Адаптеры', zh: '框架适配器' },
+          items: [
+            { slug: 'guides/react' },
+            { slug: 'guides/vue' },
+          ],
+        },
+        {
           label: 'Customisation',
           translations: { ru: 'Кастомизация', zh: '自定义' },
           items: [
             { slug: 'guides/theme' },
+          ],
+        },
+        {
+          label: 'LLMs / AI agents',
+          translations: { ru: 'LLM / ИИ-агенты', zh: 'LLM / AI 代理' },
+          items: [
+            { slug: 'llms' },
+            { slug: 'integrations/ai-agents' },
           ],
         },
       ],

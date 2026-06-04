@@ -23,6 +23,9 @@ export const EVENT_PROP = {
   'sidebar:opened': 'onSidebarOpen',
   'sidebar:closed': 'onSidebarClose',
   'livemode:changed': 'onLiveModeChange',
+  'node:contextmenu':   'onNodeContextMenu',
+  'edge:contextmenu':   'onEdgeContextMenu',
+  'canvas:contextmenu': 'onCanvasContextMenu',
 } as const satisfies Record<keyof EditorEvents, string>
 
 /** The React callback props derived from {@link EVENT_PROP} — one optional handler per event. */

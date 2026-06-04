@@ -1,5 +1,6 @@
 # XenolithGraph
 
+[![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
 [![Tests](https://img.shields.io/badge/tests-1012%20unit%20%C2%B7%20142%20e2e-39d98a?style=flat-square)](#tests)
@@ -13,7 +14,7 @@
 
 An embeddable, drop-in node-graph editor for the web with a polished design system inside the package — typed Blueprint pins, live templates, macros, in-node widgets, a plugin host — and a swappable theme architecture that replaces the renderer's material entirely, not just its palette.
 
-> **Status:** approaching v1.0. Public API stable; touch/mobile, Vue/Svelte/Solid adapters, and the Blueprint VM runtime (`@xenolith/plugin-runtime`) land before the freeze.
+> **Status: v0.7 BETA.** Public API in **v0.7 STABLE-API.md** is frozen — minor breakage is possible in unstable corners until v1.0. Initial touch / mobile support landed (pinch, two-finger pan, long-press menu, drawer chrome) but a few polish items remain. See [Roadmap](#roadmap) below.
 
 <p>
   <img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme" width="49%" />
@@ -100,14 +101,50 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 
 ## Roadmap
 
-| Milestone | What |
-|---|---|
-| **shipped** | Core + renderer + editor, Xen + Liquid Glass themes, typed pins + conversions, K2 palette, named commands + hotkeys, undo/redo + history grouping, `xenolith.v1` JSON with schema `migrate` hooks, ComfyUI importer, full-graph PNG/JPEG export, comments, two reroute kinds, edge-midpoint context menu, copy/paste, minimap, in-node widgets (built-in + custom canvas/DOM), conditional widgets (`displayOptions.show`), properties sidebar, macros, live templates with dive-in editing + breadcrumb, palette sidebar (drag-and-drop), per-node file drop, Live mode, cancellable events, plugin host, header glyphs, UE-Blueprint exec-on-header, viewport virtualization + LOD, BitmapText, auto-layout plugin (Dagre + ELK), pluggable edge path styles, framework adapters (React/Vue/Svelte/Solid/Angular/WC), **MCP server** (`@xenolith/mcp-server` — 12 tools + 2 resources), **`StepDebugger`** core primitive (powers Step debugger / Time-travel / Heatmap / Graph diff showcases). |
-| **v0.6 → v1.0** | `@xenolith/plugin-runtime` (Blueprint VM with exec-push + pure-pull), touch / mobile (pinch-zoom + long-press), accessibility (ARIA + keyboard nav), SSR & bundle-size guidance docs, public API + format freeze. |
-| **v1.x — perf** | Edge rendering on a GPU shader (one draw call for thousands of bezier wires + animated dashes via uniform time). Layout plugins ported to WASM (`dagre-rust` / `elk-rust` in a worker — 3–8× faster, no UI block). Instanced LOD batch (single quad mesh instead of per-node `Graphics` — lifts the ceiling past 100k nodes). |
-| **v1.x — runtime** | `@xenolith/plugin-runtime` v2 — 3 execution backends (baked JS, JS codegen ~215×, AssemblyScript-WASM ~4 200× on Mandelbrot-class benchmarks). `topoOrder` / `reachableFrom` ported to WASM for huge graphs. |
-| **v1.x — collab** | Yjs adapter on the command bus, `Y.Text` for comments / text widgets, awareness markers in the overlay DOM. Shipped on a concrete partner request, not speculatively. |
-| **opt-in / on-demand** | Orthogonal edge routing (collision-avoidance). Custom WebGL renderer (PIXI replacement) — only if PIXI v8 churn forces it. WASM fuzzy-matcher for the palette when registries grow past ~10k schemas. |
+### ✅ Shipped in v0.7 BETA
+
+- **Core** — `@xenolith/core` headless model, command bus, typed pins, type registry with conversions
+- **Renderer** — `@xenolith/render-pixi` WebGL editor, viewport virtualization + LOD past 300 nodes
+- **Editor** — `@xenolith/editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 24 typed events (4 preventable), context-menu plugin API
+- **Adapters** — React (`@xenolith/react`), Vue 3 (`@xenolith/vue`), Svelte, Solid, Angular, Web Components — all with full hook / composable parity
+- **Themes** — Xen (default, original design system) + Liquid Glass (refraction-based glass) + Holographic, runtime `setTheme()` swap
+- **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` ports)
+- **Header icons** — 13 built-in Feather glyphs, `editor.icons.register(name, svgInner)` for custom
+- **Macros & templates** — group selection inline, extract as reusable template, dive-in with breadcrumb, convert either direction
+- **Save / export** — versioned `xenolith.v1` JSON with `migrate` hooks, ComfyUI workflow importer, full-graph PNG / JPEG export
+- **Palette** — Tab fuzzy search, palette sidebar (drag-and-drop spawn), edge-midpoint insert
+- **Initial touch / mobile** — pinch zoom, two-finger pan, long-press context menu, drawer chrome on narrow viewports, ⛶ pseudo-fullscreen
+- **AI / MCP** — `@xenolith/mcp-server` (24 tools + 2 resources) + WebSocket bridge, `/llms.txt` + `/api/openapi.json` for AI agents
+- **Auto-layout** — Dagre + ELK adapters, one-call animated re-layout
+- **Step debugger** — `StepDebugger` core primitive (powers debugger / time-travel / heatmap / graph-diff showcases)
+
+### 🚧 Polish before v1.0
+
+- Touch / mobile: virtual keyboard handling, sidebar drawer-mode, orientation reflow, marquee gesture
+- Vue / Svelte: idiomatic Learn pages (need lazy-mount infrastructure first — 4 PIXI editors per page break a singleton)
+- STABLE-API.md — explicit freeze contract (what's stable vs unstable vs experimental)
+- Accessibility — full ARIA + keyboard nav pass
+
+### 🔬 Post-v1.0 — performance
+
+- **Edges on GPU shader** — one draw call for thousands of bezier wires + animated dashes via uniform time
+- **Layout in WASM** — `dagre-rust` / `elk-rust` in a worker (3–8× faster, no UI block)
+- **Instanced LOD batch** — single quad mesh instead of per-node `Graphics` (ceiling past 100k nodes)
+
+### 🔬 Post-v1.0 — runtime
+
+- **`@xenolith/plugin-runtime` v2** — 3 execution backends: baked JS, JS codegen (~215×), AssemblyScript-WASM (~4200× on Mandelbrot-class benchmarks)
+- **Topology in WASM** — `topoOrder` / `reachableFrom` ported for huge graphs
+
+### 🔬 Post-v1.0 — collab
+
+- Yjs adapter on the command bus, `Y.Text` for comments and text widgets, awareness markers in the overlay DOM. Shipped on a concrete partner request, not speculatively.
+
+### Opt-in / on-demand
+
+- Orthogonal edge routing (collision-avoidance)
+- Custom WebGL renderer (PIXI replacement) — only if PIXI v8 churn forces it
+- WASM fuzzy-matcher for the palette when registries grow past ~10k schemas
 
 ## Packages
 

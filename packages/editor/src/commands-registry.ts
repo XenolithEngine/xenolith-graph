@@ -135,6 +135,14 @@ export function matchHotkey(spec: HotkeySpec, e: KeyEventLike, isMac: boolean): 
 
 export class CommandRegistry {
   readonly #byId = new Map<string, RegisteredCommand>()
+  // Middleware: the editor wraps every `execute()` in `commandBus.transaction(...)` so a command
+  // that mutates the graph N times collapses to ONE undoable step (e.g. "Clear All" → 1 Ctrl+Z).
+  // Identity by default keeps the registry headless-testable.
+  #wrap: (fn: () => void) => void = (fn) => fn()
+
+  /** Wrap every `execute()` call (e.g. with `commandBus.transaction(fn)` so multi-step commands
+   *  collapse to one undo step). Set ONCE at editor wiring time. */
+  setExecutionMiddleware(wrap: (fn: () => void) => void): void { this.#wrap = wrap }
 
   register(spec: CommandSpec): void {
     const hotkeySpec = spec.hotkey ? parseHotkey(spec.hotkey) : undefined
@@ -166,7 +174,7 @@ export class CommandRegistry {
     const cmd = this.#byId.get(id)
     if (!cmd) return false
     if (cmd.canExecute && !cmd.canExecute()) return false
-    cmd.execute()
+    this.#wrap(() => cmd.execute())
     return true
   }
 

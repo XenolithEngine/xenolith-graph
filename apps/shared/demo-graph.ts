@@ -40,6 +40,9 @@ interface NodeSpec {
   collapsed?: boolean
   pins: PinSpec[]
   widgets?: WidgetSpec[]
+  /** Built-in icon name from the editor's icon registry — `cpu`, `database`, `code`, etc. */
+  icon?: string
+  iconSide?: 'left' | 'right'
 }
 type Conn = [from: string, fromPin: number, to: string, toPin: number, type: string]
 
@@ -47,45 +50,47 @@ const p = (dir: 'in' | 'out', type: string, label: string): PinSpec => ({ dir, t
 
 // ---- node definitions ------------------------------------------------------------------------
 const SPECS: NodeSpec[] = [
-  { key: 'source',    type: 'Source',    category: 'logic',   description: 'Emits a stream of float values',         keywords: ['input', 'origin'], position: { x: 40,  y: 60  }, pins: [p('out', 'float', 'Output')] },
-  { key: 'sample',    type: 'Sample',    category: 'logic',   description: 'Reads a value at the current cursor',     keywords: ['read'],            position: { x: 40,  y: 200 }, pins: [p('in','float','In'), p('out','float','Out')] },
-  { key: 'filter',    type: 'Filter',    category: 'logic',   description: 'Drops values failing a predicate',        keywords: ['where'],           position: { x: 40,  y: 360 }, collapsed: true, pins: [p('in','float','In'), p('out','float','Out')] },
-  { key: 'cache',     type: 'Cache',     category: 'data',    description: 'Memoises the last seen object',           keywords: ['store', 'memo'],   position: { x: 40,  y: 500 }, collapsed: true, pins: [p('in','object','In'), p('out','object','Out')] },
+  { key: 'source',    type: 'Source',    category: 'logic',   icon: 'zap',      description: 'Emits a stream of float values',         keywords: ['input', 'origin'], position: { x: 40,  y: 60  }, pins: [p('out', 'float', 'Output')] },
+  { key: 'sample',    type: 'Sample',    category: 'logic',   icon: 'play',     description: 'Reads a value at the current cursor',     keywords: ['read'],            position: { x: 40,  y: 200 }, pins: [p('in','float','In'), p('out','float','Out')] },
+  { key: 'filter',    type: 'Filter',    category: 'logic',   icon: 'branch',   description: 'Drops values failing a predicate',        keywords: ['where'],           position: { x: 40,  y: 360 }, collapsed: true, pins: [p('in','float','In'), p('out','float','Out')] },
+  { key: 'cache',     type: 'Cache',     category: 'data',    icon: 'database', description: 'Memoises the last seen object',           keywords: ['store', 'memo'],   position: { x: 40,  y: 500 }, collapsed: true, pins: [p('in','object','In'), p('out','object','Out')] },
   // 'gather' and 'pack' are MACRO groups, authored in the macro section below (not plain nodes).
   // NOTE: CONNS indexes pins by POSITION — keep the original [In, Out, …] prefix and APPEND
   // widget-bound pins after Out so existing connections still resolve to the right pin (otherwise
   // a wire defined as `transform, 1, …` would land on `scale` instead of `Out`).
-  { key: 'transform', type: 'Transform', category: 'data',    description: 'Maps an object to a new shape',           keywords: ['move', 'map'],     position: { x: 560, y: 140 },
+  // Transform column: spread vertically so the wide Validate node (curve widget) has breathing
+  // room above and below; Validate's wider footprint is centred under the macro frame.
+  { key: 'transform', type: 'Transform', category: 'data',    icon: 'code',     description: 'Maps an object to a new shape',           keywords: ['move', 'map'],     position: { x: 568, y: 136 },
     pins: [p('in','object','In'), p('out','object','Out'), p('in','float','scale'), p('in','string','mode'), p('in','bool','mirror')],
     widgets: [
       { id: 'scale',  type: 'slider', label: '', key: 'scale',  min: 0, max: 2, step: 0.05 },
       { id: 'mode',   type: 'combo',  label: '', key: 'mode',   values: ['fit', 'fill', 'stretch'] },
       { id: 'mirror', type: 'toggle', label: '', key: 'mirror' },
     ] },
-  { key: 'validate',  type: 'Validate',  category: 'data',    description: 'Checks an object against a schema',       keywords: ['check'],           position: { x: 560, y: 300 },
+  { key: 'validate',  type: 'Validate',  category: 'data',    icon: 'flag',     description: 'Checks an object against a schema',       keywords: ['check'],           position: { x: 544, y: 320 },
     pins: [p('in','object','In'), p('out','wildcard','Out'), p('in','any','response')],
     widgets: [
       { id: 'response', type: 'custom', renderer: 'curve', key: 'response', label: '', height: 120 },
     ] },
-  { key: 'enrich',    type: 'Enrich',    category: 'data',    description: 'Augments an object with extra fields',    keywords: ['augment'],         position: { x: 560, y: 510 },
+  { key: 'enrich',    type: 'Enrich',    category: 'data',    icon: 'layers',   description: 'Augments an object with extra fields',    keywords: ['augment'],         position: { x: 568, y: 536 },
     pins: [p('in','object','In'), p('out','object','Out'), p('in','string','tint'), p('in','float','strength')],
     widgets: [
       { id: 'tint',     type: 'color',  label: '', key: 'tint' },
       { id: 'strength', type: 'slider', label: '', key: 'strength', min: 0, max: 1, step: 0.01 },
     ] },
-  { key: 'score',     type: 'Score',     category: 'macro',   description: 'Ranks an object, emits a float score',    keywords: ['rank'],            position: { x: 820, y: 200 }, collapsed: true, pins: [p('in','object','In'), p('out','float','Out')] },
-  { key: 'resolve',   type: 'Resolve',   category: 'macro',   description: 'Finalises into a string result',          keywords: ['finalize'],        position: { x: 820, y: 360 },
+  { key: 'score',     type: 'Score',     category: 'macro',   icon: 'cpu',      description: 'Ranks an object, emits a float score',    keywords: ['rank'],            position: { x: 820, y: 200 }, collapsed: true, pins: [p('in','object','In'), p('out','float','Out')] },
+  { key: 'resolve',   type: 'Resolve',   category: 'macro',   icon: 'play',     description: 'Finalises into a string result',          keywords: ['finalize'],        position: { x: 820, y: 360 },
     pins: [p('in','object','In'), p('in','float','Hint'), p('in','wildcard','Aux'), p('out','string','Out'), p('in','float','seed'), p('in','string','prompt')],
     widgets: [
       { id: 'seed',   type: 'number', label: '', key: 'seed',   min: 0, max: 999999, step: 1 },
       { id: 'prompt', type: 'text',   label: '', key: 'prompt', placeholder: 'describe…' },
     ] },
-  { key: 'format',    type: 'Format',    category: 'data',    description: 'Renders a result to a display string',    keywords: ['template'],        position: { x: 820, y: 600 }, collapsed: true, pins: [p('in','string','In'), p('out','string','Out')] },
-  { key: 'display',   type: 'Display',   category: 'utility', description: 'Renders a string to the viewport',        keywords: ['show', 'output'],  position: { x: 1100, y: 120 }, pins: [p('in','string','In'), p('out','any','Out')] },
-  { key: 'audit',     type: 'Audit',     category: 'utility', description: 'Logs a float for inspection',             keywords: ['log'],             position: { x: 1100, y: 280 }, pins: [p('in','float','In'), p('out','any','Out')] },
-  { key: 'persist',   type: 'Persist',   category: 'utility', description: 'Writes a string to durable storage',      keywords: ['save', 'write'],   position: { x: 1100, y: 440 }, pins: [p('in','string','In'), p('out','any','Out')] },
-  { key: 'notify',    type: 'Notify',    category: 'utility', description: 'Pushes a notification on completion',     keywords: ['alert', 'webhook'],position: { x: 1100, y: 600 }, pins: [p('in','string','In'), p('out','any','Out')] },
-  { key: 'archive',   type: 'Archive',   category: 'utility', description: 'Cold-stores any payload',                 keywords: ['cold', 'backup'],  position: { x: 1380, y: 360 },
+  { key: 'format',    type: 'Format',    category: 'data',    icon: 'code',     description: 'Renders a result to a display string',    keywords: ['template'],        position: { x: 820, y: 600 }, collapsed: true, pins: [p('in','string','In'), p('out','string','Out')] },
+  { key: 'display',   type: 'Display',   category: 'utility', icon: 'square',   iconSide: 'right', description: 'Renders a string to the viewport',        keywords: ['show', 'output'],  position: { x: 1100, y: 120 }, pins: [p('in','string','In'), p('out','any','Out')] },
+  { key: 'audit',     type: 'Audit',     category: 'utility', icon: 'clock',    description: 'Logs a float for inspection',             keywords: ['log'],             position: { x: 1100, y: 280 }, pins: [p('in','float','In'), p('out','any','Out')] },
+  { key: 'persist',   type: 'Persist',   category: 'utility', icon: 'database', description: 'Writes a string to durable storage',      keywords: ['save', 'write'],   position: { x: 1100, y: 440 }, pins: [p('in','string','In'), p('out','any','Out')] },
+  { key: 'notify',    type: 'Notify',    category: 'utility', icon: 'flag',     description: 'Pushes a notification on completion',     keywords: ['alert', 'webhook'],position: { x: 1100, y: 600 }, pins: [p('in','string','In'), p('out','any','Out')] },
+  { key: 'archive',   type: 'Archive',   category: 'utility', icon: 'box',      description: 'Cold-stores any payload',                 keywords: ['cold', 'backup'],  position: { x: 1380, y: 360 },
     pins: [p('in','any','In'), p('out','any','Out'), p('in','any','offset')],
     widgets: [
       { id: 'offset', type: 'custom', renderer: 'xypad', key: 'offset', label: '', height: 110 },
@@ -139,7 +144,7 @@ const CONNS: Conn[] = [
 // Reroute placements (positioned by top-left; small footprints).
 const REROUTES: { key: string; kind: typeof REROUTE_TYPE | typeof REROUTE_NODE_TYPE; type: string; position: { x: number; y: number } }[] = [
   { key: 'rr_inline', kind: REROUTE_TYPE,      type: 'object', position: { x: 210, y: 470 } },
-  { key: 'rr_box',    kind: REROUTE_NODE_TYPE, type: 'float',  position: { x: 620, y: 660 } },
+  { key: 'rr_box',    kind: REROUTE_NODE_TYPE, type: 'float',  position: { x: 624, y: 704 } },
 ]
 
 // ---- build the data documents ----------------------------------------------------------------
@@ -159,6 +164,10 @@ function buildNode(spec: NodeSpec): XenolithNodeV1 {
       label: pn.label,
     })),
     render: { category: spec.category, title: spec.title ?? spec.type, collapsed: spec.collapsed ?? false },
+    // Bake schema-level glyph into the saved graph node. `loadJSON` deserialises nodes verbatim
+    // — it doesn't merge schema defaults — so without this the header icons we register on the
+    // schema would only appear on Tab-inserted nodes, never on the playground's seed graph.
+    ...(spec.icon ? { glyph: spec.iconSide ? { icon: spec.icon, side: spec.iconSide } : { icon: spec.icon } } : {}),
   }
   if (spec.widgets) {
     node.widgets = spec.widgets
@@ -354,7 +363,7 @@ export const demoGraph: XenolithGraphV1 = {
   comments: [
     { id: 'c-ingest',    position: { x: 0,    y: 14 }, size: { x: 240, y: 580 }, text: 'Ingest',    color: '#85C244' },
     { id: 'c-combine',   position: { x: 268,  y: 150 }, size: { x: 240, y: 360 }, text: 'Combine',   color: '#5B8DEF' },
-    { id: 'c-transform', position: { x: 528,  y: 88 }, size: { x: 250, y: 620 }, text: 'Transform', color: '#E0795A' },
+    { id: 'c-transform', position: { x: 528,  y: 88 }, size: { x: 250, y: 658 }, text: 'Transform', color: '#E0795A' },
     { id: 'c-resolve',   position: { x: 788,  y: 150 }, size: { x: 240, y: 540 }, text: 'Resolve',   color: '#B06BE8' },
     { id: 'c-output',    position: { x: 1068, y: 70 }, size: { x: 250, y: 620 }, text: 'Output',    color: '#4FC3C9' },
   ],
@@ -370,4 +379,8 @@ export const demoSchemas: NodeSchema[] = SPECS.map((spec) => ({
   keywords: spec.keywords ?? [],
   pins: spec.pins.map((pn) => ({ kind: 'data', direction: pn.dir, type: pn.type, label: pn.label, multiple: pn.dir === 'out' })),
   ...(spec.widgets ? { widgets: spec.widgets } : {}),
+  // Header glyph — header icon shows next to the title in the node strip. Categories share
+  // semantically-similar icons (database for storage, flag for milestones, etc.) so a 20-node graph
+  // becomes scannable at a glance — the visual shorthand the [icons guide](/guides/icons/) covers.
+  ...(spec.icon ? { glyph: spec.iconSide ? { icon: spec.icon, side: spec.iconSide } : { icon: spec.icon } } : {}),
 }))

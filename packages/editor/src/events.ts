@@ -62,6 +62,14 @@ export type EditorEvents = {
   }
   /** Live Mode flipped (G12). Hosts watching this hide their own panels (palette, toolbars). */
   'livemode:changed': { live: boolean }
+  /** Right-click / long-press on a node — listeners can `cancel()` to suppress the menu (e.g. to
+   *  show their own). Fires AFTER hit-test, BEFORE the built-in menu opens. */
+  'node:contextmenu':   PreventablePayload<{ nodeId: NodeId; screen: Vec2 }>
+  /** Right-click / long-press on an edge midpoint — same semantics as `node:contextmenu`. */
+  'edge:contextmenu':   PreventablePayload<{ edgeId: EdgeId; screen: Vec2 }>
+  /** Right-click / long-press on empty canvas — same semantics. `worldPosition` is the world-space
+   *  point so a host can spawn a node there from a custom item. */
+  'canvas:contextmenu': PreventablePayload<{ screen: Vec2; worldPosition: Vec2 }>
 }
 
 /** Common shape for `*-ing` preventable events. Listeners call `cancel()` to abort. */
@@ -71,7 +79,7 @@ export type PreventablePayload<T> = T & { cancel: () => void }
  *  base payload; this helper attaches a fresh `cancel()` closure, so a single listener calling
  *  cancel can't accidentally affect a subsequent emit. Returns `true` when the mutation should
  *  proceed, `false` when at least one listener vetoed. */
-export function firePreventable<E extends 'edge:connecting' | 'edge:disconnecting' | 'node:removing' | 'node:clicking'>(
+export function firePreventable<E extends 'edge:connecting' | 'edge:disconnecting' | 'node:removing' | 'node:clicking' | 'node:contextmenu' | 'edge:contextmenu' | 'canvas:contextmenu'>(
   bus: EventEmitter<EditorEvents>,
   event: E,
   payload: Omit<EditorEvents[E], 'cancel'>,

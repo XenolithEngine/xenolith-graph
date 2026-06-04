@@ -96,7 +96,7 @@ export function Chapter08() {
           editor.registry.register(greeterSchema)
           editor.registry.register(mixerSchema)
           editor.loadJSON(graph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       >
         <ThemeSwitcher />

@@ -1,7 +1,7 @@
 // CHAPTER 6 — Save / Load (vanilla JS).
 //
-// The graph is plain data. `editor.toJSON()` serialises everything that defines the scene —
-// nodes (with state), edges, viewport, comments, optional schemas[], etc. — into a `xenolith.v1`
+// The graph is plain data. `editor.getGraphReadonly()` returns everything that defines the scene —
+// nodes (with state), edges, viewport, comments, optional schemas[], etc. — as a `xenolith.v1`
 // payload. `editor.loadJSON(data)` is the inverse: replace the current scene with the payload.
 //
 // This chapter wires up three real-world patterns at once:
@@ -55,7 +55,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   } else {
     editor.loadJSON(seedGraph)
   }
-  editor.fitView({ padding: 80, maxZoom: 1 })
+  editor.view.fitView({ padding: 80, maxZoom: 1 })
 
   // ── Autosave: debounce every graph mutation into one localStorage write per ~250ms. The graph
   //    events all bridge off the command bus, so this picks up palette inserts, drags, widget
@@ -63,7 +63,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   let timer: ReturnType<typeof setTimeout> | null = null
   let savedAt = 0
   const flushSave = (): void => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(editor.toJSON())); savedAt = Date.now() } catch { /* quota */ }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(editor.getGraphReadonly())); savedAt = Date.now() } catch { /* quota */ }
     paint()
   }
   const scheduleSave = (): void => {
@@ -111,7 +111,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   const tick = setInterval(paint, 1000)
 
   panel.querySelector('[data-act="save"]')!.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(editor.toJSON(), null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(editor.getGraphReadonly(), null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'graph.json'; a.click()
@@ -124,7 +124,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
     try {
       const text = await file.text()
       editor.loadJSON(JSON.parse(text))
-      editor.fitView({ padding: 80, maxZoom: 1 })
+      editor.view.fitView({ padding: 80, maxZoom: 1 })
       bootedFrom = 'storage'; savedAt = 0; paint()
     } catch (err) { status.textContent = `Load failed: ${(err as Error).message}` }
     fileInput.value = '' // allow re-choosing the same file
@@ -132,7 +132,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   panel.querySelector('[data-act="reset"]')!.addEventListener('click', () => {
     try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
     editor.loadJSON(seedGraph)
-    editor.fitView({ padding: 80, maxZoom: 1 })
+    editor.view.fitView({ padding: 80, maxZoom: 1 })
     bootedFrom = 'seed'; savedAt = 0; paint()
   })
 

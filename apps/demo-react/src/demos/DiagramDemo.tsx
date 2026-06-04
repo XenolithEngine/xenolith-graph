@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor } from '@xenolith/react'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useEdges } from '@xenolith/react'
 import { buildDiagram } from '@xenolith/demo/diagram'
 import { DemoStage } from '../Layout.js'
 
@@ -8,14 +8,15 @@ import { DemoStage } from '../Layout.js'
 //
 // Canon: state lives where it's used. The panel owns `animated` AND owns the side-effect that
 // pushes it into the editor, because the panel IS inside <XenolithGraph> — `useEditor()` gives
-// it the editor directly. No state hoisting, no render-less sync component, no ref dance.
+// it the editor directly. `useEdges()` is the public live edge list — no @internal `editor.graph`.
 
 function DiagramPanel() {
   const editor = useEditor()
+  const edges = useEdges()
   const [animated, setAnimated] = useState(true)
   useEffect(() => {
-    for (const e of editor.graph.edges()) editor.setEdgeOptions(e.id, { animated })
-  }, [editor, animated])
+    for (const e of edges) editor.setEdgeOptions(e.id, { animated })
+  }, [editor, edges, animated])
   return (
     <XenolithPanel position="top-left" style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 200 }}>
       <p style={{ margin: 0, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--xeno-muted)' }}>Diagram edges</p>

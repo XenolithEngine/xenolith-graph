@@ -16,6 +16,9 @@ export interface ControlsOptions {
   showHistory?: boolean
   showSave?: boolean
   showLock?: boolean
+  /** "+" button that opens the palette at viewport centre. Default: true on coarse pointer
+   *  (Tab key is unreachable on touch), false on fine pointer (Tab is faster than clicking). */
+  showInsert?: boolean
 }
 
 /** The slice of the editor the controls need — kept as an interface so this module doesn't import
@@ -31,6 +34,7 @@ export interface ControlsEditor {
   canUndo(): boolean
   canRedo(): boolean
   setInteractive(v: boolean): void
+  openPalette(screen?: { x: number; y: number }): void
   exportJSON(): Blob
   exportImage(opts?: { format?: 'png' | 'jpeg'; quality?: number; padding?: number; scale?: number }): Promise<Blob>
   withOverlay<T>(label: string, work: () => T | Promise<T>): Promise<T>
@@ -57,7 +61,13 @@ const ICONS = {
   save:    '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
   lock:    '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   unlock:  '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  insert:  '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
 }
+
+/** True when the primary input is a finger / stylus. Drives default tap-target sizing (44px WCAG
+ *  vs the desktop 30px) and the "show Insert button" default. */
+const COARSE_POINTER = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  && window.matchMedia('(pointer: coarse)').matches
 
 const POS: Record<ControlsPosition, Partial<CSSStyleDeclaration>> = {
   'top-left':     { top: '12px', left: '12px' },
@@ -89,6 +99,7 @@ export class EditorControls {
       showHistory: opts.showHistory ?? true,
       showSave: opts.showSave ?? true,
       showLock: opts.showLock ?? true,
+      showInsert: opts.showInsert ?? COARSE_POINTER,
     }
     this.#root = document.createElement('div')
     this.#root.setAttribute('data-xeno-controls', '')
@@ -125,6 +136,9 @@ export class EditorControls {
 
     const o = this.#opts
     const groups: HTMLElement[][] = []
+    if (o.showInsert) {
+      groups.push([this.#btn('Insert node', ICONS.insert, () => this.#editor.openPalette(this.#focal()))])
+    }
     const zoomFit: HTMLElement[] = []
     if (o.showZoom) zoomFit.push(this.#btn('Zoom in', ICONS.zoomIn, () => this.#editor.zoomAt(this.#focal(), o.zoomStep)))
     if (o.showZoom) zoomFit.push(this.#btn('Zoom out', ICONS.zoomOut, () => this.#editor.zoomAt(this.#focal(), 1 / o.zoomStep)))
@@ -173,8 +187,9 @@ export class EditorControls {
     b.type = 'button'
     b.setAttribute('aria-label', label)
     b.title = label
+    const size = COARSE_POINTER ? '44px' : '30px'
     Object.assign(b.style, {
-      width: '30px', height: '30px', display: 'grid', placeItems: 'center', padding: '0',
+      width: size, height: size, display: 'grid', placeItems: 'center', padding: '0',
       background: 'transparent', border: 'none', color: 'var(--xeno-text)', cursor: 'pointer',
     } as Partial<CSSStyleDeclaration>)
     b.appendChild(icon(svg))

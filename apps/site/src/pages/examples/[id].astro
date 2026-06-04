@@ -2,6 +2,7 @@
 import ExamplesLayout from '../../layouts/ExamplesLayout.astro'
 import DemoFrame from '../../components/DemoFrame.astro'
 import ReactExample from '../../examples/ReactExample.tsx'
+import VueExample from '../../examples/VueExample.vue'
 import { EXAMPLES, type Framework } from '../../examples/manifest.ts'
 
 export function getStaticPaths() {
@@ -11,25 +12,31 @@ export function getStaticPaths() {
 const { example } = Astro.props
 const base = import.meta.env.BASE_URL
 
-// Raw source for the "Show code" tabs, loaded at build time from three roots:
+// Raw source for the "Show code" tabs, loaded at build time from four roots:
 //  - demo-react/src      → React wrapper components, referenced as `demos/Foo.tsx`
-//  - shared (@xenolith/demo) → framework-agnostic cores reused by every framework, referenced as
-//    `shared/foo.ts` so the same source shows under each framework's Show Code.
-//  - apps/site/src/examples/vanilla → vanilla mounters, referenced as `vanilla/foo.ts`.
+//  - shared (@xenolith/demo) → framework-agnostic cores reused by every framework
+//  - apps/site/src/examples/vanilla → vanilla mounters (also hosts svelte-/solid- prefixed files)
+//  - apps/site/src/examples/{vue,angular} → idiomatic framework sources
 const REACT_RAW   = import.meta.glob('../../../../demo-react/src/**/*.{tsx,ts,css}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const SHARED_RAW  = import.meta.glob('../../../../shared/**/*.{ts,tsx,json}',        { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const VANILLA_RAW = import.meta.glob('../../examples/vanilla/**/*.{ts,tsx,css}',     { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const VUE_RAW     = import.meta.glob('../../examples/vue/**/*.{vue,ts}',             { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const ANGULAR_RAW = import.meta.glob('../../examples/angular/**/*.{ts,html}',        { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const codeFor = (rel: string): string => {
   const raw = rel.startsWith('shared/')
     ? SHARED_RAW[`../../../../shared/${rel.slice('shared/'.length)}`]
     : rel.startsWith('vanilla/')
       ? VANILLA_RAW[`../../examples/vanilla/${rel.slice('vanilla/'.length)}`]
-      : REACT_RAW[`../../../../demo-react/src/${rel}`]
+      : rel.startsWith('vue/')
+        ? VUE_RAW[`../../examples/vue/${rel.slice('vue/'.length)}`]
+        : rel.startsWith('angular/')
+          ? ANGULAR_RAW[`../../examples/angular/${rel.slice('angular/'.length)}`]
+          : REACT_RAW[`../../../../demo-react/src/${rel}`]
   return (raw ?? `// missing: ${rel}`).trimEnd()
 }
 const langOf = (rel: string): string => {
   const ext = rel.split('.').pop()
-  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : 'tsx'
+  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : ext === 'vue' ? 'vue' : 'tsx'
 }
 const files = Object.entries(example.impls).flatMap(([fw, impl]) =>
   impl!.files.map((rel) => ({
@@ -42,6 +49,10 @@ const files = Object.entries(example.impls).flatMap(([fw, impl]) =>
 
 const hasReact   = !!example.impls.react
 const hasVanilla = !!example.impls.vanilla
+const hasVue     = !!example.impls.vue
+const hasSvelte  = !!example.impls.svelte
+const hasSolid   = !!example.impls.solid
+const hasAngular = !!example.impls.angular
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -72,32 +83,77 @@ const jsonLd = {
   <h1 style="margin:8px 0 4px;font-size:26px;">{example.title}</h1>
   <p style="margin:0 0 18px;color:#9a9a9a;max-width:70ch;">{example.blurb}</p>
 
+  {/* Active framework defaults to the FIRST one in FRAMEWORKS order that has an impl. All other
+       panes start `.dfr-hidden` so they don't stack absolutely on top of the active one — the
+       chip switcher then toggles `.dfr-hidden` per pane on click. */}
   <DemoFrame example={example} files={files}>
     {hasVanilla && (
       <div data-fw="vanilla" style="position:absolute;inset:0;">
-        <div id={`xen-vanilla-${example.id}`} style="position:absolute;inset:0;"></div>
+        <div data-xeno-vanilla data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
       </div>
     )}
     {hasReact && (
-      <div data-fw="react" style="position:absolute;inset:0;">
+      <div data-fw="react" class={hasVanilla ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
         <ReactExample id={example.id} client:only="react" />
+      </div>
+    )}
+    {hasVue && (
+      <div data-fw="vue" class={(hasVanilla || hasReact) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+        <VueExample id={example.id} client:only="vue" />
+      </div>
+    )}
+    {hasSvelte && (
+      <div data-fw="svelte" class={(hasVanilla || hasReact || hasVue) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+        <div data-xeno-svelte data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
+      </div>
+    )}
+    {hasSolid && (
+      <div data-fw="solid" class={(hasVanilla || hasReact || hasVue || hasSvelte) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;">
+        <div data-xeno-solid data-xeno-example-id={example.id} style="position:absolute;inset:0;"></div>
+      </div>
+    )}
+    {hasAngular && (
+      <div data-fw="angular" class={(hasVanilla || hasReact || hasVue || hasSvelte || hasSolid) ? 'dfr-hidden' : undefined} style="position:absolute;inset:0;display:grid;place-items:center;color:#9a9a9a;font:13px Inter,system-ui,sans-serif;text-align:center;padding:24px;">
+        <div>
+          <p style="margin:0 0 6px;color:#cfcfcf;">Angular live preview not available.</p>
+          <p style="margin:0;font-size:12px;">Angular requires its own build pipeline. The source on the right is the idiomatic standalone component — drop it into an Angular project that depends on <code style="color:#FCB400;">@xenolith/angular</code>.</p>
+        </div>
       </div>
     )}
   </DemoFrame>
 
-  {hasVanilla && (
-    <script define:vars={{ id: example.id }}>
-      import('../../examples/VanillaMount.ts').then(async ({ mountVanillaExample }) => {
-        const target = document.getElementById(`xen-vanilla-${id}`)
-        if (!target) return
-        let dispose = await mountVanillaExample(id, target)
-        document.addEventListener('xeno:reset', async (e) => {
-          const detail = (e).detail
-          if (detail?.id && detail.id !== id) return
-          if (typeof dispose === 'function') dispose()
-          target.innerHTML = ''
-          dispose = await mountVanillaExample(id, target)
-        })
+  {(hasVanilla || hasSvelte || hasSolid) && (
+    <script>
+      import { mountVanillaExample } from '../../examples/VanillaMount.ts'
+      // Per-framework mount through the same vanilla router. Svelte/Solid demos live under
+      // `vanilla/<fw>-<id>.ts`; the router key is `<fw>-<id>` (or just `<id>` for plain vanilla).
+      const targets: Array<{ el: HTMLElement; key: string; id: string }> = []
+      const collect = (selector: string, prefix: string): void => {
+        for (const el of document.querySelectorAll<HTMLElement>(selector)) {
+          const id = el.getAttribute('data-xeno-example-id')
+          if (!id) continue
+          targets.push({ el, key: prefix + id, id })
+        }
+      }
+      collect('[data-xeno-vanilla]', '')
+      collect('[data-xeno-svelte]',  'svelte-')
+      collect('[data-xeno-solid]',   'solid-')
+
+      const disposers = new Map<HTMLElement, () => void>()
+      await Promise.all(targets.map(async (t) => {
+        const dispose = await mountVanillaExample(t.key, t.el)
+        if (typeof dispose === 'function') disposers.set(t.el, dispose)
+      }))
+      document.addEventListener('xeno:reset', async (e) => {
+        const detail = (e as CustomEvent<{ id?: string }>).detail
+        for (const t of targets) {
+          if (detail?.id && detail.id !== t.id) continue
+          const d = disposers.get(t.el)
+          if (typeof d === 'function') d()
+          t.el.innerHTML = ''
+          const dispose = await mountVanillaExample(t.key, t.el)
+          if (typeof dispose === 'function') disposers.set(t.el, dispose)
+        }
       })
     </script>
   )}

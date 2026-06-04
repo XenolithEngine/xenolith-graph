@@ -66,7 +66,8 @@ The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a compone
   let el: HTMLElement
   onMount(async () => {
     if (!browser) return
-    await import('@xenolith/wc') // registers <xenolith-graph>
+    const { register } = await import('@xenolith/wc')
+    register() // defines <xenolith-graph>
     // The WC takes `graph` via the JS property — set it after the element is in the DOM and the
     // editor mounts itself + loads it. For imperative work (registering schemas, plugins) poll
     // `el.editor` until it's non-null.

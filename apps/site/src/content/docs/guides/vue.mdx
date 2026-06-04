@@ -1,0 +1,246 @@
+---
+title: Vue adapter
+description: Mount XenolithGraph in a Vue 3 app, drive it with composables and panel components, and bring your own Vue SFCs in via custom widgets.
+---
+
+The Vue adapter ships as `@xenolith/vue`. Composition-API only — there is no Options-API mirror.
+Like the React adapter, it is a thin layer over the headless editor: every public method on
+`XenolithEditor` works the same way the core docs describe. What the adapter adds is Vue-shaped
+sugar: one component (`<XenolithGraph>`), an injection key, a handful of composables, and four
+in-editor panel components.
+
+The adapter does **not** offer `v-model` on the whole graph. The editor owns its WebGL state;
+diffing 1000-node arrays from a Vue parent on every change would defeat the perf budget. Instead
+the host reads live snapshots through composables and mutates through the editor's imperative API.
+
+## Install
+
+```bash
+pnpm add @xenolith/vue @xenolith/editor pixi.js vue
+```
+
+`pixi.js` is a peer dependency. Vue 3.3+ is required.
+
+## Mount the editor
+
+```vue
+<template>
+  <XenolithGraph
+    :resize-to-window="false"
+    style="position:absolute;inset:0"
+    @ready="onReady"
+  />
+</template>
+
+<script setup lang="ts">
+import { XenolithGraph } from '@xenolith/vue'
+import type { XenolithEditor } from '@xenolith/editor'
+
+function onReady(editor: XenolithEditor): void {
+  editor.registry.register({
+    type: 'Hello', title: 'Hello', category: 'data',
+    pins: [{ kind: 'data', direction: 'out', type: 'string', label: 'msg' }],
+  })
+  editor.insertNode('Hello', { x: 0, y: 0 })
+  editor.view.fitView({ padding: 80 })
+}
+</script>
+```
+
+`@ready` is the Vue equivalent of React's `onReady` — emitted once the editor instance is alive.
+Treat it as the place for one-shot setup: register schemas, seed the graph, fit the view.
+
+### `<XenolithGraph>` props
+
+Same shape as the React adapter (kebab-cased in templates):
+
+| Prop | Type | Notes |
+|---|---|---|
+| `theme` | `XenolithTheme` | Default is the Xen theme. |
+| `graph` | `XenolithGraphV1` | Initial scene; same shape `editor.loadJSON` accepts. |
+| `zoom-bounds` | `[min, max]` | Default `[0.05, 16]`. |
+| `minimap` | `boolean \| { position }` | Prefer `<XenolithMiniMap>` (declarative subtree). |
+| `snap` | `number` | Grid snap step in world px. |
+| `disable-grid` | `boolean` | Hide the background grid. |
+| `resize-to-window` | `boolean` | Default `true`. Set `false` to fit the parent. |
+| `fit-on-load` | `boolean` | After `graph` mounts, call `fitView`. |
+
+### `<XenolithGraph>` events
+
+`@ready` plus one event per editor event (kebab-cased):
+
+```vue
+<XenolithGraph
+  @ready="onReady"
+  @node-removing="(p) => { if (p.nodeId === locked) p.cancel() }"
+  @edge-connecting="(p) => { /* validate / veto */ }"
+  @selection-changed="(p) => updateInspector(p.nodeIds)"
+  @widget-changed="(p) => syncFormState(p)"
+/>
+```
+
+The full mapping lives in `EDITOR_EVENT_NAMES` from `@xenolith/adapter-core`. Preventable events
+(`-ing` suffix) accept a `payload.cancel()` call from the handler.
+
+For long-tail / dynamic subscriptions in child components, use `useEditorEvent` (below).
+
+## Composables
+
+Composables must be called inside a `<XenolithGraph>` subtree — the component provides the live
+editor via `provide(XenolithEditorKey, ref)`. Children inject the same ref.
+
+```ts
+import {
+  useEditor, useEditorOrNull, useEditorReady, useEditorEvent,
+  useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo,
+} from '@xenolith/vue'
+```
+
+| Composable | Returns | Notes |
+|---|---|---|
+| `useEditor()` | `ShallowRef<XenolithEditor \| null>` | Throws when called outside a `<XenolithGraph>` subtree. |
+| `useEditorOrNull()` | same | Same but tombstones to `shallowRef(null)` instead of throwing. |
+| `useEditorReady(cb)` | same + runs cb when editor mounts | The right call for one-shot per-component setup (registering commands, contextMenu items). |
+| `useEditorEvent(event, handler)` | `void` | One-shot subscribe; cleans up on unmount. |
+| `useNodes()` | `Readonly<ShallowRef<readonly Node[]>>` | Re-fires on node mutations + undo/redo. |
+| `useEdges()` | `Readonly<ShallowRef<readonly Edge[]>>` | Same for edges. |
+| `useSelection()` | `Readonly<ShallowRef<readonly NodeId[]>>` | `selection:changed`. |
+| `useViewport()` | `Readonly<ShallowRef<ViewportState>>` | `viewport:changed`. |
+| `useGraphJSON()` | `Readonly<ShallowRef<XenolithGraphV1 \| null>>` | Any mutation, load, undo/redo. |
+| `useUndoRedo()` | `{ canUndo, canRedo: ShallowRef<boolean>; undo, redo: () => boolean }` | Toolbar state + handles. |
+
+`editor.value` is `null` during a child component's `setup()` because Vue runs setup synchronously
+before the parent's `onMounted`. Use `useEditorReady(cb)` (or `watch(editor, ...)`) for any setup
+that needs the live instance:
+
+```ts
+useEditorReady((editor) => {
+  const off = editor.commands.register({
+    id: 'app.deleteAll', label: 'Delete all', hotkey: 'Mod+Shift+K',
+    execute: () => { for (const n of [...editor.graph.nodes()]) editor.removeNode(n.id) },
+  })
+  return off                              // cleanup runs on component unmount
+})
+```
+
+### Undo / Redo toolbar
+
+```vue
+<script setup lang="ts">
+import { XenolithPanel, XenolithButton, useUndoRedo } from '@xenolith/vue'
+const { canUndo, canRedo, undo, redo } = useUndoRedo()
+</script>
+
+<template>
+  <XenolithPanel position="top-right">
+    <XenolithButton :disabled="!canUndo" @click="undo()">Undo</XenolithButton>
+    <XenolithButton :disabled="!canRedo" @click="redo()">Redo</XenolithButton>
+  </XenolithPanel>
+</template>
+```
+
+## In-editor panel components
+
+Same four primitives as the React adapter — they portal into `editor.chrome.overlayRoot` via Vue's
+`<Teleport>`, so they live "in" the graph and inherit the theme's `--xeno-*` vars.
+
+| Component | What it does |
+|---|---|
+| `<XenolithPanel position bare>` | Absolute-positioned floating card. `bare` drops the chrome and only positions the slot. |
+| `<XenolithButton :active :disabled @click>` | Themed button. `active` paints with the accent colour. |
+| `<XenolithControls />` | Declarative wrapper over `editor.chrome.setControls(...)`. Renders no DOM of its own. |
+| `<XenolithMiniMap position />` | Declarative minimap toggle. Renders no DOM. |
+
+```vue
+<template>
+  <XenolithGraph :resize-to-window="false" style="position:absolute;inset:0" @ready="onReady">
+    <XenolithControls position="bottom-left" />
+    <XenolithMiniMap position="bottom-right" />
+    <Toolbar />
+  </XenolithGraph>
+</template>
+```
+
+## Custom Vue widgets
+
+`vueWidget(Component)` wraps a Vue 3 SFC as a node widget. The component receives `value`,
+`setValue` (committed through the command bus — undoable), plus reactive theme tokens (`accent`,
+`text`, `muted`) and the widget cell's `width` / `height`.
+
+```vue
+<!-- Knob.vue -->
+<template>
+  <input
+    type="range" min="0" max="100" step="1"
+    :value="value ?? 0" :style="{ width: '100%', accentColor: accent, minWidth: 0 }"
+    @input="setValue(Number(($event.target as HTMLInputElement).value))"
+  />
+</template>
+
+<script setup lang="ts">
+import type { WidgetProps } from '@xenolith/vue'
+defineProps<WidgetProps>()
+</script>
+```
+
+```ts
+import Knob from './Knob.vue'
+import { vueWidget } from '@xenolith/vue'
+
+editor.registerWidget('knob', vueWidget(Knob))
+editor.registry.register({
+  type: 'Volume', title: 'Volume', category: 'data',
+  pins: [{ kind: 'data', direction: 'out', type: 'number', label: 'v' }],
+  widgets: [{ id: 'v', type: 'custom', renderer: 'knob', key: 'v', label: 'Volume' }],
+})
+```
+
+The wrapped component is mounted once per widget instance. Subsequent value changes mutate
+reactive props in place — no remount, no flicker. Theme switches (`setTheme(...)`) push new
+`accent` / `text` / `muted` values into the same refs.
+
+## SSR / Nuxt
+
+`<XenolithGraph>` paints nothing during SSR — PIXI requires WebGL. Inside a Nuxt page wrap it in
+`<ClientOnly>`:
+
+```vue
+<template>
+  <ClientOnly>
+    <XenolithGraph :resize-to-window="false" @ready="onReady" />
+  </ClientOnly>
+</template>
+```
+
+A dedicated Nuxt module is planned post-v1.0; until then the manual `<ClientOnly>` wrap is the
+full story.
+
+## Imperative escape hatch (no `<XenolithGraph>` parent)
+
+Need the editor outside the component tree — for instance, mounted into a third-party slot or
+a portal? Use `createEditorBinding` from `@xenolith/adapter-core` directly:
+
+```ts
+import { createEditorBinding } from '@xenolith/adapter-core'
+
+const binding = await createEditorBinding(targetEl, { graph, fitOnLoad: true })
+binding.on('node:click', (p) => console.log(p.nodeId))
+// ... later:
+binding.destroy()
+```
+
+This is the same primitive `<XenolithGraph>` builds on internally.
+
+## What's NOT in this adapter
+
+- **No `v-model="graph"`.** Same architectural reason as React: 1000-node diffing on each parent
+  update would defeat the WebGL renderer. `v-model` on individual widget values (via
+  `vueWidget()`) is the supported boundary.
+- **No SSR rendering.** `<ClientOnly>` is required in Nuxt.
+
+## Related
+
+- [`@xenolith/editor` API reference](/guides/api/) — every method exposed by `useEditor()` / `useEditorReady()`
+- [Widgets guide](/guides/widgets/) — built-in widgets + the `WidgetSpec` shape `vueWidget` plugs into
+- [Events](/guides/events-commands/) — the full 24-event surface and which are preventable
+- [SvelteKit integration](/integrations/sveltekit/) — the Svelte action, for comparison

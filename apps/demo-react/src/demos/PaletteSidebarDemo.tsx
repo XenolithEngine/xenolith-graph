@@ -14,7 +14,7 @@ export function PaletteSidebarDemo() {
         resizeToWindow={false}
         onReady={(editor) => {
           buildPaletteSidebar(editor)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       />
     </DemoStage>

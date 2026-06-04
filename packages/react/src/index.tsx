@@ -1,3 +1,7 @@
+'use client'
+// `'use client'` is REQUIRED — Xenolith is WebGL/PIXI; cannot run as a React Server Component. Without
+// this directive, Next.js App Router fails at the first import. Same applies to react-widget.tsx,
+// hooks.ts, components.tsx, context.ts.
 import { useEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode, type Ref } from 'react'
 import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xenolith/adapter-core'
 import type { EditorEvents, XenolithEditor } from '@xenolith/editor'
@@ -12,7 +16,7 @@ export {
   type PanelPosition, type XenolithPanelProps, type XenolithButtonProps,
   type XenolithControlsProps, type XenolithMiniMapProps,
 } from './components.js'
-export { useNodes, useEdges, useSelection, useViewport, useGraphJSON } from './hooks.js'
+export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useEditorEvent, useUndoRedo } from './hooks.js'
 export { reactWidget, type WidgetProps } from './react-widget.js'
 
 export interface XenolithGraphProps extends XenolithProps, EventCallbacks {

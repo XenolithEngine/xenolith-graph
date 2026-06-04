@@ -39,7 +39,7 @@ export function Chapter02() {
         onReady={(editor) => {
           editor.registry.register(greeterSchema)
           editor.loadJSON(graph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       />
     </DemoStage>

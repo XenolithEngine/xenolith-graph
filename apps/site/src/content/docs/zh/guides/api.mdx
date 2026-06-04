@@ -121,7 +121,7 @@ widgets: [
 ```ts
 editor.getWidgetValue(nodeId, 'steps')
 editor.setWidgetValue(nodeId, 'steps', 30)        // 钳制、可撤销
-editor.onWidgetAction(({ nodeId, action }) => { /* 按钮被按下 */ })
+editor.on('widget:action', ({ nodeId, action }) => { /* 按钮被按下 */ })
 ```
 
 每个控件可通过 `color.widget` / `geometry.widget` 令牌全局主题化，也可通过 `style` 逐实例覆盖：

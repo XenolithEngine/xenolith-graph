@@ -1,6 +1,11 @@
 # @xenolith/theme-xen
 
+[![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
+[![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
+
 **Xen** — the default original design system for XenolithGraph.
+
+> **Beta** — public API in `STABLE-API.md` is frozen for v0.7; some corners may still change before v1.0.
 
 A dark, gold-accented visual language with typed pins (circle / empty-circle / chevron), four category-coloured headers (logic green / data blue / macro purple / utility white), and glassmorphic header effects.
 

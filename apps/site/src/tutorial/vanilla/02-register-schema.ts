@@ -45,7 +45,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   editor.registry.register(greeterSchema)
 
   editor.loadJSON(graph)
-  editor.fitView({ padding: 80, maxZoom: 1 })
+  editor.view.fitView({ padding: 80, maxZoom: 1 })
 
   return () => editor.destroy()
 }

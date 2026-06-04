@@ -5,14 +5,30 @@ export type { XenolithProps } from './props.js'
 export { applyProps, type EditorLike } from './props.js'
 
 /** The canonical public editor event names. Every adapter derives its idiomatic surface from this
- *  single list (React `onNodeClick`, Vue `@node-click`, DOM `node:click`, …). */
+ *  single list (React `onNodeClick`, Vue `@node-click`, DOM `node:click`, …). Includes the four
+ *  preventable `-ing` variants — adapter users can cancel them from idiomatic adapter code. */
 export const EDITOR_EVENT_NAMES = [
-  'node:added', 'node:removed', 'node:moved', 'node:click',
-  'edge:connected', 'edge:disconnected',
+  'node:added', 'node:removed', 'node:removing', 'node:moved', 'node:click', 'node:clicking', 'node:drop',
+  'edge:connected', 'edge:disconnected', 'edge:connecting', 'edge:disconnecting',
   'selection:changed', 'viewport:changed',
   'widget:changed', 'widget:action',
   'graph:loaded', 'history:changed', 'dive:changed',
+  'sidebar:opened', 'sidebar:closed',
+  'livemode:changed',
+  'node:contextmenu', 'edge:contextmenu', 'canvas:contextmenu',
 ] as const satisfies ReadonlyArray<keyof EditorEvents>
+
+/** Compile-time exhaustiveness gate — if EditorEvents grows a new key and EDITOR_EVENT_NAMES forgets
+ *  it, this alias resolves to a tuple complaint instead of `true`, failing `tsc`. Cheaper than a
+ *  test and runs on every build.
+ *
+ *  CI also has `events-coverage.test.ts` for a runtime check that survives a tsc skip. */
+type _MissingEventNames = Exclude<keyof EditorEvents, (typeof EDITOR_EVENT_NAMES)[number]>
+type _AllEventsCovered = [_MissingEventNames] extends [never]
+  ? true
+  : ['ERROR — EDITOR_EVENT_NAMES is missing these events:', _MissingEventNames]
+const _eventsCovered: _AllEventsCovered = true
+void _eventsCovered
 
 export interface EditorBinding {
   readonly editor: XenolithEditor

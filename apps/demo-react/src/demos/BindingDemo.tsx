@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useSelection } from '@xenolith/react'
+import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent, useSelection } from '@xenolith/react'
 import type { WidgetSpec } from '@xenolith/editor'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
@@ -14,7 +14,7 @@ function Inspector() {
   const [, bump] = useState(0)
   // Re-read widget values when they change on the canvas (lightweight subscription; a dedicated
   // hook is overkill for one event).
-  useEffect(() => editor.on('widget:changed', () => bump((n) => n + 1)), [editor])
+  useEditorEvent('widget:changed', () => bump((n) => n + 1))
 
   const nodeId = selection[0] ?? null
   const node = nodeId ? editor.graph.getNode(nodeId) : undefined

@@ -83,7 +83,7 @@ function SaveLoadToolbar({ onBoot }: { onBoot: () => void }) {
     if (!file) return
     try {
       editor.loadJSON(JSON.parse(await file.text()))
-      editor.fitView({ padding: 80, maxZoom: 1 })
+      editor.view.fitView({ padding: 80, maxZoom: 1 })
       setSavedAt(null)
     } catch (err) { console.error(err) }
     e.target.value = ''
@@ -91,7 +91,7 @@ function SaveLoadToolbar({ onBoot }: { onBoot: () => void }) {
   const reset = (): void => {
     try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
     editor.loadJSON(seedGraph)
-    editor.fitView({ padding: 80, maxZoom: 1 })
+    editor.view.fitView({ padding: 80, maxZoom: 1 })
     setSavedAt(null); onBoot()
   }
 
@@ -136,7 +136,7 @@ export function Chapter06() {
           editor.registry.register(greeterSchema)
           editor.registry.register(toUpperSchema)
           editor.loadJSON(initial)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       >
         <SaveLoadToolbar onBoot={() => setBootKey((n) => n + 1)} />

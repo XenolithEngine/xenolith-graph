@@ -10,7 +10,9 @@ export type Framework = 'vanilla' | 'react' | 'vue' | 'svelte' | 'solid' | 'angu
 export const TUTORIAL_FRAMEWORKS: { key: Framework; label: string }[] = [
   { key: 'vanilla', label: 'JS' },
   { key: 'react',   label: 'React' },
-  // Vue / Svelte / Solid / Angular wire through the same switcher once their adapter coverage is
+  { key: 'vue',     label: 'Vue' },
+  { key: 'svelte',  label: 'Svelte' },
+  // Solid / Angular wire through the same switcher once their adapter coverage is
   // verified per chapter. See feedback_tutorials_framework_native — adapter first, then chapter.
 ]
 

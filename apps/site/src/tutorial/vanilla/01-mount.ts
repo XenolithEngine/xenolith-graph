@@ -36,7 +36,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   editor.loadJSON(graph)
 
   // 3. Frame the loaded content so it sits comfortably on screen.
-  editor.fitView({ padding: 80, maxZoom: 1 })
+  editor.view.fitView({ padding: 80, maxZoom: 1 })
 
   // Return a teardown. The tutorial preview calls it on reset; real apps call it on unmount.
   return () => editor.destroy()

@@ -5,6 +5,13 @@ import {
   type XenolithProps,
 } from '@xenolith/adapter-core'
 
+/** Imperative primitive for Svelte hosts that need direct editor access (registering schemas,
+ *  opening the sidebar, etc.) — the `use:xenolith` action keeps the binding private. The caller
+ *  owns teardown (call `destroy()` from `onDestroy`). */
+export function createXenolithGraph(el: HTMLElement, props: XenolithProps = {}): Promise<EditorBinding> {
+  return createEditorBinding(el, props)
+}
+
 /** Editor `node:click` → DOM event `node-click` (Svelte's `on:` directive can't bind colon names). */
 export function svelteEventName(event: string): string {
   return event.replace(':', '-')

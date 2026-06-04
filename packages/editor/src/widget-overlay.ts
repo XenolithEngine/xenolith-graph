@@ -178,7 +178,9 @@ export class WidgetOverlay {
       border:       `${st.borderWidth}px solid ${st.border}`,
       borderRadius: `${st.radius}px`,
       outline:      'none',
-      font:         `${st.fontWeight} ${st.fontSize}px ${st.fontFamily}`,
+      // iOS Safari auto-zooms the viewport when a focused input's font-size < 16px. Floor to 16
+      // on coarse-pointer devices so the editor doesn't jump every time a widget gets focus.
+      font:         `${st.fontWeight} ${typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? Math.max(16, st.fontSize) : st.fontSize}px ${st.fontFamily}`,
       resize:       'none',
       textAlign:    opts.numeric ? 'right' : 'left',
       ...(opts.caretColor ? { caretColor: opts.caretColor } : {}),

@@ -1,0 +1,129 @@
+---
+title: Node header icons
+description: Add an SVG glyph to a node's header — built-in Feather set, custom icons via `editor.icons.register`, side placement.
+---
+
+Every node can carry an SVG glyph in its header. The icon sits next to the title and reads
+the active theme's accent colour by default, so it picks up `setTheme()` for free.
+
+```ts
+editor.registry.register({
+  type: 'Transform', title: 'Transform', category: 'data',
+  glyph: { icon: 'code' },                     // ← header icon
+  pins: [/* … */],
+})
+```
+
+That single property turns this:
+
+```text
+┌─ Transform ────────────────┐
+│  In   ●               ● Out│
+└────────────────────────────┘
+```
+
+into this:
+
+```text
+┌─ </> Transform ────────────┐
+│  In   ●               ● Out│
+└────────────────────────────┘
+```
+
+## Built-in icons
+
+Thirteen icons ship with the editor — a curated Feather subset, chosen for category coverage
+(data / logic / utility / observability). No download, no asset path — they're inlined in the
+package.
+
+| Name | Use case |
+|---|---|
+| `layers` | Compositing, stack, multi-source |
+| `box` | Generic data container, payload |
+| `cpu` | Compute, transform, math |
+| `database` | Storage, cache, persist |
+| `branch` | Conditional, fork, filter |
+| `code` | Script, eval, format |
+| `play` | Trigger, run, source |
+| `zap` | Event, signal, emit |
+| `clock` | Timer, schedule, delay |
+| `flag` | Notification, milestone, breakpoint |
+| `circle` | Generic / data sink |
+| `square` | Output / display |
+| `diamond` | Decision, gate |
+
+Use any name as `glyph.icon`:
+
+```ts
+editor.registry.register({ type: 'Cache',     glyph: { icon: 'database' }, /* … */ })
+editor.registry.register({ type: 'Validate',  glyph: { icon: 'flag' },     /* … */ })
+editor.registry.register({ type: 'Format',    glyph: { icon: 'code' },     /* … */ })
+```
+
+## Side placement
+
+By default the glyph sits on the **left** of the title. Pass `side: 'right'` to mirror it —
+useful for output-y nodes (Display, Notify) where the icon reads better near the output edge.
+
+```ts
+editor.registry.register({
+  type: 'Display', title: 'Display', glyph: { icon: 'square', side: 'right' },
+  pins: [/* in pin only */],
+})
+```
+
+## Register custom icons
+
+`editor.icons.register(name, svgInnerMarkup)` adds (or overrides) an icon. The argument is the
+**inner** markup of a 24×24 `<svg viewBox="0 0 24 24">` — the editor wraps it with stroke
+styling pulled from the current theme.
+
+```ts
+editor.icons.register('wave',
+  '<path d="M2 12c2-6 6-6 8 0s6 6 8 0 6-6 4 0"/>',
+)
+editor.registry.register({
+  type: 'Smooth', glyph: { icon: 'wave' },
+  /* … */
+})
+```
+
+:::caution[Use `<path>` / `<circle>` / `<rect>` / `<ellipse>`]
+PIXI's SVG parser drops decimals from `<polyline>` / `<polygon>` points. Stick to `<path>` with
+integer coordinates (or `<circle>` / `<rect>` / `<ellipse>` — those work fine). Lines should be
+written as `<path d="M…L…"/>`.
+:::
+
+### Icon registry API
+
+| Method | What it does |
+|---|---|
+| `editor.icons.register(name, svgInner)` | Add or override |
+| `editor.icons.unregister(name)` | Remove (returns true if found) |
+| `editor.icons.has(name)` | Test existence |
+| `editor.icons.get(name)` | Fetch raw markup |
+| `editor.icons.names()` | List all currently registered icons |
+
+Icons registered on a live editor persist until `destroy()`. To pre-register at app boot, do it
+inside `onReady` (React/Vue) or right after `XenolithEditor.init` (vanilla).
+
+## Theming
+
+The glyph stroke colour comes from the active theme's `--xeno-accent`. Theme swaps re-paint icons
+in the new accent — no per-icon configuration needed. To override per-node (rare), provide a
+themed copy of the icon under a separate name.
+
+## Where to use icons
+
+- **Different node categories at a glance.** Pick one icon per category — `cpu` for transform,
+  `database` for data, `flag` for milestones — and apply consistently. Users learn the visual
+  shorthand within seconds.
+- **In-node-type semantics.** Use `play` on every trigger-style node, `clock` on every scheduled
+  one. A 200-node graph becomes scannable.
+- **Output/display nodes.** Combine `glyph: { icon: 'square', side: 'right' }` with a Display
+  widget body — the icon-on-the-right reads as "this is where the value comes out".
+
+## Related
+
+- [Widgets guide](/guides/widgets/) — the same kind of declarative spec for in-node UI
+- [Theme guide](/guides/theme/) — `setTheme()`, `--xeno-*` tokens, custom themes

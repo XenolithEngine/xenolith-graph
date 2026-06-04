@@ -1,3 +1,4 @@
+'use client'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode, ReactElement, ReactPortal, ButtonHTMLAttributes } from 'react'

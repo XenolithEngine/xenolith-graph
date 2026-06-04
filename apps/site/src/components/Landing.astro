@@ -12,30 +12,30 @@ interface Props { lang: Lang }
 const { lang } = Astro.props
 
 const docPath = lang === 'en' ? '/xenolith-graph/guides/install/' : `/xenolith-graph/${lang}/guides/install/`
+const learnPath = '/xenolith-graph/learn/'
 const playgroundPath = '/xenolith-graph/playground/'
 const examplesPath = '/xenolith-graph/examples/'
 const examplesLabel = lang === 'ru' ? 'Примеры' : lang === 'zh' ? '示例' : 'Examples'
+const learnLabel    = lang === 'ru' ? 'Туториал' : lang === 'zh' ? '教程' : 'Learn'
+const betaNote      = lang === 'ru'
+  ? 'Beta — API ещё может измениться до v1.0.'
+  : lang === 'zh' ? 'Beta —— v1.0 之前 API 仍可能变化。'
+  :                 'Beta — the API may still change before v1.0.'
 
 const t = (() => {
   if (lang === 'ru') return {
     eyebrow: ['Node-graph редактор', 'AI-native · отлаживается', 'WebGL · MIT'],
     h1:      'Красивое нодовое редактирование — готово к встраиванию.',
-    sub:     'Полированный node-graph редактор для веба — для AI-workflow билдеров, shader-редакторов, audio-конвейеров и любых dataflow-тулов. Визуальный step-debugger, time-travel и MCP-сервер для AI-агентов из коробки. Перетаскивайте, соединяйте, ныряйте в подграфы, вставляйте по Tab — всё работает в момент монтирования.',
+    sub:     'AI-native node-редактор с собственной визуальной идентичностью. Сделан для следующего поколения LangFlow-style тулов — а не ещё один React-Flow клон. WebGL-рендер, MCP-сервер для Claude / Cursor, framework-agnostic ядро, полированная Xen design-система из коробки.',
     ctaPrimary:   'Открыть документацию',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — тема по умолчанию',
-    showcaseB: 'Liquid Glass — вдохновлено новым дизайном Apple',
-    showcaseSub: 'Один и тот же граф, отрисованный двумя совершенно разными способами — переключаются в рантайме одной строкой. Liquid Glass даёт нодам настоящий стеклянный материал с преломлением и размытием фона.',
-    metrics: [
-      { v: '6',   l: 'фреймворк-адаптеров' },
-      { v: '60', l: 'fps на 10к нодов' },
-      { v: 'MIT', l: 'open-source лицензия' },
-    ],
+    showcaseSub: 'Реальный граф под Xen — оригинальной design-системой XenolithGraph. Дополнительные темы (например Liquid Glass) включаются в [playground](/xenolith-graph/playground/) и [Examples](/xenolith-graph/examples/).',
     featuresTitle: 'Что внутри',
     featuresSub: 'Всё что нужно реальному редактору графов из коробки — UX, модель, темы, плагины. Берите то что нужно — остальное не мешает.',
     features: [
-      { n: '01', h: 'Две темы, runtime-смена',
-        p: 'Xen — production-ready по умолчанию; Liquid Glass — стеклянный материал с преломлением и размытием фона. setTheme() переключает между ними вживую. Берите готовое, пишите свою или подключайте третью.' },
+      { n: '01', h: 'Xen — оригинальная design-система',
+        p: 'Production-ready тема по умолчанию — спроектирована в Figma как самостоятельный node-editor язык, не оверлей на flowchart-библиотеке. `setTheme()` переключает темы вживую: возьмите Xen, напишите свою или подключите дополнительные (Liquid Glass — в playground и examples).' },
       { n: '02', h: 'Под любой фреймворк',
         p: 'Первородные адаптеры для React, Vue, Svelte, Solid, Angular и Web Components — плюс vanilla-путь без зависимостей. Ядро framework-agnostic, zero-dep, headless.' },
       { n: '03', h: 'Палитра вставки · команды · хоткеи',
@@ -50,14 +50,8 @@ const t = (() => {
         p: 'Версионированный xenolith.v1 JSON с per-schema migrate-хуками — старые графы апгрейдятся автоматически. Встроен импортёр workflow ComfyUI. Экспорт ВСЕГО графа (а не viewport) в PNG или JPEG любого разрешения.' },
       { n: '08', h: 'Auto-layout · minimap · большие графы',
         p: 'Plug-in адаптеры для Dagre и ELK раскладывают граф одним вызовом (с анимацией tween). Встроенная мини-карта, виртуализация viewport после 300 нод, level-of-detail рендеринг, встроенная панель свойств которая следует за выборкой.' },
-      { n: '09', h: 'Визуальный step-debugger',
-        p: 'Пауза на любой ноде, шаг вперёд, инспектор инпутов/аутпутов, per-node тайминги. Жёлтое кольцо — пауза, зелёное — выполнено, красное — breakpoint. Chrome DevTools для графа — не игрушка, реальный debugger над любым executor’ом.' },
-      { n: '10', h: 'Time-travel · heatmap',
-        p: 'Перемотайте прогон одного запуска scrubber’ом — каждый шаг подсвечивается заново, инспектор показывает его inputs/outputs. Heatmap красит ноды от cool-blue до hot-red по длительности — drop-in observability layer, который никто из конкурентов не возит.' },
-      { n: '11', h: 'AI-native через MCP',
+      { n: '09', h: 'AI-native через MCP',
         p: 'Встроенный MCP-сервер позволяет Claude Desktop / Cursor строить граф напрямую: list_node_types → add_node → connect_pins → auto_layout. Все мутации идут через command bus — undo бесплатный. «Я описываю — редактор строит.»' },
-      { n: '12', h: 'Diff для PR-review',
-        p: 'Две версии графа рядом, structural diff подсвечен — зелёное добавлено, красное удалено, жёлтое изменено. Code-review для node-графов: нужно командам которые их версионируют (n8n/ComfyUI/LangFlow стайл).' },
     ],
     quickStartTitle: 'Старт за 30 секунд',
     quickStartCode: `import { XenolithEditor } from '@xenolith/editor'
@@ -76,22 +70,16 @@ editor.loadJSON(myGraph)
   if (lang === 'zh') return {
     eyebrow: ['节点图编辑器', 'AI 原生 · 可调试', 'WebGL · MIT'],
     h1:      '精美的节点编辑 — 为嵌入而生。',
-    sub:     '面向 Web 的精雕节点图编辑器 — 为 AI 工作流构建器、shader/材质编辑器、音频/dataflow 工具而生。内置可视化 step debugger、time-travel scrubber 与 MCP 服务器。拖拽、连线、深入子图、按 Tab 插入 — 编辑器挂载即刻可用。',
+    sub:     '具备独立视觉语言的 AI 原生节点编辑器。为下一代 LangFlow 风格的工具而生 —— 而非又一个 React-Flow 克隆。WebGL 渲染、面向 Claude / Cursor 的 MCP 服务器、框架无关的核心、开箱即用的精雕 Xen 设计系统。',
     ctaPrimary:   '查看文档',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — 默认主题',
-    showcaseB: 'Liquid Glass — 灵感源自苹果全新设计',
-    showcaseSub: '同一个图，两种截然不同的主题，运行时一行切换。Liquid Glass 为节点赋予真实的玻璃材质，带折射与背景模糊。',
-    metrics: [
-      { v: '6',   l: '框架适配器' },
-      { v: '60', l: 'fps / 10k 节点' },
-      { v: 'MIT', l: '开源许可证' },
-    ],
+    showcaseSub: '使用 XenolithGraph 原创设计系统 Xen 渲染的真实图。其他主题(如 Liquid Glass)在 [playground](/xenolith-graph/playground/) 与 [Examples](/xenolith-graph/examples/) 中提供。',
     featuresTitle: '内置什么',
     featuresSub:   '真实图编辑器所需的一切，开箱即用 — UX、模型、主题、插件。需要什么就用什么，其余不挡路。',
     features: [
-      { n: '01', h: '两种主题，运行时切换',
-        p: 'Xen 是生产就绪的默认主题；Liquid Glass 提供真实玻璃材质，带折射与背景模糊。setTheme() 实时切换。选用其一、自定义或写第三套。' },
+      { n: '01', h: 'Xen — 原创设计系统',
+        p: '生产可用的默认主题 —— 作为独立的节点编辑器语言在 Figma 中设计，而非通用 flowchart 库的皮肤。`setTheme()` 实时切换主题:使用 Xen、自定义,或接入更多(Liquid Glass 出现在 playground 与 examples 中)。' },
       { n: '02', h: '任意框架皆可',
         p: '为 React、Vue、Svelte、Solid、Angular 与 Web Components 提供官方适配器，也支持纯 vanilla。核心框架无关、零依赖、headless。' },
       { n: '03', h: '插入面板 · 命令 · 快捷键',
@@ -106,14 +94,8 @@ editor.loadJSON(myGraph)
         p: '版本化的 xenolith.v1 JSON，附带每个 schema 的 migrate 钩子 — 旧图自动升级。内置 ComfyUI workflow 导入器。导出整张图（而非视口）为任意分辨率的 PNG 或 JPEG。' },
       { n: '08', h: '自动布局 · 缩略图 · 大图',
         p: 'Dagre 与 ELK 适配器一次调用即可排版（带 tween 动画）。内置 minimap、超过 300 节点后启用视口虚拟化、LOD 渲染、随选区移动的属性面板。' },
-      { n: '09', h: '可视化 step debugger',
-        p: '在任意节点暂停，单步执行，查看每个节点的输入/输出与耗时。黄色环 = 暂停，绿色 = 已执行，红色 = 断点。"节点图版的 Chrome DevTools" — 真实可用的调试器，可叠加在任何执行器上。' },
-      { n: '10', h: 'Time-travel · 热力图',
-        p: '用 scrubber 回放一次执行 — 每一步重新点亮，inspector 显示该步的输入/输出。Heatmap 按耗时把节点染色，从冷蓝到热红 — 一份即插即用的可观测性叠加层，竞品都没有。' },
-      { n: '11', h: 'AI 原生 · MCP 集成',
+      { n: '09', h: 'AI 原生 · MCP 集成',
         p: '内置 MCP 服务器，让 Claude Desktop / Cursor 直接构建图：list_node_types → add_node → connect_pins → auto_layout。所有变更走 command bus — undo 免费。"我来描述，编辑器来搭。"' },
-      { n: '12', h: 'PR-review 用的 diff',
-        p: '两个版本的图并排显示，结构化 diff 高亮 — 绿色 = 新增，红色 = 删除，黄色 = 修改。节点图版的 code-review — 对版本化 n8n / ComfyUI / LangFlow 风格工作流的团队必备。' },
     ],
     quickStartTitle: '30 秒上手',
     quickStartCode: `import { XenolithEditor } from '@xenolith/editor'
@@ -132,22 +114,16 @@ editor.loadJSON(myGraph)
   return {
     eyebrow: ['Node-graph editor', 'AI-native · debuggable', 'WebGL · MIT'],
     h1:      'Beautiful node editing. Built to embed.',
-    sub:     'A polished node-graph editor for the web — built for AI-workflow builders, shader and material editors, audio and dataflow tools. Visual step debugger, time-travel scrubber, and MCP server included out of the box. Drag, connect, dive into subgraphs, hit Tab to insert — everything works the moment the editor mounts.',
+    sub:     'An AI-native node editor with its own visual identity. Built for the next generation of LangFlow-style tools — not another React-Flow clone. WebGL renderer, MCP server for Claude / Cursor, framework-agnostic core, polished Xen design system out of the box.',
     ctaPrimary:   'Open documentation',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — the default theme',
-    showcaseB: 'Liquid Glass — inspired by new Apple design',
-    showcaseSub: 'The same graph rendered two completely different ways — swapped at runtime in a single line. Liquid Glass gives every node a real glass material with refraction and a blurred backdrop.',
-    metrics: [
-      { v: '6',   l: 'framework adapters' },
-      { v: '60', l: 'fps on 10k nodes' },
-      { v: 'MIT', l: 'open-source license' },
-    ],
+    showcaseSub: 'A real graph rendered with Xen, the original XenolithGraph design system. Additional themes (e.g. Liquid Glass) live in the [playground](/xenolith-graph/playground/) and the [Examples](/xenolith-graph/examples/) gallery.',
     featuresTitle: 'What is inside',
     featuresSub: 'Everything a real-world graph editor needs out of the box — UX, model, themes, plugins. Pick the parts you want, the rest stays out of the way.',
     features: [
-      { n: '01', h: 'Two themes, runtime swap',
-        p: 'Xen is the production-ready default; Liquid Glass adds a real glass material with refraction and a blurred backdrop. setTheme() switches between them live — pick one, ship your own, or write a third.' },
+      { n: '01', h: 'Xen — original design system',
+        p: 'Production-ready default theme — designed in Figma as a node-editor language in its own right, not a skin on a generic flowchart library. `setTheme()` swaps themes live: ship with Xen, write your own, or add extras (Liquid Glass lives in the playground and examples).' },
       { n: '02', h: 'Built for any framework',
         p: 'First-party adapters for React, Vue, Svelte, Solid, Angular and Web Components — and a vanilla path that needs nothing. The core is framework-agnostic, zero-dep, headless.' },
       { n: '03', h: 'Insert palette · commands · hotkeys',
@@ -162,14 +138,8 @@ editor.loadJSON(myGraph)
         p: 'Versioned xenolith.v1 JSON with per-schema migrate hooks — old graphs upgrade automatically. ComfyUI workflow importer included. Export the entire graph (not just the viewport) to PNG or JPEG at any resolution.' },
       { n: '08', h: 'Auto-layout · minimap · large graphs',
         p: 'Drop-in plugins for Dagre and ELK arrange any graph with one call (animated tweens included). Built-in minimap, viewport virtualisation past 300 nodes, level-of-detail rendering, and an in-editor properties panel that travels with your selection.' },
-      { n: '09', h: 'Visual step debugger',
-        p: 'Pause on any node, step forward, inspect inputs and outputs, per-node timing. Yellow ring = paused, green = executed, red = breakpoint. Chrome DevTools for graphs — a real debugger you can drop on top of any executor, not a demo gimmick.' },
-      { n: '10', h: 'Time-travel · heatmap',
-        p: 'Rewind a run with the scrubber — each step lights back up and the inspector shows its inputs and outputs. The heatmap paints nodes from cool blue to hot red by latency — a drop-in observability layer no competitor ships.' },
-      { n: '11', h: 'AI-native via MCP',
+      { n: '09', h: 'AI-native via MCP',
         p: 'A built-in MCP server lets Claude Desktop or Cursor build the graph directly: list_node_types → add_node → connect_pins → auto_layout. All mutations flow through the command bus — undo is free. "I describe it, the editor builds it."' },
-      { n: '12', h: 'Graph diff for PR review',
-        p: 'Two versions of a graph side by side with structural diff highlights — green added, red removed, yellow modified. Drop-in code review for node-graphs, the missing piece for teams version-controlling n8n / ComfyUI / LangFlow-style workflows.' },
     ],
     quickStartTitle: '30-second start',
     quickStartCode: `import { XenolithEditor } from '@xenolith/editor'
@@ -193,13 +163,16 @@ editor.loadJSON(myGraph)
   <section class="xn-hero">
     <div class="xn-hero-left">
       <div class="xn-eyebrow-row">
+        <span class="xn-eyebrow xn-beta">{lang === 'ru' ? 'BETA' : lang === 'zh' ? 'BETA 测试版' : 'BETA'}</span>
         {t.eyebrow.map((e) => <span class="xn-eyebrow">{e}</span>)}
       </div>
       <h1 class="xn-h1">{t.h1}</h1>
       <p class="xn-hero-sub">{t.sub}</p>
+      <p class="xn-beta-note">{betaNote}</p>
       <div class="xn-cta-row">
         <a class="xn-btn xn-btn-primary" href={docPath}>{t.ctaPrimary} <span aria-hidden="true">→</span></a>
-        <a class="xn-btn xn-btn-ghost" href={playgroundPath}>{lang === 'ru' ? 'Открыть playground' : lang === 'zh' ? '打开 playground' : 'Open playground'}</a>
+        <a class="xn-btn xn-btn-ghost" href={learnPath}>{learnLabel}</a>
+        <a class="xn-btn xn-btn-ghost" href={playgroundPath}>{lang === 'ru' ? 'Playground' : lang === 'zh' ? 'Playground' : 'Playground'}</a>
         <a class="xn-btn xn-btn-ghost" href={examplesPath}>{examplesLabel}</a>
         <a class="xn-btn xn-btn-ghost" href="https://github.com/XenolithEngine/xenolith-graph">{t.ctaSecondary}</a>
       </div>
@@ -210,21 +183,11 @@ editor.loadJSON(myGraph)
     </div>
   </section>
 
-  <ul class="xn-metrics">
-    {t.metrics.map((m) => (
-      <li>
-        <div class="xn-metric-v">{m.v}</div>
-        <div class="xn-metric-l">{m.l}</div>
-      </li>
-    ))}
-  </ul>
-
   <section class="xn-showcase-section">
-    <h2 class="xn-h2">{t.showcaseA} · {t.showcaseB}</h2>
-    <p class="xn-h2-sub">{t.showcaseSub}</p>
+    <h2 class="xn-h2">{t.showcaseA}</h2>
+    <p class="xn-h2-sub" set:html={t.showcaseSub.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')} />
     <div class="xn-showcase-row">
-      <EditorShowcase id="hero-xen"          label={t.showcaseA} themeName="xen" />
-      <EditorShowcase id="hero-liquid-glass" label={t.showcaseB} themeName="liquid-glass" />
+      <EditorShowcase id="hero-xen" label={t.showcaseA} themeName="xen" />
     </div>
   </section>
 
@@ -423,27 +386,19 @@ editor.loadJSON(myGraph)
     z-index: -1; filter: blur(48px);
   }
 
-  /* METRICS */
-  .xn-metrics {
-    list-style: none; margin: 32px 0; padding: 0;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  /* BETA badge + tagline note */
+  .xn-eyebrow.xn-beta {
+    background: linear-gradient(135deg, #b34e2a, #f6c560);
+    color: #0F1010;
+    border-color: rgba(246, 197, 96, 0.6);
+    font-weight: 700;
   }
-  @media (max-width: 720px) { .xn-metrics { grid-template-columns: 1fr; } }
-  .xn-metrics li {
-    border: 1px solid var(--xn-hair-soft);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.015);
-    padding: 18px;
-  }
-  .xn-metric-v {
-    font-family: var(--xn-display);
-    font-size: 28px; font-weight: 500;
-    color: var(--xn-gold-bright);
-    margin-bottom: 4px;
-  }
-  .xn-metric-l {
-    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  .xn-beta-note {
     color: var(--xn-bone-mute);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    margin: -16px 0 24px;
+    max-width: 58ch;
   }
 
   /* SHOWCASE */

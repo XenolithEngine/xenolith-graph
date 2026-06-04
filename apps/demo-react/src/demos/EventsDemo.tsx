@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useSelection } from '@xenolith/react'
+import { useState } from 'react'
+import { XenolithGraph, XenolithPanel, useEditorEvent, useSelection } from '@xenolith/react'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
 
@@ -8,31 +8,25 @@ const SIDE_PANEL = { width: 280, maxHeight: 'calc(100% - 24px)', overflowY: 'aut
 /** Island: typed event callbacks wired to React state — a live log + selection inspector, all in an
  *  in-editor panel.
  *
- *  Canon: subscriptions live with the state that records them. EventsPanel uses useEditor() to
- *  attach editor.on() listeners; useSelection() replaces the manual selection-tracking state. No
- *  on* callback props on <XenolithGraph>. */
+ *  Canon: subscriptions live with the state that records them. EventsPanel uses `useEditorEvent`
+ *  (one line per event, auto-rebinds on editor swap); `useSelection()` replaces the manual
+ *  selection-tracking state. No on* callback props on <XenolithGraph>. */
 function EventsPanel() {
-  const editor = useEditor()
   const selected = useSelection()
   const [log, setLog] = useState<string[]>([])
   const [widgets, setWidgets] = useState<Record<string, unknown>>({})
+  const push = (line: string): void => setLog((l) => [line, ...l].slice(0, 40))
 
-  useEffect(() => {
-    const push = (line: string): void => setLog((l) => [line, ...l].slice(0, 40))
-    const offs = [
-      editor.on('node:click', (e) => push(`node:click ${e.nodeId}`)),
-      editor.on('selection:changed', (e) => push(`selection:changed (${e.nodeIds.length})`)),
-      editor.on('node:moved', (e) => push(`node:moved ${e.nodeId} → ${Math.round(e.position.x)},${Math.round(e.position.y)}`)),
-      editor.on('edge:connected', (e) => push(`edge:connected ${e.edge.id}`)),
-      editor.on('edge:disconnected', (e) => push(`edge:disconnected ${e.edgeId}`)),
-      editor.on('widget:changed', (e) => {
-        setWidgets((w) => ({ ...w, [`${e.nodeId}.${e.widgetId}`]: e.value }))
-        push(`widget:changed ${e.widgetId} = ${JSON.stringify(e.value)}`)
-      }),
-      editor.on('history:changed', (e) => push(`history undo=${e.canUndo} redo=${e.canRedo}`)),
-    ]
-    return () => { for (const off of offs) off() }
-  }, [editor])
+  useEditorEvent('node:click', (e) => push(`node:click ${e.nodeId}`))
+  useEditorEvent('selection:changed', (e) => push(`selection:changed (${e.nodeIds.length})`))
+  useEditorEvent('node:moved', (e) => push(`node:moved ${e.nodeId} → ${Math.round(e.position.x)},${Math.round(e.position.y)}`))
+  useEditorEvent('edge:connected', (e) => push(`edge:connected ${e.edge.id}`))
+  useEditorEvent('edge:disconnected', (e) => push(`edge:disconnected ${e.edgeId}`))
+  useEditorEvent('widget:changed', (e) => {
+    setWidgets((w) => ({ ...w, [`${e.nodeId}.${e.widgetId}`]: e.value }))
+    push(`widget:changed ${e.widgetId} = ${JSON.stringify(e.value)}`)
+  })
+  useEditorEvent('history:changed', (e) => push(`history undo=${e.canUndo} redo=${e.canRedo}`))
 
   return (
     <XenolithPanel position="top-right" style={SIDE_PANEL}>

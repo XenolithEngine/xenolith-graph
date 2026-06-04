@@ -151,6 +151,7 @@ import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
 import { InsertPalette } from './palette.js'
 import { pruneOrphanInlineReroutes } from './clipboard-prune.js'
 import { EdgeContextMenu, type EdgeMenuItem } from './edge-menu.js'
+import { ContextMenuRegistry, type ContextMenuItemSpec, type ContextMenuTarget } from './context-menu.js'
 import { WidgetOverlay, type OverlayRect } from './widget-overlay.js'
 import { Minimap, type MinimapPosition } from './minimap.js'
 import { EditorControls, type ControlsOptions, type ControlsPosition } from './controls.js'
@@ -191,6 +192,7 @@ export {
 } from './recipes.js'
 export type { StepExecutor, StepRecord, StepDebuggerStatus, StepDebuggerEvents } from './step-debugger.js'
 export { diffGraphs } from './graph-diff.js'
+export { ContextMenuRegistry, type ContextMenuItemSpec, type ContextMenuTarget } from './context-menu.js'
 export type { GraphDiff, DiffSnapshot, DiffSnapshotNode, DiffSnapshotEdge, DiffOptions } from './graph-diff.js'
 export type { CommandSpec, HotkeySpec, CommandId } from './commands-registry.js'
 export { SidebarManager } from './sidebar.js'
@@ -404,10 +406,142 @@ export class XenolithEditor {
   #displayGraph: Graph
   #displayBus: CommandBus
   readonly selection: Selection
-  /** The active (displayed) graph — the root document at depth 0, a definition while dived. */
+  /**
+   * The active (displayed) graph — the root document at depth 0, a definition while dived.
+   *
+   * @internal — UNSTABLE shape. The `Graph` class is implementation detail and may change in any
+   * minor release until v1.0. Hosts must use `toJSON()` / `getGraphReadonly()` to snapshot the
+   * graph, and command APIs (`addNode`, `connect`, …) to mutate it. Mutating through `editor.graph`
+   * bypasses the command bus → preventable events don't fire, undo/redo breaks.
+   */
   get graph(): Graph { return this.#displayGraph }
-  /** The active (displayed) command bus — the root document's bus at depth 0. */
+  /**
+   * The active (displayed) command bus — the root document's bus at depth 0.
+   *
+   * @internal — UNSTABLE. Dispatching commands directly bypasses preventable events (`node:removing`,
+   * `edge:connecting`, etc.). Use the public mutation API (`addNode`, `removeNode`, `connect`, …)
+   * which routes through the same bus but also fires the pre-mutation events.
+   */
   get commandBus(): CommandBus { return this.#displayBus }
+
+  /**
+   * Public read-only snapshot of the current graph as a structured-clonable JSON document
+   * (`xenolith.v1` format). Equivalent to {@link toJSON} — provided so the public API has a
+   * stable, type-safe alternative to the `@internal` `graph` getter.
+   */
+  getGraphReadonly(): Readonly<XenolithGraphV1> { return this.toJSON() }
+
+  /** Plugin registry for context-menu items (right-click / long-press menus). Items are merged
+   *  with the built-in menu at open time. See {@link ContextMenuRegistry}. */
+  readonly contextMenu = new ContextMenuRegistry()
+
+  // ---------------------------------------------------------------------------------------------
+  // Public API namespaces (v0.7 BETA stable). Each is a frozen object lazily built on first read
+  // (`??=` cache) so it's a stable reference for `useMemo`-style consumer code. The flat methods
+  // on the editor (`editor.pan`, `editor.undo`, `editor.fitView`, …) still exist for back-compat
+  // and remain @deprecated until v1.0 — new code should reach for the namespace form.
+  // ---------------------------------------------------------------------------------------------
+
+  #viewNs?: Readonly<{
+    pan: (dx: number, dy: number) => void
+    zoomAt: (focal: { x: number; y: number }, factor: number) => void
+    resetView: () => void
+    fitView: (opts?: { padding?: number; maxZoom?: number; minZoom?: number }) => void
+    setViewport: (state: ViewportState) => void
+    readonly state: ViewportState
+    screenToWorld: (point: { x: number; y: number }) => { x: number; y: number }
+    worldToScreen: (point: { x: number; y: number }) => { x: number; y: number }
+    readonly lastPointerWorld: { x: number; y: number } | null
+  }>
+  get view() {
+    const self = this
+    return this.#viewNs ??= Object.freeze({
+      pan: (dx: number, dy: number) => self.pan(dx, dy),
+      zoomAt: (focal: { x: number; y: number }, factor: number) => self.zoomAt(focal, factor),
+      resetView: () => self.resetView(),
+      fitView: (opts?: { padding?: number; maxZoom?: number; minZoom?: number }) =>
+        self.fitView(opts ?? {}),
+      setViewport: (state: ViewportState) => self.setViewport(state),
+      get state(): ViewportState { return self.viewport },
+      screenToWorld: (point: { x: number; y: number }) => self.screenToWorld(point),
+      worldToScreen: (point: { x: number; y: number }) => self.worldToScreen(point),
+      get lastPointerWorld(): { x: number; y: number } | null { return self.lastPointerWorld() },
+    })
+  }
+
+  #historyNs?: Readonly<{
+    undo: () => boolean; redo: () => boolean
+    readonly canUndo: boolean; readonly canRedo: boolean
+    clear: () => void
+  }>
+  get history() {
+    const self = this
+    return this.#historyNs ??= Object.freeze({
+      undo: () => self.undo(),
+      redo: () => self.redo(),
+      get canUndo(): boolean { return self.canUndo() },
+      get canRedo(): boolean { return self.canRedo() },
+      /** Forget every command in the undo/redo log. Call after `onReady` seeding so the user's
+       *  first Ctrl+Z doesn't unwind the initial graph. */
+      clear: () => self.commandBus.clearHistory(),
+    })
+  }
+
+  #clipboardNs?: Readonly<{
+    copy: () => boolean
+    paste: (target?: { x: number; y: number } | { dx: number; dy: number }) => NodeId[]
+    duplicate: (offset?: { dx: number; dy: number }) => NodeId[]
+    selectAll: () => void
+    deleteSelection: () => void
+  }>
+  get clipboard() {
+    const self = this
+    return this.#clipboardNs ??= Object.freeze({
+      copy: () => self.copySelection(),
+      paste: (target?: { x: number; y: number } | { dx: number; dy: number }) =>
+        target === undefined ? self.paste() : self.paste(target),
+      duplicate: (offset?: { dx: number; dy: number }) =>
+        offset === undefined ? self.duplicateSelected() : self.duplicateSelected(offset),
+      selectAll: () => self.selectAll(),
+      deleteSelection: () => self.deleteSelected(),
+    })
+  }
+
+  #chromeNs?: Readonly<{
+    setControls: (opts: ControlsOptions | false) => void
+    setMinimapVisible: (visible: boolean) => void
+    setMinimapPosition: (position: MinimapPosition) => void
+    setStatsVisible: (visible: boolean) => void
+    toggleStats: () => void
+    showOverlay: (label?: string) => void
+    hideOverlay: () => void
+    withOverlay: <T>(label: string, work: () => T | Promise<T>) => Promise<T>
+    enterFullscreen: () => Promise<void>
+    exitFullscreen: () => Promise<void>
+    toggleFullscreen: () => Promise<void>
+    readonly isFullscreen: boolean
+    readonly overlayRoot: HTMLElement
+    setBreadcrumbVisible: (visible: boolean) => void
+  }>
+  get chrome() {
+    const self = this
+    return this.#chromeNs ??= Object.freeze({
+      setControls: (opts: ControlsOptions | false) => self.setControls(opts),
+      setMinimapVisible: (visible: boolean) => self.setMinimapVisible(visible),
+      setMinimapPosition: (position: MinimapPosition) => self.setMinimapPosition(position),
+      setStatsVisible: (visible: boolean) => self.setStatsVisible(visible),
+      toggleStats: () => self.toggleStats(),
+      showOverlay: (label?: string) => label === undefined ? self.showOverlay() : self.showOverlay(label),
+      hideOverlay: () => self.hideOverlay(),
+      withOverlay: <T>(label: string, work: () => T | Promise<T>) => self.withOverlay(label, work),
+      enterFullscreen: () => self.enterFullscreen(),
+      exitFullscreen: () => self.exitFullscreen(),
+      toggleFullscreen: () => self.toggleFullscreen(),
+      get isFullscreen(): boolean { return self.isFullscreen() },
+      get overlayRoot(): HTMLElement { return self.overlayRoot },
+      setBreadcrumbVisible: (visible: boolean) => self.setBreadcrumbVisible(visible),
+    })
+  }
   readonly #app: Application
   /** True after `destroy()` runs. PIXI's `app.screen` getter throws on a destroyed Application
    *  instead of returning null, so we gate every access on this flag. */
@@ -582,6 +716,9 @@ export class XenolithEditor {
     this.selection = new Selection()
     this.#rootBus = new CommandBus({ graph: this.#rootGraph, events: this.#coreEvents })
     this.#displayBus = this.#rootBus
+    // Every command's execute() runs inside a bus transaction → N-step commands ("Clear all",
+    // "Group selected", custom plugin macros) collapse to one undoable history entry.
+    this.#commands.setExecutionMiddleware((fn) => this.#displayBus.transaction(fn))
     this.#zoomBounds = opts.zoomBounds ?? [0.25, 2]
     this.#snapSize = opts.snap ?? 8
 
@@ -631,6 +768,15 @@ export class XenolithEditor {
     if (!opts.disableInteraction) {
       this.#interaction = new InteractionManager(app.canvas as HTMLCanvasElement)
       this.#interaction.attach()
+      // iOS Safari long-press on ANY descendant of the host shows "image options" / text selection.
+      // Suppress at the host level so DOM overlays (panels, controls, widgets) inherit too. Inputs
+      // override `user-select` to `text` themselves so this doesn't block typing in widgets.
+      const hs = this.#host.style as CSSStyleDeclaration & {
+        webkitUserSelect?: string; webkitTouchCallout?: string
+      }
+      this.#host.style.userSelect = 'none'
+      hs.webkitUserSelect = 'none'
+      hs.webkitTouchCallout = 'none'
       this.#interaction.onZoom(({ focal, factor }) => {
         if (this.#htmlFieldFocused()) return // typing/picking in a DOM overlay — wheel must not zoom
         this.#viewport.zoomAt(focal, factor, this.#zoomBounds)
@@ -639,6 +785,24 @@ export class XenolithEditor {
         if (this.#htmlFieldFocused()) return
         this.#viewport.pan(dx, dy)
       })
+      // Two-finger gesture starts → cancel any in-flight single-pointer interaction so the
+      // first finger doesn't keep dragging a node while the second finger drives pan+zoom.
+      this.#interaction.onGestureBegin(() => { this.#cancelInFlightInteraction() })
+      // Long-press = touch equivalent of right-click. Cancel any in-flight drag first so we
+      // don't pop the menu mid-drag (single touch on a node would be `pending` node-drag).
+      this.#interaction.onLongPress(({ x, y }) => {
+        if (this.#htmlFieldFocused()) return
+        this.#endLongPressRing(true)
+        this.#cancelInFlightInteraction()
+        this.#openMenuAt({ x, y })
+      })
+      // Visual ring at the touch point during the hold — only when SOMETHING is under the finger,
+      // otherwise the user sees a ring leading to nothing (empty-canvas long-press is a no-op).
+      this.#interaction.onLongPressStart(({ x, y, ms }) => {
+        if (!this.#hasMenuAt({ x, y })) return
+        this.#beginLongPressRing(x, y, ms)
+      })
+      this.#interaction.onLongPressCancel(() => this.#endLongPressRing(false))
       app.stage.eventMode = 'static'
       app.stage.hitArea = app.screen
       // Any pointerdown that reaches the stage means the user is interacting with content, not
@@ -795,8 +959,17 @@ export class XenolithEditor {
     })
 
     if (opts.minimap) {
-      this.#ensureMinimap()
-      if (typeof opts.minimap === 'object' && opts.minimap.position) this.#minimap!.setPosition(opts.minimap.position)
+      // The 210×150 minimap eats ~1/4 of a phone screen — auto-skip on coarse pointers when the
+      // host opts in with just `true`. Hosts that pass an object explicitly opted into the layout
+      // and presumably already sized things to fit.
+      const coarse = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        && window.matchMedia('(pointer: coarse)').matches
+      if (typeof opts.minimap === 'boolean' && coarse) {
+        // skip
+      } else {
+        this.#ensureMinimap()
+        if (typeof opts.minimap === 'object' && opts.minimap.position) this.#minimap!.setPosition(opts.minimap.position)
+      }
     }
 
     if (opts.resizeToWindow !== false) {
@@ -856,6 +1029,91 @@ export class XenolithEditor {
       this.#overlayRoot = root
     }
     return this.#overlayRoot
+  }
+
+  #longPressRing: HTMLDivElement | null = null
+
+  /** Paint a growing ring at the touch point so the user can see the long-press hold progressing.
+   *  CSS `transition` runs for `ms` — at completion the ring is at full size & opacity, exactly
+   *  when `intent:long-press` fires and the menu pops. Hidden behind pointer-events:none. */
+  #beginLongPressRing(x: number, y: number, ms: number): void {
+    this.#endLongPressRing(false)
+    const root = this.overlayRoot
+    const ring = document.createElement('div')
+    Object.assign(ring.style, {
+      position: 'absolute', left: `${x}px`, top: `${y}px`,
+      width: '14px', height: '14px', borderRadius: '50%',
+      transform: 'translate(-50%, -50%) scale(1)',
+      border: '2px solid var(--xeno-accent, #FCB400)',
+      opacity: '0.85', pointerEvents: 'none',
+      transition: `transform ${ms}ms ease-out, opacity ${ms}ms ease-out`,
+      willChange: 'transform, opacity',
+    } as Partial<CSSStyleDeclaration>)
+    root.appendChild(ring)
+    this.#longPressRing = ring
+    requestAnimationFrame(() => {
+      if (!this.#longPressRing) return
+      this.#longPressRing.style.transform = 'translate(-50%, -50%) scale(4)'
+      this.#longPressRing.style.opacity = '0.15'
+    })
+  }
+
+  #endLongPressRing(success: boolean): void {
+    const ring = this.#longPressRing
+    if (!ring) return
+    this.#longPressRing = null
+    if (success) {
+      // Quick flash-out so the menu pops cleanly.
+      ring.style.transition = 'transform 120ms ease-out, opacity 120ms ease-out'
+      ring.style.transform = 'translate(-50%, -50%) scale(6)'
+      ring.style.opacity = '0'
+    } else {
+      ring.style.transition = 'opacity 150ms ease-out'
+      ring.style.opacity = '0'
+    }
+    setTimeout(() => ring.remove(), 200)
+  }
+
+  /** Enter fullscreen on the editor host. Uses the native Fullscreen API where supported (desktop,
+   *  Android Chrome, iPadOS Safari 16+); falls back to a CSS pseudo-fullscreen (position:fixed
+   *  inset:0 + high z-index) on iPhone Safari which still doesn't support requestFullscreen. */
+  async enterFullscreen(): Promise<void> {
+    if (this.isFullscreen()) return
+    const el = this.#host as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }
+    if (typeof el.requestFullscreen === 'function') {
+      try { await el.requestFullscreen(); return } catch { /* fall through to CSS fallback */ }
+    } else if (typeof el.webkitRequestFullscreen === 'function') {
+      try { await el.webkitRequestFullscreen(); return } catch { /* fall through */ }
+    }
+    el.classList.add('xeno-pseudo-fullscreen')
+    if (!document.getElementById('xeno-pseudo-fullscreen-style')) {
+      const s = document.createElement('style')
+      s.id = 'xeno-pseudo-fullscreen-style'
+      s.textContent =
+        '.xeno-pseudo-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;' +
+        'height:100dvh!important;z-index:2147483646!important;background:#000;}'
+      document.head.appendChild(s)
+    }
+    this.#onResize()
+  }
+
+  async exitFullscreen(): Promise<void> {
+    const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> }
+    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+      try { await document.exitFullscreen() } catch { /* ignore */ }
+    } else if (typeof doc.webkitExitFullscreen === 'function') {
+      try { await doc.webkitExitFullscreen() } catch { /* ignore */ }
+    }
+    this.#host.classList.remove('xeno-pseudo-fullscreen')
+    this.#onResize()
+  }
+
+  toggleFullscreen(): Promise<void> {
+    return this.isFullscreen() ? this.exitFullscreen() : this.enterFullscreen()
+  }
+
+  isFullscreen(): boolean {
+    return document.fullscreenElement === this.#host || this.#host.classList.contains('xeno-pseudo-fullscreen')
   }
 
   /** Mark the scene dirty so the next ticker frame repaints. Cheap to call repeatedly — the flag
@@ -1378,17 +1636,50 @@ export class XenolithEditor {
     this.#events.emit('node:drop', { nodeId, files, text, items, position: world })
   }
 
-  /** Pick the deepest interactive target under `screen` (pin → node → edge midpoint) and open the
-   *  matching context menu. Called from `#onRightUp` after confirming the gesture wasn't a pan. */
+  /** True when there is a pickable target (pin / node / edge) under `screen` — used to gate the
+   *  long-press ring so we don't promise a menu on empty canvas. Same hit-test ladder as #openMenuAt. */
+  #hasMenuAt(screen: { x: number; y: number }): boolean {
+    const world = screenToWorld(screen, this.#viewport.state)
+    if (this.#pickPinAt(world)) return true
+    if (this.#pickNodeAt(world) !== null) return true
+    const tolerance = this.#theme.tokens.geometry.edge.midpointRadius + 5
+    if (this.#pickEdgeAt(world, tolerance)) return true
+    return false
+  }
+
+  /** Pick the deepest interactive target under `screen` (pin → node → edge midpoint → canvas) and
+   *  open the matching context menu. Called from `#onRightUp` after confirming the gesture wasn't
+   *  a pan. Emits preventable `*:contextmenu` event — listeners that call `cancel()` (e.g. a host
+   *  with its own menu UI) suppress the built-in menu. */
   #openMenuAt(screen: { x: number; y: number }): void {
     const world = screenToWorld(screen, this.#viewport.state)
     const pinHit = this.#pickPinAt(world)
     if (pinHit) { this.#openPinMenu(pinHit.nodeId, pinHit.pinId, screen); return }
     const nodeId = (this.#hoveredId !== null && this.graph.getNode(this.#hoveredId)) ? this.#hoveredId : this.#pickNodeAt(world)
-    if (nodeId !== null) { this.#openNodeMenu(nodeId, screen); return }
+    if (nodeId !== null) {
+      if (!firePreventable(this.#events, 'node:contextmenu', { nodeId, screen })) return
+      this.#openNodeMenu(nodeId, screen)
+      return
+    }
     const tolerance = this.#theme.tokens.geometry.edge.midpointRadius + 5
     const edgeId = this.#pickEdgeAt(world, tolerance)
-    if (edgeId) this.#openEdgeMenu(edgeId, screen)
+    if (edgeId) {
+      if (!firePreventable(this.#events, 'edge:contextmenu', { edgeId, screen })) return
+      this.#openEdgeMenu(edgeId, screen)
+      return
+    }
+    // Empty canvas — let plugin items show; if none registered AND no listener engages, drop.
+    if (!firePreventable(this.#events, 'canvas:contextmenu', { screen, worldPosition: world })) return
+    this.#openCanvasMenu(screen, world)
+  }
+
+  /** Open a context menu for empty canvas. Built-in items are empty by default; only registered
+   *  plugin items appear. If nothing's registered the menu is suppressed silently. */
+  #openCanvasMenu(screen: { x: number; y: number }, world: { x: number; y: number }): void {
+    const { start, end } = this.contextMenu.itemsFor({ kind: 'canvas', worldPosition: world })
+    const items = [...start, ...end]
+    if (items.length === 0) return
+    this.#ensureEdgeMenu().open(screen, items)
   }
 
   /** Suppress the browser context menu — the editor opens its own on `pointerup` (`#onRightUp`)
@@ -1484,11 +1775,14 @@ export class XenolithEditor {
         items.push({ label: 'Ungroup', hint: 'dissolve', onSelect: () => this.ungroupMacro(nodeId) })
       }
       items.push({ label: 'Delete', hint: 'Del', onSelect: () => { this.deleteSelected(); this.#requestRender() } })
-      menu.open(screen, items)
+      const plugin = this.contextMenu.itemsFor({ kind: 'node', nodeId })
+      menu.open(screen, [...plugin.start, ...items, ...plugin.end])
     } else {
-      menu.open(screen, [
+      const plugin = this.contextMenu.itemsFor({ kind: 'node', nodeId })
+      menu.open(screen, [...plugin.start,
         { label: 'Group', hint: '⌘G', onSelect: () => { this.createMacroFromSelection(); this.#requestRender() } },
         { label: 'Convert to Template', hint: '⌘⇧G', onSelect: () => { this.createTemplateFromSelection(); this.#requestRender() } },
+        ...plugin.end,
       ])
     }
   }
@@ -1503,13 +1797,15 @@ export class XenolithEditor {
     const dstType = String(dstNode?.pins.find((p) => String(p.id) === String(edge.to.pin))?.type ?? 'any')
     const world = screenToWorld(screen, this.#viewport.state)
     if (!this.#edgeMenu) this.#edgeMenu = new EdgeContextMenu(this.#host, this.#theme.paletteStyle)
-    this.#edgeMenu.open(screen, [
+    const plugin = this.contextMenu.itemsFor({ kind: 'edge', edgeId })
+    this.#edgeMenu.open(screen, [...plugin.start,
       { label: 'Add Reroute', hint: 'dot', onSelect: () => { this.insertRerouteOnEdge(edgeId, world); this.#requestRender() } },
       { label: 'Add Node', hint: 'search', onSelect: () => {
           this.#pendingEdgeSplice = { edgeId, srcType, dstType }
           this.openPalette(screen)
         } },
       { label: 'Delete', hint: 'break', onSelect: () => { this.deleteEdge(edgeId); this.#requestRender() } },
+      ...plugin.end,
     ])
   }
 
@@ -3689,11 +3985,6 @@ export class XenolithEditor {
     return this.#events.on(event, handler)
   }
 
-  /** @deprecated use `on('widget:action', …)`. Kept as a thin alias over the unified event bus. */
-  onWidgetAction(handler: (e: EditorEvents['widget:action']) => void): () => void {
-    return this.#events.on('widget:action', handler)
-  }
-
   /** Current value of a widget (clamped `node.state[key]`, or its default). */
   getWidgetValue(nodeId: NodeId, widgetId: string): unknown {
     const found = this.#widgetSpec(nodeId, widgetId)
@@ -5026,6 +5317,14 @@ export class XenolithEditor {
   screenToWorld(point: { x: number; y: number }): { x: number; y: number } { return screenToWorld(point, this.#viewport.state) }
   /** Convert a world-space point to host/screen pixels — e.g. to anchor a DOM overlay to a node. */
   worldToScreen(point: { x: number; y: number }): { x: number; y: number } { return worldToScreen(point, this.#viewport.state) }
+  /**
+   * The raw PIXI `Application` driving the editor.
+   *
+   * @internal — UNSTABLE. Exposes the PIXI v8 surface as a public dependency, which would lock
+   * Xenolith to PIXI's major-version cadence after v1.0. Use specific public escape hatches
+   * instead (`overlayRoot`, `exportImage`, `setTheme`). If you need something this getter is
+   * currently your only path to, open an issue.
+   */
   get app(): Application { return this.#app }
   get theme(): XenolithTheme { return this.#theme }
   get tokens(): XenTokens { return this.#theme.tokens }
@@ -5674,9 +5973,22 @@ export class XenolithEditor {
     return out
   }
 
+  /** Set by #wireStageInteraction so #cancelInFlightInteraction can drop a marquee owned by the
+   *  closure. Null until wireStageInteraction runs. */
+  #cancelMarqueeRef: (() => void) | null = null
+
   #wireStageInteraction(): void {
     let marquee: MarqueeState = { kind: 'idle' }
     const stage = this.#app.stage
+    this.#cancelMarqueeRef = () => {
+      if (marquee.kind === 'active') {
+        marquee.gfx.parent?.removeChild(marquee.gfx)
+        marquee.gfx.destroy()
+      }
+      marquee = { kind: 'idle' }
+      this.#marqueeHovered.clear()
+      this.#requestRender()
+    }
 
     stage.on('pointerdown', (e: FederatedPointerEvent) => {
       if (e.button !== 0) return
@@ -6259,6 +6571,25 @@ export class XenolithEditor {
     // Rewire dropped in empty space (or on incompatible) → snap the original edge back. Same
     // behaviour as Esc; matches UE Blueprint where releasing into the void cancels the reroute.
     if (!committed && rewireOriginal) this.#restoreEdge(rewireOriginal)
+  }
+
+  /** Multi-touch gesture took over the canvas — drop any single-pointer drag without committing it.
+   *  Node drags revert visually to initial positions (no command pushed); pin drags use the existing
+   *  cancel path (ghost destroyed, rewired edge restored). Marquee state lives inside
+   *  #wireStageInteraction's closure and resets on the next pointerup. */
+  #cancelInFlightInteraction(): void {
+    this.#cancelMarqueeRef?.()
+    if (this.#dragState.kind === 'pin-drag') { this.#cancelPinDrag(); return }
+    if (this.#dragState.kind === 'pending')  { this.#dragState = { kind: 'idle' }; return }
+    if (this.#dragState.kind === 'active') {
+      for (const [id, initial] of this.#dragState.initialPositions) {
+        const view = this.#views.get(id)
+        if (view) view.container.position.set(initial.x, initial.y)
+      }
+      for (const edgeId of this.#dragState.affectedEdges) this.#redrawEdge(edgeId)
+      this.#dragState = { kind: 'idle' }
+      this.#requestRender()
+    }
   }
 
   #cancelPinDrag(): void {

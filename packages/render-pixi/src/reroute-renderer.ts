@@ -5,6 +5,12 @@ import { markPinInteractive } from './node-renderer.js'
 import type { NodeView, NodeVisualState, RenderNodeOptions } from './node-renderer.js'
 import { resolvePinFill, resolvePinStroke } from './style.js'
 
+/** Touch devices get a larger hit zone around reroute knots. Visual radius unchanged. */
+const REROUTE_HIT_FACTOR = (() => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 1
+  return window.matchMedia('(pointer: coarse)').matches ? 1.8 : 1
+})()
+
 /** Selection/hover/active rim colour for the reroute knots, matching the theme's node state colours
  *  (gold hover, white selected, amber active) rather than a hardcoded white. */
 export function rerouteStateColor(state: NodeVisualState, tokens: XenTokens): string | undefined {
@@ -53,7 +59,7 @@ export function renderRerouteNode(
   // The disc body is the node's drag/select target. Pins only claim small caps at the left/right
   // edges (below), leaving the centre grabbable so the knot can be moved.
   body.eventMode = 'static'
-  body.hitArea = new Circle(cx, cy, r)
+  body.hitArea = new Circle(cx, cy, r * REROUTE_HIT_FACTOR)
   container.addChild(body)
 
   // Inner type-coloured core for a crisper read at small zoom.

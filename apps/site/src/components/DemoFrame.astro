@@ -95,7 +95,14 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
   .dfr-tabs { display: flex; gap: 2px; padding: 6px 8px 0; flex-wrap: wrap; background: #0F1010; }
   .dfr-tab { font: inherit; font-size: 12px; padding: 6px 11px; border: none; border-radius: 6px 6px 0 0; background: transparent; color: #9a9a9a; cursor: pointer; }
   .dfr-tab.active { background: #161616; color: #fff; }
-  .dfr-hidden { display: none; }
+  /* `:global` so slot children (the per-framework `[data-fw]` panes rendered by the parent page,
+     not by DemoFrame itself) match this rule. Astro scopes regular class selectors to the
+     component that defines them — slot content doesn't get the scope hash, so the un-globalised
+     rule silently fails to hide slotted panes. */
+  /* `!important` overrides inline `display` on slot children (e.g. the Angular placeholder pane
+     uses inline `display: grid` for centring). Without `!important` a slotted pane with inline
+     display wins over the class. */
+  :global(.dfr-hidden) { display: none !important; }
   .dfr-codewrap :global(pre) { margin: 0; border-radius: 0; padding: 16px 20px; max-height: 440px; overflow: auto; }
   .dfr-codewrap :global(pre) :global(code) { display: block; }
 </style>

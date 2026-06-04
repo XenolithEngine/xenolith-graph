@@ -1,3 +1,4 @@
+'use client'
 import { useCallback, useRef, useSyncExternalStore } from 'react'
 import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1 } from '@xenolith/editor'
 import { useXenolithEditor } from './context.js'
@@ -101,3 +102,53 @@ export const useGraphJSON: () => XenolithGraphV1 | null = makeEditorStoreHook(
   (e) => e.toJSON(),
   null as XenolithGraphV1 | null,
 )
+
+import { useEffect } from 'react'
+
+/**
+ * Subscribe to a single editor event from a React component. Handler is auto-rebound when the
+ * editor changes; unsubscribed on unmount. Use this for events that don't have a dedicated hook —
+ * `node:click`, `edge:disconnected`, `sidebar:opened`, `livemode:changed`, `node:drop`, the four
+ * preventable `*-ing` events, etc.
+ *
+ * The handler is captured by closure each render — no deps array needed; the latest closure is
+ * always called. This matches `useSyncExternalStore` semantics and avoids stale-closure footguns.
+ *
+ * @example
+ *   useEditorEvent('node:removing', (p) => { if (p.nodeId === lockedId) p.cancel() })
+ *   useEditorEvent('widget:changed', (p) => setLocalCopy(p.value))
+ */
+export function useEditorEvent<E extends keyof EditorEvents>(
+  event: E,
+  handler: (payload: EditorEvents[E]) => void,
+): void {
+  const editor = useXenolithEditor()
+  const handlerRef = useRef(handler)
+  handlerRef.current = handler
+  useEffect(() => {
+    if (!editor) return
+    return editor.on(event, (payload) => handlerRef.current(payload))
+  }, [editor, event])
+}
+
+const UNDO_REDO_EVENTS = ['history:changed'] as const
+
+/**
+ * `{ canUndo, canRedo, undo, redo }` — live undo/redo state + stable callable handles. Use for
+ * toolbars: `<button disabled={!canUndo} onClick={undo}>Undo</button>`. Re-renders whenever the
+ * editor's undo/redo log changes.
+ */
+export function useUndoRedo(): { canUndo: boolean; canRedo: boolean; undo: () => boolean; redo: () => boolean } {
+  const editor = useXenolithEditor()
+  const state = makeEditorStoreHook<{ canUndo: boolean; canRedo: boolean }>(
+    UNDO_REDO_EVENTS,
+    (e) => ({ canUndo: e.history.canUndo, canRedo: e.history.canRedo }),
+    { canUndo: false, canRedo: false },
+  )()
+  return {
+    canUndo: state.canUndo,
+    canRedo: state.canRedo,
+    undo: useCallback(() => editor?.history.undo() ?? false, [editor]),
+    redo: useCallback(() => editor?.history.redo() ?? false, [editor]),
+  }
+}

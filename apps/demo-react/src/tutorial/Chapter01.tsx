@@ -36,7 +36,7 @@ export function Chapter01() {
         resizeToWindow={false}
         onReady={(editor) => {
           editor.loadJSON(graph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       />
     </DemoStage>

@@ -45,7 +45,7 @@ export function CustomWidgetsDemo() {
             node.state[d.key] = d.val
             editor.addNode(node)
           }
-          editor.fitView({ padding: 56, maxZoom: 1 })
+          editor.view.fitView({ padding: 56, maxZoom: 1 })
         }}
       >
         <XenolithControls position="top-right" orientation="horizontal" />

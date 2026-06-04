@@ -74,17 +74,20 @@ function Toolbar() {
   const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
   const run = async (stepMs: number): Promise<void> => {
-    // Kahn topological sort. Bails on cycle — better to refuse than to step forever.
-    const indeg = new Map<NodeId, number>()
-    const outs  = new Map<NodeId, NodeId[]>()
-    for (const n of editor.graph.nodes()) { indeg.set(n.id as NodeId, 0); outs.set(n.id as NodeId, []) }
-    for (const e of editor.graph.edges()) {
+    // Snapshot the scene once via the public `getGraphReadonly()` view. Kahn topological sort over
+    // the snapshot. Bails on cycle — better to refuse than to step forever.
+    const snapshot = editor.getGraphReadonly()
+    const nodeById = new Map(snapshot.nodes.map((n) => [n.id, n]))
+    const indeg = new Map<string, number>()
+    const outs  = new Map<string, string[]>()
+    for (const n of snapshot.nodes) { indeg.set(n.id, 0); outs.set(n.id, []) }
+    for (const e of snapshot.edges) {
       indeg.set(e.to.node, (indeg.get(e.to.node) ?? 0) + 1)
       outs.get(e.from.node)!.push(e.to.node)
     }
-    const ready: NodeId[] = []
+    const ready: string[] = []
     for (const [id, d] of indeg) if (d === 0) ready.push(id)
-    const order: NodeId[] = []
+    const order: string[] = []
     while (ready.length > 0) {
       const id = ready.shift()!
       order.push(id)
@@ -98,23 +101,23 @@ function Toolbar() {
     const values = new Map<string, number>()
     setStatus(stepMs > 0 ? 'stepping…' : 'running…')
     for (const id of order) {
-      editor.setSelection([id])
-      const node = editor.graph.getNode(id)!
+      editor.setSelection([id as NodeId])
+      const node = nodeById.get(id)!
       const inputs: Record<string, number> = {}
-      for (const e of editor.graph.edges()) {
+      for (const e of snapshot.edges) {
         if (e.to.node !== id) continue
         const inPin = node.pins.find((p) => String(p.id) === String(e.to.pin))
         if (!inPin?.label) continue
-        const fromNode = editor.graph.getNode(e.from.node)
+        const fromNode = nodeById.get(e.from.node)
         const fromPin  = fromNode?.pins.find((p) => String(p.id) === String(e.from.pin))
         if (!fromPin?.label) continue
         const v = values.get(`${e.from.node}:${fromPin.label}`)
         if (typeof v === 'number') inputs[inPin.label] = v
       }
       const fn = compute[node.type]
-      const result = fn ? fn(inputs, node.state) : {}
+      const result = fn ? fn(inputs, node.state ?? {}) : {}
       for (const [label, v] of Object.entries(result)) values.set(`${id}:${label}`, v)
-      if (node.type === 'Output') editor.setWidgetValue(id, 'result', String(result['In'] ?? ''))
+      if (node.type === 'Output') editor.setWidgetValue(id as NodeId, 'result', String(result['In'] ?? ''))
       if (stepMs > 0) await sleep(stepMs)
     }
     editor.setSelection([])
@@ -152,7 +155,7 @@ export function Chapter07() {
         onReady={(editor) => {
           ;[constSchema, addSchema, mulSchema, outSchema].forEach((s) => editor.registry.register(s))
           editor.loadJSON(seedGraph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       >
         <Toolbar />

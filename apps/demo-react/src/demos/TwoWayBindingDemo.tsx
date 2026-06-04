@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useSelection, useGraphJSON } from '@xenolith/react'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useEditorEvent, useSelection, useGraphJSON } from '@xenolith/react'
 import type { WidgetSpec } from '@xenolith/editor'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
@@ -12,7 +12,7 @@ function Inspector() {
   const editor = useEditor()
   const selection = useSelection()
   const [, bump] = useState(0)
-  useEffect(() => editor.on('widget:changed', () => bump((n) => n + 1)), [editor])
+  useEditorEvent('widget:changed', () => bump((n) => n + 1))
   const nodeId = selection[0] ?? null
   const node = nodeId ? editor.graph.getNode(nodeId) : undefined
   const widgets = (node?.widgets ?? []).filter((w) => w.key !== undefined)
@@ -63,7 +63,7 @@ function JsonPanel() {
   const focused = useRef(false)
   useEffect(() => { if (json && !focused.current) { setText(JSON.stringify(json, null, 2)); setErr(false) } }, [json])
   const apply = (): void => {
-    try { editor.loadJSON(JSON.parse(text)); editor.fitView({ padding: 48, maxZoom: 1 }); focused.current = false; setErr(false) }
+    try { editor.loadJSON(JSON.parse(text)); editor.view.fitView({ padding: 48, maxZoom: 1 }); focused.current = false; setErr(false) }
     catch { setErr(true) }
   }
   return (

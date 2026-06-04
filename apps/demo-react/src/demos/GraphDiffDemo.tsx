@@ -66,9 +66,9 @@ function buildPrev(editor: XenolithEditor): Built {
   editor.addEdge({ id: crypto.randomUUID(), from: { node: b.id, pin: o(b) }, to: { node: add.id, pin: iAt(add, 1) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: add.id, pin: o(add) }, to: { node: out.id, pin: iAt(out, 0) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: add.id, pin: o(add) }, to: { node: dbg.id, pin: iAt(dbg, 0) } } as never)
-  editor.fitView({ padding: 60 })
+  editor.view.fitView({ padding: 60 })
   const positions: Built['positions'] = {}
-  for (const n of editor.graph.nodes()) {
+  for (const n of editor.getGraphReadonly().nodes) {
     positions[String(n.id)] = { x: n.position.x, y: n.position.y, w: n.size?.x ?? 200, h: n.size?.y ?? 80 }
   }
   return {
@@ -103,9 +103,9 @@ function buildNext(editor: XenolithEditor): Built {
   editor.addEdge({ id: crypto.randomUUID(), from: { node: add.id, pin: o(add) }, to: { node: mul.id, pin: iAt(mul, 0) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: extra.id, pin: o(extra) }, to: { node: mul.id, pin: iAt(mul, 1) } } as never)
   editor.addEdge({ id: crypto.randomUUID(), from: { node: mul.id, pin: o(mul) }, to: { node: out.id, pin: iAt(out, 0) } } as never)
-  editor.fitView({ padding: 60 })
+  editor.view.fitView({ padding: 60 })
   const positions: Built['positions'] = {}
-  for (const n of editor.graph.nodes()) {
+  for (const n of editor.getGraphReadonly().nodes) {
     positions[String(n.id)] = { x: n.position.x, y: n.position.y, w: n.size?.x ?? 200, h: n.size?.y ?? 80 }
   }
   return {
@@ -123,13 +123,14 @@ function buildNext(editor: XenolithEditor): Built {
 }
 
 function snapshotWithKeys(editor: XenolithEditor, meta: Record<string, { key: string }>): { nodes: { id: string; type: string; position: { x: number; y: number }; state: Record<string, unknown> }[]; edges: { id: string; from: { node: string; pin: string }; to: { node: string; pin: string } }[] } {
-  const nodes = [...editor.graph.nodes()].map((n) => ({
+  const snap = editor.getGraphReadonly()
+  const nodes = snap.nodes.map((n) => ({
     id: meta[String(n.id)]?.key ?? String(n.id),
     type: n.type,
     position: { x: n.position.x, y: n.position.y },
     state: { ...n.state },
   }))
-  const edges = [...editor.graph.edges()].map((e) => {
+  const edges = snap.edges.map((e) => {
     const fk = meta[String(e.from.node)]?.key ?? String(e.from.node)
     const tk = meta[String(e.to.node)]?.key ?? String(e.to.node)
     return { id: `${fk}→${tk}`, from: { node: fk, pin: '' }, to: { node: tk, pin: '' } }
@@ -137,31 +138,11 @@ function snapshotWithKeys(editor: XenolithEditor, meta: Record<string, { key: st
   return { nodes, edges }
 }
 
-/** Make the editor accept ONLY pan/zoom — every other interaction is blocked.
- *  1) Walk the PIXI scene under stage and set every interactive child's `eventMode='none'`
- *     so hit-testing never lands on a node / pin / edge → drag never even starts. The stage
- *     itself stays interactive, so its own pan/zoom handlers continue to receive events.
- *  2) Belt-and-braces: intercept `commandBus.apply` to drop any mutation command — protects
- *     against future code paths that route around the eventMode trick. */
+/** Lock the editor: no node drag, no pin connect, no marquee — pan/zoom stays live so the user can
+ *  still navigate the comparison. Programmatic mutations (used by the diff paint pass) keep working
+ *  because they go through the public API, not the interactive event path. */
 function makeReadOnly(editor: XenolithEditor): void {
-  const blocked = new Set(['MoveNode', 'AddNode', 'RemoveNode', 'ConnectPins', 'DisconnectEdge', 'SetNodeState', 'SetNodePins'])
-  const bus = editor.commandBus as unknown as { apply: (cmd: { type: string }) => unknown }
-  const orig = bus.apply.bind(bus)
-  bus.apply = (cmd) => (blocked.has(cmd.type) ? undefined : orig(cmd))
-  const stage = editor.app.stage as unknown as { children?: unknown[] }
-  const disable = (c: { eventMode?: string; children?: unknown[] }): void => {
-    if (c.eventMode === 'static') c.eventMode = 'none'
-    for (const ch of (c.children ?? [])) disable(ch as never)
-  }
-  for (const ch of (stage.children ?? [])) disable(ch as never)
-  // Editor's sync may re-enable node interactivity after future graph changes — repeat on
-  // the next few frames so we catch the initial measure pass too.
-  let ticks = 0
-  const tick = (): void => {
-    for (const ch of (stage.children ?? [])) disable(ch as never)
-    if (++ticks < 6) requestAnimationFrame(tick)
-  }
-  requestAnimationFrame(tick)
+  editor.setInteractive(false)
   editor.selection.clear()
 }
 
@@ -171,11 +152,13 @@ interface DomOverlayHandles {
 }
 
 function reposition(editor: XenolithEditor, handles: DomOverlayHandles, keyToId: Record<string, string>, removedPositions: Record<string, { x: number; y: number; w: number; h: number }>): void {
+  const snap = editor.getGraphReadonly()
+  const nodeById = new Map(snap.nodes.map((n) => [String(n.id), n]))
   for (const [key, el] of handles.modified) {
     const id = keyToId[key]; if (!id) continue
-    const n = editor.graph.getNode(id as never); if (!n) continue
-    const tl = editor.worldToScreen(n.position)
-    const br = editor.worldToScreen({ x: n.position.x + (n.size?.x ?? 200), y: n.position.y + (n.size?.y ?? 80) })
+    const n = nodeById.get(String(id)); if (!n) continue
+    const tl = editor.view.worldToScreen(n.position)
+    const br = editor.view.worldToScreen({ x: n.position.x + (n.size?.x ?? 200), y: n.position.y + (n.size?.y ?? 80) })
     el.style.left   = `${tl.x - 3}px`
     el.style.top    = `${tl.y - 3}px`
     el.style.width  = `${br.x - tl.x + 6}px`
@@ -183,8 +166,8 @@ function reposition(editor: XenolithEditor, handles: DomOverlayHandles, keyToId:
   }
   for (const [key, el] of handles.removed) {
     const p = removedPositions[key]; if (!p) continue
-    const tl = editor.worldToScreen({ x: p.x, y: p.y })
-    const br = editor.worldToScreen({ x: p.x + p.w, y: p.y + p.h })
+    const tl = editor.view.worldToScreen({ x: p.x, y: p.y })
+    const br = editor.view.worldToScreen({ x: p.x + p.w, y: p.y + p.h })
     const wPx = br.x - tl.x
     const hPx = br.y - tl.y
     el.style.left   = `${tl.x}px`
@@ -204,7 +187,7 @@ function reposition(editor: XenolithEditor, handles: DomOverlayHandles, keyToId:
 }
 
 function paintAfterOverlay(editor: XenolithEditor, diff: GraphDiff, afterIds: Record<string, string>, prevPositions: Record<string, { x: number; y: number; w: number; h: number }>, prevTypes: Record<string, string>): DomOverlayHandles {
-  for (const n of editor.graph.nodes()) editor.setNodeStatus(n.id, 'idle')
+  for (const n of editor.getGraphReadonly().nodes) editor.setNodeStatus(n.id as never, 'idle')
   for (const k of diff.addedNodes) { const id = afterIds[k]; if (id) editor.setNodeStatus(id as never, 'ok') }
   const handles: DomOverlayHandles = { modified: new Map(), removed: new Map() }
   for (const k of diff.modifiedNodes) {
@@ -214,7 +197,7 @@ function paintAfterOverlay(editor: XenolithEditor, diff: GraphDiff, afterIds: Re
       pointerEvents: 'none', boxShadow: '0 0 0 1px rgba(0,0,0,0.4) inset', zIndex: '20',
     } as Partial<CSSStyleDeclaration>)
     el.setAttribute('data-diff-modified', k)
-    editor.overlayRoot.appendChild(el)
+    editor.chrome.overlayRoot.appendChild(el)
     handles.modified.set(k, el)
   }
   for (const k of diff.removedNodes) {
@@ -230,7 +213,7 @@ function paintAfterOverlay(editor: XenolithEditor, diff: GraphDiff, afterIds: Re
     const fullLabel = `— ${prevTypes[k] ?? 'node'} removed —`
     el.dataset['fullLabel'] = fullLabel
     el.textContent = fullLabel
-    editor.overlayRoot.appendChild(el)
+    editor.chrome.overlayRoot.appendChild(el)
     handles.removed.set(k, el)
   }
   reposition(editor, handles, afterIds, prevPositions)

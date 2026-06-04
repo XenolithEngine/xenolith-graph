@@ -1,6 +1,11 @@
 # @xenolith/mcp-server
 
+[![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
+[![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
+
 MCP (Model Context Protocol) server for XenolithGraph. Lets Claude Desktop, Cursor, or any MCP client drive a live editor in your browser over a localhost WebSocket bridge.
+
+> **Beta** — public API in `STABLE-API.md` is frozen for v0.7; some corners may still change before v1.0.
 
 ## Architecture (Scenario A — desktop dev)
 

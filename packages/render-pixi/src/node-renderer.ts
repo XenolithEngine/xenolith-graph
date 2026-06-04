@@ -39,8 +39,13 @@ export interface PinHandle {
 }
 
 /** Hit-radius multiplier applied to pin Graphics. > 1 makes pins easier to grab with a mouse
- *  and gives finger-sized targets for tablets without changing the visual diameter. */
-const PIN_HIT_RADIUS_FACTOR = 2.4
+ *  and gives finger-sized targets for tablets without changing the visual diameter. Bumps to
+ *  ~5.5 when the primary input is a finger so a tap lands in a 44px-diameter zone (WCAG 2.5.5).
+ *  Detected once per module load — SSR-safe via the typeof window guard. */
+const PIN_HIT_RADIUS_FACTOR = (() => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 2.4
+  return window.matchMedia('(pointer: coarse)').matches ? 5.5 : 2.4
+})()
 
 /** Read the PinHandle from a PIXI event target (or any DisplayObject). Returns null when the
  *  target is not a pin Graphics. Editor code uses this on stage `pointerdown` / `pointerover`. */

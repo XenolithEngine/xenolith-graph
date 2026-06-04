@@ -9,6 +9,17 @@ const MAP: Record<string, () => Promise<{ mount: Mount }>> = {
   '06-save-load':       () => import('./vanilla/06-save-load.ts'),
   '07-run-graph':       () => import('./vanilla/07-run-graph.ts'),
   '08-make-it-yours':   () => import('./vanilla/08-make-it-yours.ts'),
+
+  // Svelte adapter chapters — same vanilla router, prefixed by framework key. The [step].astro
+  // host script picks `svelte-${id}` when the Svelte chip is active.
+  'svelte-01-mount':            () => import('./vanilla/svelte-01-mount.ts'),
+  'svelte-02-register-schema':  () => import('./vanilla/svelte-02-register-schema.ts'),
+  'svelte-03-connect-edges':    () => import('./vanilla/svelte-03-connect-edges.ts'),
+  'svelte-04-widgets':          () => import('./vanilla/svelte-04-widgets.ts'),
+  'svelte-05-events':           () => import('./vanilla/svelte-05-events.ts'),
+  'svelte-06-save-load':        () => import('./vanilla/svelte-06-save-load.ts'),
+  'svelte-07-run-graph':        () => import('./vanilla/svelte-07-run-graph.ts'),
+  'svelte-08-make-it-yours':    () => import('./vanilla/svelte-08-make-it-yours.ts'),
 }
 
 export async function mountVanillaChapter(id: string, target: HTMLElement): Promise<() => void> {

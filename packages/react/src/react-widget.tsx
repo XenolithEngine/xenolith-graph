@@ -1,3 +1,4 @@
+'use client'
 import { createRoot, type Root } from 'react-dom/client'
 import type { ReactNode } from 'react'
 import type { DomWidgetController } from '@xenolith/editor'

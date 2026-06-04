@@ -56,11 +56,20 @@ for (const id of ids) {
   // Hide editor chrome — overlay panels (controls, minimap, breadcrumb, custom toolbars), palette
   // sidebar — and Astro's dev toolbar. DOM widgets that live INSIDE the editor's widget rects stay
   // (those aren't `data-xeno-panel`); they're part of the graph the user is looking at.
-  await page.evaluate(() => {
+  // Hide editor chrome (overlay panels, controls, minimap, breadcrumb, custom toolbars, palette
+  // sidebar). Exception: the `palette-sidebar` example IS the sidebar — keep it visible so the
+  // thumbnail actually shows the feature being demoed.
+  await page.evaluate((id) => {
     document.querySelector('astro-dev-toolbar')?.remove()
-    const sel = '[data-xeno-overlay-root], [data-xeno-panel], [data-xeno-controls], [data-xeno-minimap], [data-xeno-breadcrumb], [data-xeno-sidebar], [data-xeno-palette-sidebar], [data-xeno-stats]'
-    document.querySelectorAll(sel).forEach((el) => { el.style.display = 'none' })
-  })
+    // The palette sidebar carries BOTH `data-xeno-palette-sidebar` AND `data-xeno-panel` — when
+    // we exempt it for the palette-sidebar example we have to filter on both attrs (`:not(...)`),
+    // otherwise the broader `[data-xeno-panel]` rule still hides it.
+    const KEEP = id === 'palette-sidebar'
+    const not = KEEP ? ':not([data-xeno-palette-sidebar])' : ''
+    const base = [`[data-xeno-panel]${not}`, '[data-xeno-controls]', '[data-xeno-minimap]', '[data-xeno-breadcrumb]', '[data-xeno-sidebar]', '[data-xeno-stats]']
+    const sel = KEEP ? base.join(', ') : [...base, '[data-xeno-palette-sidebar]'].join(', ')
+    document.querySelectorAll(sel).forEach((el) => { (el).style.display = 'none' })
+  }, id)
   await page.waitForTimeout(150)
   await page.locator('.dfr-preview').screenshot({ path: `${OUT}/${id}.jpg`, type: 'jpeg', quality: 88 })
   console.log('✓', id)

@@ -121,7 +121,7 @@ widgets: [
 ```ts
 editor.getWidgetValue(nodeId, 'steps')
 editor.setWidgetValue(nodeId, 'steps', 30)        // кламп, undoable
-editor.onWidgetAction(({ nodeId, action }) => { /* нажата кнопка */ })
+editor.on('widget:action', ({ nodeId, action }) => { /* нажата кнопка */ })
 ```
 
 Каждый виджет темизируется глобально через токены `color.widget` / `geometry.widget` и пер-инстанс через `style`:

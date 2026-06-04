@@ -23,7 +23,7 @@ function JsonPanel() {
   const apply = (): void => {
     try {
       editor.loadJSON(JSON.parse(text))
-      editor.fitView({ padding: 48, maxZoom: 1 })
+      editor.view.fitView({ padding: 48, maxZoom: 1 })
       focused.current = false
       setErr(false)
     } catch { setErr(true) }

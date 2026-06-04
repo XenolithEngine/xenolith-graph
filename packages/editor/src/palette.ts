@@ -70,6 +70,7 @@ export class InsertPalette {
     // closed (setStyle updates #style but can't touch the DOM until the panel is visible).
     this.#applyStyle()
     this.#position(screen)
+    this.#applyDrawerMode()
     this.#input!.value = ''
     this.#refilter()
     this.#input!.focus()
@@ -122,6 +123,11 @@ export class InsertPalette {
     input.setAttribute('data-xeno-palette-input', '')
     input.setAttribute('placeholder', 'Search nodes…')
     input.setAttribute('spellcheck', 'false')
+    // 16px on coarse pointer is mandatory — iOS Safari auto-zooms the viewport on focus when the
+    // input's font-size is < 16px, which jumps the whole layout when the palette opens. Desktop
+    // keeps the tighter 13px (consistent with the rest of the palette typography).
+    const coarse = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(pointer: coarse)').matches
     Object.assign(input.style, {
       outline:    'none',
       border:     '1px solid transparent',
@@ -130,6 +136,7 @@ export class InsertPalette {
       borderRadius: '7px',
       width:      'calc(100% - 16px)',
       boxSizing:  'border-box',
+      fontSize:   coarse ? '16px' : '13px',
     } satisfies Partial<CSSStyleDeclaration>)
 
     const list = document.createElement('div')
@@ -183,6 +190,31 @@ export class InsertPalette {
     if (y + maxH > hostRect.height) y = Math.max(0, hostRect.height - maxH - 8)
     root.style.left = `${x}px`
     root.style.top = `${y}px`
+  }
+
+  /** On narrow viewports / coarse pointers, glue the palette to the host's bottom edge as a
+   *  full-width drawer instead of a 280×340 popover the user can't read. */
+  #applyDrawerMode(): void {
+    const root = this.#root!
+    const hostRect = this.#host.getBoundingClientRect()
+    const coarse = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(pointer: coarse)').matches
+    const narrow = hostRect.width < 520
+    if (!coarse && !narrow) {
+      // Reset any drawer overrides if the panel was drawer-mode last open but now the viewport
+      // grew (host resize, orientation change).
+      root.style.right  = ''
+      root.style.bottom = ''
+      root.style.width  = '280px'
+      root.style.maxHeight = '340px'
+      return
+    }
+    root.style.left   = '8px'
+    root.style.right  = '8px'
+    root.style.top    = ''
+    root.style.bottom = '8px'
+    root.style.width  = 'auto'
+    root.style.maxHeight = `min(60vh, ${Math.max(220, hostRect.height - 60)}px)`
   }
 
   #refilter(): void {

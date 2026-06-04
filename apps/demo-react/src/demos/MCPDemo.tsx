@@ -28,7 +28,7 @@ function setupMCP(editor: XenolithEditor): void {
   editor.registerWidget('curve', createCurveWidget())
   editor.registerWidget('xypad', createXYPadWidget())
   for (const s of demoSchemas) editor.registry.register(s)
-  editor.fitView()
+  editor.view.fitView()
 }
 
 function MCPPanel() {

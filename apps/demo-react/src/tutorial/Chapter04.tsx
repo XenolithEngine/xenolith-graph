@@ -61,7 +61,7 @@ export function Chapter04() {
           editor.registry.register(greeterSchema)
           editor.registry.register(toUpperSchema)
           editor.loadJSON(graph)
-          editor.fitView({ padding: 80, maxZoom: 1 })
+          editor.view.fitView({ padding: 80, maxZoom: 1 })
         }}
       />
     </DemoStage>

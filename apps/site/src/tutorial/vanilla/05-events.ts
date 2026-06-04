@@ -47,7 +47,7 @@ export async function mount(target: HTMLElement): Promise<() => void> {
   editor.registry.register(greeterSchema)
   editor.registry.register(toUpperSchema)
   editor.loadJSON(graph)
-  editor.fitView({ padding: 80, maxZoom: 1 })
+  editor.view.fitView({ padding: 80, maxZoom: 1 })
 
   // ── Build a small live-readout panel inside the editor's overlay root. The overlay root sits
   //    above the canvas and below the editor's chrome — same place the in-editor controls live.
@@ -62,13 +62,15 @@ export async function mount(target: HTMLElement): Promise<() => void> {
     <div>Nodes: <b data-k="nodes">0</b> · Edges: <b data-k="edges">0</b></div>
     <div>Selected: <b data-k="sel">—</b></div>
     <div>Last edit: <b data-k="edit">—</b></div>`
-  editor.overlayRoot.appendChild(panel)
+  editor.chrome.overlayRoot.appendChild(panel)
   const $ = (k: string) => panel.querySelector<HTMLElement>(`[data-k="${k}"]`)!
 
-  // Initial paint and helper to refresh node/edge counts from the live graph.
+  // Initial paint and helper to refresh node/edge counts from the live graph. `getGraphReadonly()`
+  // is the public snapshot — cheap to call, returns the same xenolith.v1 shape as `toJSON()`.
   const refreshCounts = (): void => {
-    $('nodes').textContent = String(editor.graph.nodeCount)
-    $('edges').textContent = String(editor.graph.edgeCount)
+    const snap = editor.getGraphReadonly()
+    $('nodes').textContent = String(snap.nodes.length)
+    $('edges').textContent = String(snap.edges.length)
   }
   refreshCounts()
 

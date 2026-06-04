@@ -123,7 +123,7 @@ Built-in types: **number** (drag-scrub + click-to-type), **slider**, **combo** (
 ```ts
 editor.getWidgetValue(nodeId, 'steps')
 editor.setWidgetValue(nodeId, 'steps', 30)        // clamped, undoable
-editor.onWidgetAction(({ nodeId, action }) => { /* button pressed */ })
+editor.on('widget:action', ({ nodeId, action }) => { /* button pressed */ })
 ```
 
 Every widget is themeable globally via `color.widget` / `geometry.widget` tokens, and per-instance via a `style` override:

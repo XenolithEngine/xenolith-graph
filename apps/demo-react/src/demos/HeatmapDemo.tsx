@@ -71,7 +71,7 @@ function buildPipeline(editor: XenolithEditor): NodeMetric[] {
     const a = created[i]!.node, b = created[i + 1]!.node
     editor.addEdge({ id: crypto.randomUUID(), from: { node: a.id, pin: o0(a) as never }, to: { node: b.id, pin: i0(b) as never } } as never)
   }
-  editor.fitView({ padding: 80 })
+  editor.view.fitView({ padding: 80 })
   return created.map(({ spec, node }, i) => ({
     nodeId: node.id, base: spec.cost, phase: i * 0.7, metric: spec.cost, label: spec.label,
   }))
@@ -122,8 +122,10 @@ function HeatmapPanel() {
       // a hardcoded width that doesn't match wider node types) AND prevents the "jump on
       // micro-zoom" we saw when `n.size` first appeared.
       const FALLBACK_W = 220, FALLBACK_H = 80
+      const snap = editor.getGraphReadonly()
+      const nodeById = new Map(snap.nodes.map((nn) => [String(nn.id), nn]))
       for (const [id, dot] of dotsRef.current) {
-        const n = editor.graph.getNode(id as never)
+        const n = nodeById.get(String(id))
         if (!n) continue
         let cached = sizeCacheRef.current.get(id)
         if (!cached && n.size) {
@@ -132,7 +134,7 @@ function HeatmapPanel() {
         }
         const w = cached?.w ?? FALLBACK_W
         const h = cached?.h ?? FALLBACK_H
-        const bottomCentre = editor.worldToScreen({ x: n.position.x + w / 2, y: n.position.y + h })
+        const bottomCentre = editor.view.worldToScreen({ x: n.position.x + w / 2, y: n.position.y + h })
         dot.el.style.left = `${bottomCentre.x}px`
         dot.el.style.top  = `${bottomCentre.y + 12}px`
       }
@@ -142,7 +144,7 @@ function HeatmapPanel() {
         let dot = dotsRef.current.get(String(m.nodeId))
         if (!dot) {
           dot = makeDot()
-          editor.overlayRoot.appendChild(dot.el)
+          editor.chrome.overlayRoot.appendChild(dot.el)
           dotsRef.current.set(String(m.nodeId), dot)
         }
         dot.el.style.color = heatColor(m.metric)

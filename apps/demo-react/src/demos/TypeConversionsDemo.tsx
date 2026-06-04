@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolith/react'
+import { useState } from 'react'
+import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent } from '@xenolith/react'
 import { setupTypeConversions, setConversionEnabled } from '@xenolith/demo/type-conversions'
 import { DemoStage } from '../Layout.js'
 
@@ -20,13 +20,9 @@ function TypeConversionsPanel() {
 
   const append = (line: string): void => setLog((prev) => [...prev.slice(-39), `[${STAMP()}] ${line}`])
 
-  useEffect(() => {
-    return editor.on('edge:connected', (e) => {
-      append(`✓ connected ${String(e.edge.id).slice(0, 6)} (number → text via cast)`)
-    })
-    // `editor` is stable for the lifetime of the panel (provider gates children on it).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor])
+  useEditorEvent('edge:connected', (e) => {
+    append(`✓ connected ${String(e.edge.id).slice(0, 6)} (number → text via cast)`)
+  })
 
   const toggle = (): void => {
     const next = !enabled
