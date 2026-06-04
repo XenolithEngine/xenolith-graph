@@ -19,5 +19,13 @@
     "declarationMap": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/__tests__/**",
+    "**/__mocks__/**"
+  ]
 }

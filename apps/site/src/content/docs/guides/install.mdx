@@ -6,10 +6,10 @@ description: Install XenolithGraph and mount your first editor.
 ## Install
 
 ```sh
-npm install @xenolithengine/editor @xenolithengine/core @xenolithengine/theme-xen pixi.js
+npm install @xenolithengine/editor pixi.js
 ```
 
-`pixi.js` is a peer dependency — pin it in your app so you stay in control of the renderer version.
+That's all. `@xenolithengine/editor` lists `core`, `render-pixi`, and `theme-xen` as transitive dependencies — npm pulls them automatically. `pixi.js` stays a peer dependency so you pin it yourself and keep control of the WebGL renderer version.
 
 ## Mount
 
