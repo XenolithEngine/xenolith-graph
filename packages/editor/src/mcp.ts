@@ -533,7 +533,7 @@ export class McpClient {
       this.#socket = ws
       this.#status?.('connecting')
       ws.onopen = () => {
-        ws.send(JSON.stringify({ kind: 'hello', editorVersion: '0.7.0-beta.0' }))
+        ws.send(JSON.stringify({ kind: 'hello', editorVersion: '0.7.0-beta.1' }))
         this.#status?.('open')
         resolve()
       }

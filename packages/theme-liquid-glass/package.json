@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-theme-liquid-glass",
-  "version": "0.7.0-beta.0",
+  "version": "0.7.0-beta.1",
   "description": "Liquid Glass theme for XenolithGraph — Apple WWDC25-inspired translucent material.",
   "license": "MIT",
   "type": "module",

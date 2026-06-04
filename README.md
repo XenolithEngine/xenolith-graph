@@ -16,24 +16,9 @@ An embeddable, drop-in node-graph editor for the web with a polished design syst
 
 > **Status: v0.7 BETA.** The public API documented in [`STABLE-API.md`](STABLE-API.md) is the surface we plan to freeze, but it is **NOT frozen yet** — breaking changes can land at any point before v1.0. If you adopt now, pin an exact version. Initial touch / mobile support landed (pinch, two-finger pan, long-press menu, drawer chrome) but a few polish items remain. See [Roadmap](#roadmap) below.
 
-<p align="center">
-  <a href="https://xenolithengine.github.io/xenolith-graph/playground/">
-    <img alt="Try it live" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20live%20%E2%80%94%20open%20the%20playground-FCB400?style=for-the-badge&labelColor=0A0A0A" />
-  </a>
-  &nbsp;
-  <a href="https://xenolithengine.github.io/xenolith-graph/examples/">
-    <img alt="Examples gallery" src="https://img.shields.io/badge/Examples%20gallery%20%E2%86%92-1d1d1d?style=for-the-badge" />
-  </a>
-</p>
+<p align="center"><a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img alt="Try it live" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20live%20%E2%80%94%20open%20the%20playground-FCB400?style=for-the-badge&labelColor=0A0A0A" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/examples/" target="_blank" rel="noopener noreferrer"><img alt="Examples gallery" src="https://img.shields.io/badge/Examples%20gallery%20%E2%86%92-1d1d1d?style=for-the-badge" /></a></p>
 
-<p>
-  <a href="https://xenolithengine.github.io/xenolith-graph/playground/">
-    <img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme (click to open the live playground)" width="49%" />
-  </a>
-  <a href="https://xenolithengine.github.io/xenolith-graph/playground/">
-    <img src="docs/screenshots/liquid-glass.png" alt="Liquid Glass — shader-based frosted theme (click to open the live playground)" width="49%" />
-  </a>
-</p>
+<p><a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme (click to open the live playground)" width="49%" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/liquid-glass.png" alt="Liquid Glass — shader-based frosted theme (click to open the live playground)" width="49%" /></a></p>
 
 ## What it does
 

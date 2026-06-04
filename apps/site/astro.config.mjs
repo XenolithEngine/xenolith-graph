@@ -6,6 +6,13 @@ import vue from '@astrojs/vue'
 export default defineConfig({
   site: 'https://xenolithengine.github.io',
   base: '/xenolith-graph',
+  // Redirects for URLs we promised in already-published artifacts (npm READMEs, social posts).
+  // Keep these forever — bumping the React adapter from npm with a different link would mean
+  // republishing all packages.
+  redirects: {
+    '/guides/quickstart/': '/guides/install/',
+    '/guides/quickstart':  '/guides/install/',
+  },
   vite: {
     // Force a single physical copy of PIXI (its extensions self-register on import; two copies →
     // "Extension type shape-builder already has a handler") and pre-bundle it so Vite optimizes in
