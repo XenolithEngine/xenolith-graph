@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { xenTokens } from '@xenolithengine/theme-xen'
-import { TypeRegistry } from '@xenolithengine/core'
+import { xenTokens } from '@xenolithengine/graph-theme-xen'
+import { TypeRegistry } from '@xenolithengine/graph-core'
 import {
   resolveCategoryAccent,
   resolvePinFill,

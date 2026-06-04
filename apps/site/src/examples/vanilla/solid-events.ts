@@ -1,7 +1,7 @@
 // Solid adapter — events. With the directive, Solid hosts bind via `on:node:click={fn}` etc.
 // Here we use the imperative primitive to drive the editor and a plain DOM panel; the binding's
 // `.on()` is the same channel the directive subscribes to.
-import { createXenolithGraph } from '@xenolithengine/solid'
+import { createXenolithGraph } from '@xenolithengine/graph-solid'
 import { loadDemo } from '@xenolithengine/demo/scene'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

@@ -1,4 +1,4 @@
-# @xenolithengine/editor
+# @xenolithengine/graph-editor
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/editor pixi.js
+pnpm add @xenolithengine/graph-editor pixi.js
 ```
 
 `pixi.js@^8.6.0` is a peer dependency.
@@ -20,7 +20,7 @@ pnpm add @xenolithengine/editor pixi.js
 ## Usage
 
 ```ts
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 
 const editor = await XenolithEditor.init('#graph', {
   minimap: true,

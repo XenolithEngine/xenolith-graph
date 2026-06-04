@@ -1,7 +1,7 @@
 // Solid adapter — save & restore. Mirrors the Svelte adapter version; uses the imperative
 // `createXenolithGraph` primitive so we can register schemas and drive autosave via the binding's
 // event channel. Solid hosts using the directive would do this via `createEffect` + `on:` bindings.
-import { createXenolithGraph } from '@xenolithengine/solid'
+import { createXenolithGraph } from '@xenolithengine/graph-solid'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
 } from '@xenolithengine/demo/save-restore'

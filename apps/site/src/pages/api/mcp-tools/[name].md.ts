@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { TOOLS } from '@xenolithengine/mcp-server'
+import { TOOLS } from '@xenolithengine/graph-mcp-server'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
 // Per-tool plain-text card. The aggregate `/api/mcp-tools.json` is great for cataloguing, but if an
@@ -23,7 +23,7 @@ export const GET: APIRoute = ({ params }) => {
   const body = [
     `# ${tool.name}`,
     '',
-    '**Server:** `@xenolithengine/mcp-server`  ',
+    '**Server:** `@xenolithengine/graph-mcp-server`  ',
     '**Transport:** stdio MCP ↔ WS bridge (port 7777 by default)  ',
     `**OpenAPI:** ${ORIGIN}${BASE}/api/openapi.json`,
     '',

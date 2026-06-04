@@ -1,4 +1,4 @@
-import type { EditorEvents } from '@xenolithengine/editor'
+import type { EditorEvents } from '@xenolithengine/graph-editor'
 
 /** Maps each public editor event to its idiomatic React callback prop name. */
 export const EVENT_PROP = {

@@ -1,11 +1,11 @@
-import type { TypeRegistry } from '@xenolithengine/core'
+import type { TypeRegistry } from '@xenolithengine/graph-core'
 import type {
   CategoryToken,
   PinTypeToken,
   XenCategoryMap,
   XenPinTypeMap,
   XenTokens,
-} from '@xenolithengine/theme-xen'
+} from '@xenolithengine/graph-theme-xen'
 
 function lookupCategory(name: string | undefined, map: XenCategoryMap): CategoryToken | undefined {
   if (name === undefined) return undefined

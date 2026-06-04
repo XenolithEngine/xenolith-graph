@@ -1,5 +1,5 @@
 import { Graphics } from 'pixi.js'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import { bezierMidpoint, computeEdgePath, arrowHead, sampleBezier, type Vec2 } from './bezier.js'
 import {
   computeLinearPolyline, computeStepPolyline, computeSmoothStepPolyline,

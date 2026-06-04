@@ -2,7 +2,7 @@
 // viewport) into an offscreen canvas at any scale and returns a Blob — PNG for crisp UI, JPG for
 // smaller files, 2× for retina. Framework-agnostic; the host just calls exportGraphImage from a button.
 
-import type { XenolithEditor } from '@xenolithengine/editor'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 
 function download(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)

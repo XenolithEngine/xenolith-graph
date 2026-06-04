@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ContextMenuRegistry, type ContextMenuTarget } from './context-menu.js'
-import type { NodeId, EdgeId } from '@xenolithengine/core'
+import type { NodeId, EdgeId } from '@xenolithengine/graph-core'
 
 const NID = (s: string): NodeId => s as unknown as NodeId
 const EID = (s: string): EdgeId => s as unknown as EdgeId

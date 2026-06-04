@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { NodeSchema } from '@xenolithengine/core'
+import type { NodeSchema } from '@xenolithengine/graph-core'
 import { spliceCompatible } from './edge-insert.js'
 
 const schema = (pins: NodeSchema['pins']): NodeSchema => ({ type: 'X', title: 'X', pins })
@@ -46,7 +46,7 @@ describe('spliceCompatible', () => {
   })
 })
 
-import type { Edge, NodeId, EdgeId, PinId } from '@xenolithengine/core'
+import type { Edge, NodeId, EdgeId, PinId } from '@xenolithengine/graph-core'
 import { danglingRerouteRemovalPlan } from './edge-insert.js'
 
 const nid = (s: string): NodeId => s as unknown as NodeId

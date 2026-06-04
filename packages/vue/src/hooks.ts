@@ -3,7 +3,7 @@ import { onUnmounted, readonly, shallowRef, watch, type DeepReadonly, type Shall
 type ReadonlyRef<T> = DeepReadonly<ShallowRef<T>>
 import type {
   EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1,
-} from '@xenolithengine/editor'
+} from '@xenolithengine/graph-editor'
 import { useEditor } from './index.js'
 
 /** Build a reactive store hook that recomputes its value on every event in `events`. Mirrors

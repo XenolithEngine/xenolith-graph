@@ -5,8 +5,8 @@
 // This is the registration layer only — driving the live graph (reading editor.graph each tick and
 // running the VM) is the host's job, kept separate so the same VM can run headlessly.
 
-import type { XenolithPlugin, PluginContext } from '@xenolithengine/editor'
-import type { Node, NodeId } from '@xenolithengine/core'
+import type { XenolithPlugin, PluginContext } from '@xenolithengine/graph-editor'
+import type { Node, NodeId } from '@xenolithengine/graph-core'
 import { PIN_TYPES, PRIMITIVE_SCHEMAS } from './schemas.js'
 import { outputWidget } from './output-widget.js'
 import { structWidget } from './struct-widget.js'

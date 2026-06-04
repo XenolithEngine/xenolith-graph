@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent } from '@xenolithengine/graph-react'
 import { setupTypeConversions, setConversionEnabled } from '@xenolithengine/demo/type-conversions'
 import { DemoStage } from '../Layout.js'
 

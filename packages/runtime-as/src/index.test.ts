@@ -2,7 +2,7 @@
 // the raw-WASM emitter — should match here too.
 
 import { describe, it, expect } from 'vitest'
-import { Runtime, BUILTIN_PRIMITIVES, type RtGraph, type RtNode, type RtEdge } from '@xenolithengine/plugin-runtime'
+import { Runtime, BUILTIN_PRIMITIVES, type RtGraph, type RtNode, type RtEdge } from '@xenolithengine/graph-plugin-runtime'
 import { compile, canCompileToAS } from './index.js'
 
 const DEFS = [...BUILTIN_PRIMITIVES]

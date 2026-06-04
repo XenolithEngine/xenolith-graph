@@ -1,6 +1,6 @@
 import { Container, Sprite, Texture } from 'pixi.js'
-import { createGridSprite } from '@xenolithengine/render-pixi'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import { createGridSprite } from '@xenolithengine/graph-render-pixi'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
 /**
  * Liquid Glass canvas backdrop — a radial gradient rendered into a Canvas2D ImageBitmap and

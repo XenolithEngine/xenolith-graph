@@ -1,4 +1,4 @@
-import { xenTokens, mergeTheme } from '@xenolithengine/theme-xen'
+import { xenTokens, mergeTheme } from '@xenolithengine/graph-theme-xen'
 
 // Holographic tokens override Xen with glass-vibe values. The CUSTOM renderNode (in render-node.ts)
 // builds the node geometry from scratch using these tokens — translucent body, no header gradient,

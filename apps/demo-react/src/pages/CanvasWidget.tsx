@@ -1,7 +1,7 @@
 import { DemoPage } from '../Layout.js'
 import { CanvasWidgetDemo } from '../demos/CanvasWidgetDemo.js'
 
-const code = `import type { CanvasWidgetController } from '@xenolithengine/editor'
+const code = `import type { CanvasWidgetController } from '@xenolithengine/graph-editor'
 
 // A custom widget is just two functions: draw() paints, onPointer() returns the new value.
 const levelWidget: CanvasWidgetController = {

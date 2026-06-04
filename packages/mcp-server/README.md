@@ -1,4 +1,4 @@
-# @xenolithengine/mcp-server
+# @xenolithengine/graph-mcp-server
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -55,8 +55,8 @@ All mutations route through the editor's CommandBus, so undo/redo and events fir
 
 ```bash
 pnpm install
-pnpm --filter @xenolithengine/editor build
-pnpm --filter @xenolithengine/mcp-server build
+pnpm --filter @xenolithengine/graph-editor build
+pnpm --filter @xenolithengine/graph-mcp-server build
 chmod +x packages/mcp-server/dist/cli.js
 ```
 
@@ -158,7 +158,7 @@ Claude will call the tool, the bridge forwards it, and the node pops into your b
 ## Programmatic embedding
 
 ```ts
-import { EditorBridge, createMcpServer, startStdio } from '@xenolithengine/mcp-server'
+import { EditorBridge, createMcpServer, startStdio } from '@xenolithengine/graph-mcp-server'
 
 const bridge = new EditorBridge({ port: 7777, token: 'mytoken' })
 await bridge.start()

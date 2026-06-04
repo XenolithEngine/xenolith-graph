@@ -22,7 +22,7 @@ labels: bug
 
 ## Environment
 
-- `@xenolithengine/*` versions:
+- `@xenolithengine/graph-*` versions:
 - Node:
 - pnpm:
 - Browser + OS:

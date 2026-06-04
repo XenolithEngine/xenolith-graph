@@ -1,6 +1,6 @@
-import { XenolithEditor } from '@xenolithengine/editor'
-import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
-import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 import { importComfyWorkflow } from '@xenolithengine/demo/comfy'
 import { generateXxlWorkflow } from './fixtures/xxl.js'
 

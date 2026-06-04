@@ -21,14 +21,14 @@ Candidates considered:
 
 ## Decision
 
-Use **PIXI v8** as the renderer backend. It is **a peer dependency** of `@xenolithengine/render-pixi` — never bundled — so applications already shipping PIXI don't pay twice.
+Use **PIXI v8** as the renderer backend. It is **a peer dependency** of `@xenolithengine/graph-render-pixi` — never bundled — so applications already shipping PIXI don't pay twice.
 
 ## Consequences
 
 - We accept PIXI's API surface as part of our development experience and tooling.
-- Renderer-specific code lives strictly inside `@xenolithengine/render-pixi`. Core and editor layers never import PIXI types.
-- If a future user needs a non-PIXI build (e.g. Canvas2D-only for an embedded environment), they can write `@xenolithengine/render-canvas` against the same renderer interface defined by the editor.
-- Bundle budget for `@xenolithengine/render-pixi`: < 80 kB gzip excluding PIXI. PIXI itself is ~250 kB gzip and is the host's responsibility.
+- Renderer-specific code lives strictly inside `@xenolithengine/graph-render-pixi`. Core and editor layers never import PIXI types.
+- If a future user needs a non-PIXI build (e.g. Canvas2D-only for an embedded environment), they can write `@xenolithengine/graph-render-canvas` against the same renderer interface defined by the editor.
+- Bundle budget for `@xenolithengine/graph-render-pixi`: < 80 kB gzip excluding PIXI. PIXI itself is ~250 kB gzip and is the host's responsibility.
 
 ## Reconsider if
 

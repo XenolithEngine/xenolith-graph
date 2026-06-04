@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/graph-react'
 import { setupAutoLayout, runAutoLayout } from '@xenolithengine/demo/auto-layout'
 import { DemoStage } from '../Layout.js'
 

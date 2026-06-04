@@ -13,7 +13,7 @@ const { handlers, binding, createEditorBinding } = vi.hoisted(() => {
   const createEditorBinding = vi.fn(async (_t: unknown, _p?: unknown) => binding)
   return { handlers, binding, createEditorBinding }
 })
-vi.mock('@xenolithengine/adapter-core', () => ({
+vi.mock('@xenolithengine/graph-adapter-core', () => ({
   createEditorBinding,
   EDITOR_EVENT_NAMES: [
     'node:added', 'node:removed', 'node:moved', 'node:click',

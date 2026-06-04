@@ -1,5 +1,5 @@
 // Solid adapter — properties sidebar.
-import { createXenolithGraph } from '@xenolithengine/solid'
+import { createXenolithGraph } from '@xenolithengine/graph-solid'
 import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

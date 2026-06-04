@@ -280,9 +280,9 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 // Reused as-is by every framework demo. The only framework-supplied pieces are the two preview
 // widget controllers (Source/Result); the schemas, layout, live re-processing and download are shared.
 
-import type { XenolithEditor, NodeSchema, Node } from '@xenolithengine/editor'
-import type { CustomWidgetController } from '@xenolithengine/render-pixi'
-import { reachableFrom } from '@xenolithengine/core'
+import type { XenolithEditor, NodeSchema, Node } from '@xenolithengine/graph-editor'
+import type { CustomWidgetController } from '@xenolithengine/graph-render-pixi'
+import { reachableFrom } from '@xenolithengine/graph-core'
 
 export const OUT_RESULT = 'result'
 

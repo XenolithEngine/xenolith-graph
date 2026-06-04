@@ -1,4 +1,4 @@
-# @xenolithengine/react
+# @xenolithengine/graph-react
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/react pixi.js
+pnpm add @xenolithengine/graph-react pixi.js
 ```
 
 Peer deps: `react >= 18`, `react-dom >= 18`, `pixi.js@^8.6.0`. WebGL/client-only — render the component only in the browser (the entry is marked `'use client'` for Next.js App Router).
@@ -20,7 +20,7 @@ Peer deps: `react >= 18`, `react-dom >= 18`, `pixi.js@^8.6.0`. WebGL/client-only
 ## Usage
 
 ```tsx
-import { XenolithGraph, XenolithControls, XenolithMiniMap } from '@xenolithengine/react'
+import { XenolithGraph, XenolithControls, XenolithMiniMap } from '@xenolithengine/graph-react'
 
 export function Editor() {
   return (

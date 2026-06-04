@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import {
   Graph, CommandBus, AddNode, ConnectPins, EventEmitter, MoveNode,
   type CommandContext, type CoreEvents, type Node, type Edge, type NodeId, type EdgeId, type PinId,
-} from '@xenolithengine/core'
-import type { PluginContext } from '@xenolithengine/editor'
+} from '@xenolithengine/graph-core'
+import type { PluginContext } from '@xenolithengine/graph-editor'
 import { autoLayoutPlugin, type LayoutEngine, type LayoutResult } from './index.js'
 
 // Three-node chain `A → B → C` with explicit sizes. Positions all (0,0); the engine moves them.

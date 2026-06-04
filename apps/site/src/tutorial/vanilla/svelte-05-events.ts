@@ -4,8 +4,8 @@
 // kebab-named CustomEvent — `node-click`, `selection-changed`, … — which Svelte hosts bind via
 // `on:node-click`. Here we mount via the imperative primitive and attach the same kebab listeners
 // on the slot for parity, while subscribing through the binding for typed payloads.
-import { createXenolithGraph, svelteEventName } from '@xenolithengine/svelte'
-import type { NodeSchema } from '@xenolithengine/editor'
+import { createXenolithGraph, svelteEventName } from '@xenolithengine/graph-svelte'
+import type { NodeSchema } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { WidgetProps } from '@xenolithengine/react'
+import type { WidgetProps } from '@xenolithengine/graph-react'
 
 // A select whose options come from an async "server" search — debounced, with a loading state.
 const FRUITS = ['Apple', 'Apricot', 'Banana', 'Blueberry', 'Cherry', 'Date', 'Fig', 'Grape', 'Kiwi', 'Lemon', 'Mango', 'Orange', 'Peach', 'Pear', 'Plum', 'Raspberry', 'Strawberry', 'Watermelon']

@@ -1,6 +1,6 @@
 import type { Graphics, Container, TextureSource } from 'pixi.js'
-import type { Node } from '@xenolithengine/core'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { Node } from '@xenolithengine/graph-core'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import type { NodeView, RenderNodeOptions } from './node-renderer.js'
 import type { PinLayout } from './layout.js'
 import type { RenderEdgeOptions } from './edge-renderer.js'

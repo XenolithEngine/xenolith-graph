@@ -10,13 +10,13 @@ English is the canonical source. If something contradicts the [English version](
 
 The editor's surface stays small; richer behaviours land as plugins or opt-in features.
 
-## Auto-layout (`@xenolithengine/plugin-autolayout`)
+## Auto-layout (`@xenolithengine/graph-plugin-autolayout`)
 
 One-line arrangement for any graph. Pick an engine (Dagre for layered DAGs, ELK for nested / orthogonal), pass it in, call `arrange()`:
 
 ```ts
-import { autoLayoutPlugin } from '@xenolithengine/plugin-autolayout'
-import { dagreEngine } from '@xenolithengine/plugin-autolayout/dagre'
+import { autoLayoutPlugin } from '@xenolithengine/graph-plugin-autolayout'
+import { dagreEngine } from '@xenolithengine/graph-plugin-autolayout/dagre'
 
 const layout = autoLayoutPlugin({
   engine: dagreEngine(),
@@ -37,7 +37,7 @@ await layout.arrange({ direction: 'TB' })     // override per-call
 ELK adapter for richer layout (orthogonal edges, nested containers):
 
 ```ts
-import { elkEngine } from '@xenolithengine/plugin-autolayout/elk'
+import { elkEngine } from '@xenolithengine/graph-plugin-autolayout/elk'
 
 editor.use(autoLayoutPlugin({ engine: elkEngine(), defaults: { algorithm: 'layered' } }))
 ```

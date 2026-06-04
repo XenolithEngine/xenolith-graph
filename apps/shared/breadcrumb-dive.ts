@@ -4,7 +4,7 @@
 // Double-click Stage to dive deeper. The breadcrumb auto-appears in the top-left:
 //   Root › Pipeline › Stage   (click "Root" or "Pipeline" to pop back).
 
-import type { XenolithEditor } from '@xenolithengine/editor'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 
 export interface BreadcrumbDiveScene {
   /** Programmatic dive into Pipeline (top-level template instance) — same as double-clicking. */

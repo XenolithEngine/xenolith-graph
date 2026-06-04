@@ -3,8 +3,8 @@
 // Inline you see the editable fields on each pin row; click "Open sidebar" and the panel docks
 // on the right, same widgets, themed, scrollable.
 
-import type { XenolithEditor } from '@xenolithengine/editor'
-import type { NodeId, PinId } from '@xenolithengine/core'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
+import type { NodeId, PinId } from '@xenolithengine/graph-core'
 
 export interface PropertiesSidebarScene {
   nodeId: NodeId

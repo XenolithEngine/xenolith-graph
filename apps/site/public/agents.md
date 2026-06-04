@@ -56,7 +56,7 @@ The README on GitHub (`https://github.com/XenolithEngine/xenolith-graph`) is the
 
 ## MCP server (if you can speak MCP)
 
-This project ships its own MCP server: `@xenolithengine/mcp-server`. It exposes **24 tools** and **2 resources**:
+This project ships its own MCP server: `@xenolithengine/graph-mcp-server`. It exposes **24 tools** and **2 resources**:
 
 **Tools (mutations + queries):**
 - `list_node_types`, `get_graph`, `describe_node`, `find_nodes`

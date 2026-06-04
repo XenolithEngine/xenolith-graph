@@ -3,8 +3,8 @@
 //
 // Two schemas, two instances, one edge in JSON. Idiomatic Vue wiring: schemas live at module scope,
 // registration runs inside `@ready`.
-import { XenolithGraph } from '@xenolithengine/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

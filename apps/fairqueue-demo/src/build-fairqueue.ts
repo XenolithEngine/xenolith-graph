@@ -5,8 +5,8 @@
 // widgets the editor already persists in node.state. Goodies whose node has no subscriber pile up in
 // the Warehouse. Everything rides the public API — no core changes.
 
-import type { XenolithEditor, NodeId, Node } from '@xenolithengine/editor'
-import { SetNodeState, type Unsubscribe } from '@xenolithengine/core'
+import type { XenolithEditor, NodeId, Node } from '@xenolithengine/graph-editor'
+import { SetNodeState, type Unsubscribe } from '@xenolithengine/graph-core'
 import { createSim, step, type Agent, type GoodieSpec } from './fairqueue.js'
 import { simToGraph, AGENT_WIDGETS, GOODIE_WIDGETS, STATE_ID } from './sim-to-graph.js'
 import { graphToSim, type NodeLike, type EdgeLike } from './graph-to-sim.js'

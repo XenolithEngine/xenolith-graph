@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Vue SFC — properties sidebar. One-time auto-open via `@ready`; toggle panel is a child component
 // that uses `useEditor()` for the imperative open/close calls.
-import { XenolithGraph } from '@xenolithengine/vue'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-vue'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 import SidebarTogglePanel from './SidebarTogglePanel.vue'
 

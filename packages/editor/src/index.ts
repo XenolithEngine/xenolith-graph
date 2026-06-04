@@ -73,7 +73,7 @@ import {
   type NodeSchema,
   type PinSchema,
   type NodeGlyph,
-} from '@xenolithengine/core'
+} from '@xenolithengine/graph-core'
 import {
   bezierMidpoint,
   clearGlowTextureCache,
@@ -140,8 +140,8 @@ import {
   type ViewportState,
   type XenolithTheme,
   type ZoomBounds,
-} from '@xenolithengine/render-pixi'
-import { xenTokens, loadXenFonts, mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/theme-xen'
+} from '@xenolithengine/graph-render-pixi'
+import { xenTokens, loadXenFonts, mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
 import { canConnect } from './pin-compat.js'
 import { CommandRegistry } from './commands-registry.js'
 import { SidebarManager } from './sidebar.js'
@@ -178,9 +178,9 @@ export type {
   XenolithGraphVersion,
 } from './serialize.js'
 
-export { NodeRegistry } from '@xenolithengine/core'
-export type { NodeSchema, PinSchema, NodeSearchResult, WidgetSpec, WidgetStyle, WidgetType, Node, Edge, NodeId, EdgeId, PinId } from '@xenolithengine/core'
-export type { CustomWidgetController, CanvasWidgetController, DomWidgetController, CustomWidgetContext, ViewportState } from '@xenolithengine/render-pixi'
+export { NodeRegistry } from '@xenolithengine/graph-core'
+export type { NodeSchema, PinSchema, NodeSearchResult, WidgetSpec, WidgetStyle, WidgetType, Node, Edge, NodeId, EdgeId, PinId } from '@xenolithengine/graph-core'
+export type { CustomWidgetController, CanvasWidgetController, DomWidgetController, CustomWidgetContext, ViewportState } from '@xenolithengine/graph-render-pixi'
 export type { MinimapPosition } from './minimap.js'
 export type { ControlsOptions, ControlsPosition } from './controls.js'
 export type { EditorEvents, PreventablePayload } from './events.js'
@@ -199,7 +199,7 @@ export { SidebarManager } from './sidebar.js'
 export type { SidebarManagerOpts } from './sidebar.js'
 export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
-export type { FlattenedTemplate, PinRef } from '@xenolithengine/core'
+export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
 export const VERSION = '0.7.0-beta.0'
 
@@ -3759,7 +3759,7 @@ export class XenolithEditor {
   }
 
   /** Provider that resolves the live runtime value flowing into a node's bound pin (typically
-   *  registered by a runtime plugin such as `@xenolithengine/plugin-runtime`). A `'always'` (display)
+   *  registered by a runtime plugin such as `@xenolithengine/graph-plugin-runtime`). A `'always'` (display)
    *  widget reads this when its bound pin is connected — that's how Output-style preview nodes
    *  show what's wired through them. Without a provider, display widgets fall back to state. */
   #pinLiveValueProvider: ((nodeId: NodeId, pinKey: string) => unknown) | null = null
@@ -4516,7 +4516,7 @@ export class XenolithEditor {
     return new Blob([JSON.stringify(this.toJSON(), null, 2)], { type: 'application/json' })
   }
 
-  /** Open a WebSocket connection to a running `@xenolithengine/mcp-server` so an external MCP client
+  /** Open a WebSocket connection to a running `@xenolithengine/graph-mcp-server` so an external MCP client
    *  (Claude Desktop / Cursor / any) can drive this editor. The server forwards each tool call
    *  here over the socket; handlers route to `insertNode`/`addEdge`/`fitView`/etc. (already
    *  undoable via the command bus). Returns a disconnect function. See `mcp.ts` for the protocol. */

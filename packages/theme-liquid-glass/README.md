@@ -1,4 +1,4 @@
-# @xenolithengine/theme-liquid-glass
+# @xenolithengine/graph-theme-liquid-glass
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/theme-liquid-glass pixi.js
+pnpm add @xenolithengine/graph-theme-liquid-glass pixi.js
 ```
 
 Peer dependency: `pixi.js@^8.6.0`.
@@ -20,8 +20,8 @@ Peer dependency: `pixi.js@^8.6.0`.
 ## Usage
 
 ```ts
-import { XenolithEditor } from '@xenolithengine/editor'
-import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
+import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 
 const editor = await XenolithEditor.init('#graph', { theme: liquidGlassTheme })
 

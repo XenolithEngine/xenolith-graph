@@ -6,7 +6,7 @@
 // → comma-separated text (cast back), everything else → text. This keeps the widget zero-config —
 // the user just types values and the Struct emits the parsed record.
 
-import type { DomWidgetController } from '@xenolithengine/editor'
+import type { DomWidgetController } from '@xenolithengine/graph-editor'
 
 /** Supported field types in a Struct. Drives both the input element rendered in the widget and
  *  the cast applied by {@link structChangeType} when the user switches a field's type. */

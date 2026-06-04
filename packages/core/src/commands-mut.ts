@@ -114,7 +114,7 @@ export interface SetNodeWidgetsUndo {
 }
 
 /** Replace a node's widget list wholesale. Used by runtime plugins to synthesise widgets in
- *  response to schema changes (e.g. `@xenolithengine/plugin-runtime`'s Schema-node flow that derives a
+ *  response to schema changes (e.g. `@xenolithengine/graph-plugin-runtime`'s Schema-node flow that derives a
  *  Struct's editable fields from a wired Schema). Per-widget `state[key]` values survive removal,
  *  so re-adding a widget under the same key picks up the previously typed value. */
 export class SetNodeWidgets implements Command<SetNodeWidgetsUndo> {

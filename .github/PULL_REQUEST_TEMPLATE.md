@@ -23,7 +23,7 @@
 - [ ] `pnpm test` clean across all packages
 - [ ] Bundle-size budget respected
 - [ ] Changeset added (`pnpm changeset`) for any public API change
-- [ ] No new dep in `@xenolithengine/core`
+- [ ] No new dep in `@xenolithengine/graph-core`
 
 ## Screenshots / video
 

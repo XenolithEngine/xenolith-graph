@@ -2,8 +2,8 @@
 // Toolbar — child of <XenolithGraph>. The executor itself is plain code over the snapshot;
 // `useEditor()` is the only adapter call.
 import { ref } from 'vue'
-import { useEditor } from '@xenolithengine/vue'
-import type { NodeId } from '@xenolithengine/editor'
+import { useEditor } from '@xenolithengine/graph-vue'
+import type { NodeId } from '@xenolithengine/graph-editor'
 
 type ComputeFn = (inputs: Record<string, number>, state: Record<string, unknown>) => Record<string, number>
 const compute: Record<string, ComputeFn> = {

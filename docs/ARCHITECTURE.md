@@ -9,7 +9,7 @@ This document describes the locked-in architecture for v0.x. Individual decision
 3. **TypeScript-first, ESM-only.** No CommonJS build output. Targets ES2022. No legacy.
 4. **Framework-agnostic core + thin adapters.** React, Vue, Svelte get tiny wrappers around the same engine. No framework is privileged.
 5. **Blueprint semantics are first-class.** Typed pins, `exec` vs `data` kind, type-color system, K2-style search palette — these live in the core model, not in a theme.
-6. **No new dependencies in `@xenolithengine/core`. Ever.** Render and adapter layers may add deps but each addition requires PR justification.
+6. **No new dependencies in `@xenolithengine/graph-core`. Ever.** Render and adapter layers may add deps but each addition requires PR justification.
 7. **Perf budgets enforced in CI.** Without them, this library decays into "the next slow node editor."
 
 ## 2. Layered model
@@ -41,19 +41,19 @@ This document describes the locked-in architecture for v0.x. Individual decision
 
 | Package | Status | Role |
 |---|---|---|
-| `@xenolithengine/core` | shipped | Headless graph model, types, command bus, events, plan-* helpers for macros/templates/reroutes. Zero deps. |
-| `@xenolithengine/render-pixi` | shipped | PIXI v8 renderer (nodes, edges, comments, macros, widgets, glyphs, LOD sprite/flat). PIXI is a **peer** dependency. |
-| `@xenolithengine/editor` | shipped | Composes renderer + interaction + commands + **plugin host**. Owns lifecycle, palette, minimap, overlays, dive-stack. Bundles undo, serialize, clipboard, palette, alignment guides — not separate plugins. |
-| `@xenolithengine/theme-xen` | shipped | Default theme (Xen — original dark/gold design system). Tokens originate from Figma. |
-| `@xenolithengine/theme-liquid-glass` | shipped | Optional shader-based theme: refraction + rim lighting via PIXI `Mesh`+`Shader` and a backdrop `RenderTexture`. |
+| `@xenolithengine/graph-core` | shipped | Headless graph model, types, command bus, events, plan-* helpers for macros/templates/reroutes. Zero deps. |
+| `@xenolithengine/graph-render-pixi` | shipped | PIXI v8 renderer (nodes, edges, comments, macros, widgets, glyphs, LOD sprite/flat). PIXI is a **peer** dependency. |
+| `@xenolithengine/graph-editor` | shipped | Composes renderer + interaction + commands + **plugin host**. Owns lifecycle, palette, minimap, overlays, dive-stack. Bundles undo, serialize, clipboard, palette, alignment guides — not separate plugins. |
+| `@xenolithengine/graph-theme-xen` | shipped | Default theme (Xen — original dark/gold design system). Tokens originate from Figma. |
+| `@xenolithengine/graph-theme-liquid-glass` | shipped | Optional shader-based theme: refraction + rim lighting via PIXI `Mesh`+`Shader` and a backdrop `RenderTexture`. |
 | `@xenolithengine/demo` | shipped | One `xenolith.v1` data graph + ComfyUI importer + topology-reactive runners. Consumed by every demo host. |
-| `@xenolithengine/adapter-core` | shipped | Framework-agnostic editor wrapper used by the WC + framework adapters. |
-| `@xenolithengine/wc` | shipped | Web-component adapter (universal). |
-| `@xenolithengine/react` | shipped | React adapter: `<XenolithPanel>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithButton>`, reactive selector hooks, editor context. |
-| `@xenolithengine/vue` / `@xenolithengine/svelte` / `@xenolithengine/solid` | planned | Thin adapters over `adapter-core` + `wc`. React parity is the contract. |
-| `@xenolithengine/plugin-runtime` | in progress | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs into the editor through the plugin host using `setNodePins`, `setWidgetValue({ephemeral})`, `expandTemplateInstance`, `onTick`, `setEdgeAnimated`, `graphSnapshot`. Execution is **not** in the editor itself. |
+| `@xenolithengine/graph-adapter-core` | shipped | Framework-agnostic editor wrapper used by the WC + framework adapters. |
+| `@xenolithengine/graph-wc` | shipped | Web-component adapter (universal). |
+| `@xenolithengine/graph-react` | shipped | React adapter: `<XenolithPanel>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithButton>`, reactive selector hooks, editor context. |
+| `@xenolithengine/graph-vue` / `@xenolithengine/graph-svelte` / `@xenolithengine/graph-solid` | planned | Thin adapters over `adapter-core` + `wc`. React parity is the contract. |
+| `@xenolithengine/graph-plugin-runtime` | in progress | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs into the editor through the plugin host using `setNodePins`, `setWidgetValue({ephemeral})`, `expandTemplateInstance`, `onTick`, `setEdgeAnimated`, `graphSnapshot`. Execution is **not** in the editor itself. |
 
-The earlier separate `plugin-search` / `plugin-undo` / `plugin-serialize` / `plugin-minimap` / `plugin-clipboard` / `plugin-alignment` packages were folded into `@xenolithengine/editor` once it became clear they have no reuse outside it. The published plugin surface is now `editor.use(plugin)` for third-party extensions (see §8).
+The earlier separate `plugin-search` / `plugin-undo` / `plugin-serialize` / `plugin-minimap` / `plugin-clipboard` / `plugin-alignment` packages were folded into `@xenolithengine/graph-editor` once it became clear they have no reuse outside it. The published plugin surface is now `editor.use(plugin)` for third-party extensions (see §8).
 
 Apps under `apps/`:
 
@@ -139,7 +139,7 @@ Initial command set: `AddNode`, `RemoveNode`, `MoveNodes`, `ResizeNode`, `Connec
 
 Why this matters even at v0.1: undo/redo, replay-based debugging, deterministic Vitest fixtures, and a path to CRDT-based collaborative editing in v2.x — all from the same primitive.
 
-## 6. Renderer (`@xenolithengine/render-pixi`)
+## 6. Renderer (`@xenolithengine/graph-render-pixi`)
 
 PIXI v8 scene structured as explicit layers:
 
@@ -238,7 +238,7 @@ editor.use(plugin)            // mounts the plugin; disposer is called on editor
 | `registerWidget(name, ctrl)` | Canvas-draw or DOM-mount custom widgets. |
 | `setIsValidConnection(pred)` | Global connection validator run after built-in type-compat. |
 
-**Runtime delegation surface** (for execution plugins — `@xenolithengine/plugin-runtime` is the in-progress consumer):
+**Runtime delegation surface** (for execution plugins — `@xenolithengine/graph-plugin-runtime` is the in-progress consumer):
 
 | Surface | Use |
 |---|---|
@@ -251,12 +251,12 @@ editor.use(plugin)            // mounts the plugin; disposer is called on editor
 
 ### Built-in plugins (folded into the editor)
 
-Undo/redo, JSON `xenolith.v1` serialize, copy/paste, K2-style Tab palette with fuzzy search, minimap, alignment guides, keyboard shortcuts, comment/macro/template authoring — all live in `@xenolithengine/editor` because none of them have any meaning outside it. `editor.use()` exists for *new* surfaces the editor cannot anticipate.
+Undo/redo, JSON `xenolith.v1` serialize, copy/paste, K2-style Tab palette with fuzzy search, minimap, alignment guides, keyboard shortcuts, comment/macro/template authoring — all live in `@xenolithengine/graph-editor` because none of them have any meaning outside it. `editor.use()` exists for *new* surfaces the editor cannot anticipate.
 
 ### Planned third-party consumers
 
-- `@xenolithengine/plugin-runtime` — Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs via `editor.use(runtime({...}))` and uses the runtime-delegation surface above.
-- `@xenolithengine/layout-elk` — auto-layout (ELK/Dagre) plugin reading `graphSnapshot` and emitting batched move commands.
+- `@xenolithengine/graph-plugin-runtime` — Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs via `editor.use(runtime({...}))` and uses the runtime-delegation surface above.
+- `@xenolithengine/graph-layout-elk` — auto-layout (ELK/Dagre) plugin reading `graphSnapshot` and emitting batched move commands.
 - Collaboration: a `yjsAdapter(editor, ydoc)` plugin mapping commands ⇄ Y-ops with `Y.Text` for comment / textfield bodies and LWW for positions. Deferred (see §14).
 
 ## 8.5. Subgraph patterns
@@ -313,7 +313,7 @@ interface Theme {
 }
 ```
 
-`@xenolithengine/theme-xen` is the default. Tokens originate in the Figma source (Xen design system) and live in `theme-xen/src/tokens.json`. Themes are stylistic only — they do not change behaviour. The Xen theme defines four category accents (logic green, data blue, macro purple, utility white), six pin types with shape mapping (circle / empty-circle / chevron), two state styles (hover yellow, selected white), and a glassmorphic header treatment.
+`@xenolithengine/graph-theme-xen` is the default. Tokens originate in the Figma source (Xen design system) and live in `theme-xen/src/tokens.json`. Themes are stylistic only — they do not change behaviour. The Xen theme defines four category accents (logic green, data blue, macro purple, utility white), six pin types with shape mapping (circle / empty-circle / chevron), two state styles (hover yellow, selected white), and a glassmorphic header treatment.
 
 ## 10. File format & serialization
 
@@ -336,9 +336,9 @@ These are not advisory:
 | Frame time, 40k+ nodes (virtualized) | ~4–7 ms |
 | Drag of 50 selected nodes | 0 GC pauses over 5 s |
 | Cold-start with 100 nodes | < 100 ms |
-| `@xenolithengine/core` bundle | < 30 kB gzip |
-| `@xenolithengine/render-pixi` bundle | < 80 kB gzip (PIXI excluded as peer) |
-| `@xenolithengine/editor` bundle | < 50 kB gzip |
+| `@xenolithengine/graph-core` bundle | < 30 kB gzip |
+| `@xenolithengine/graph-render-pixi` bundle | < 80 kB gzip (PIXI excluded as peer) |
+| `@xenolithengine/graph-editor` bundle | < 50 kB gzip |
 
 Bench harness runs in CI on a fixed runner. A PR that regresses any budget either fixes it or is reverted.
 
@@ -365,7 +365,7 @@ Rule: O(visible), not O(N).
 | **v0.3** | Comments, two reroute kinds + edge-midpoint menu, copy/paste, minimap, alignment guides. | shipped |
 | **v0.4** | React adapter (XenolithPanel/Controls/MiniMap/Button + hooks), Liquid Glass theme, docs site, landing page. | shipped |
 | **v0.5** | Widgets (number/slider/combo/text/toggle/color/button + canvas-draw + DOM-mount), Macros (collapse-groups), Live templates (definition + dive-in + convert), Plugin host (`editor.use` + `PluginContext`), glyphs, UE-Blueprint header layout, virtualization + LOD (58k tested). | shipped |
-| **v0.6** | `@xenolithengine/plugin-runtime` (Blueprint VM); Vue/Svelte/Solid adapters; touch/mobile (pinch-zoom + long-press); accessibility (ARIA + keyboard nav); auto-layout plugin (ELK/Dagre). | in progress / planned |
+| **v0.6** | `@xenolithengine/graph-plugin-runtime` (Blueprint VM); Vue/Svelte/Solid adapters; touch/mobile (pinch-zoom + long-press); accessibility (ARIA + keyboard nav); auto-layout plugin (ELK/Dagre). | in progress / planned |
 | **v1.0** | Public API freeze, `xenolith.v1` format freeze, all perf budgets green in CI, docs site complete. | planned |
 
 Optional / on-demand (not on the critical path): Yjs collab adapter (see [project_xeno_collab_plan](../memory/) — deferred), orthogonal edge routing, LLM-workflow showcase example.
@@ -374,7 +374,7 @@ Optional / on-demand (not on the critical path): Yjs collab adapter (see [projec
 
 - No comments unless the *why* is non-obvious. Identifiers carry the *what*.
 - No backwards-compat shims before v1.0. Breaking changes ship via changesets.
-- No new dependencies in `@xenolithengine/core`. Render and adapter layers add deps only with PR justification.
+- No new dependencies in `@xenolithengine/graph-core`. Render and adapter layers add deps only with PR justification.
 - Every public API change ships with a Vitest test.
 - Every interaction change ships with a Playwright test.
 - Visual changes ship with a renderer snapshot test.
@@ -385,7 +385,7 @@ Optional / on-demand (not on the critical path): Yjs collab adapter (see [projec
 Tracked here until resolved into ADRs:
 
 - Final library name (XenolithGraph is the working title).
-- **Runtime executor — RESOLVED:** the editor itself ships no execution. `@xenolithengine/plugin-runtime` is the in-progress Blueprint VM, installed via `editor.use()` over the runtime-delegation surface (§8). Hosts can swap it.
+- **Runtime executor — RESOLVED:** the editor itself ships no execution. `@xenolithengine/graph-plugin-runtime` is the in-progress Blueprint VM, installed via `editor.use()` over the runtime-delegation surface (§8). Hosts can swap it.
 - **Docs site — RESOLVED:** Astro Starlight.
 - **Collaboration — DEFERRED:** Yjs is the chosen backend when the time comes; plan is captured in memory `project_xeno_collab_plan`. Not a v1.0 blocker.
 - **Custom renderer — PARKED:** PIXI v8 is fine for now; the scout (May 29) found ~95% of features are mechanical to port (Container/Graphics/Sprite/BitmapText/RenderTexture), the Liquid Glass shader is the only architecturally complex piece. Revisit for v1.5/v2.0 if bundle size becomes a competitive issue or WebGPU is wanted.

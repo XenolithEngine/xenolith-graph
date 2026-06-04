@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useEditor } from '@xenolithengine/vue'
+import { useEditor } from '@xenolithengine/graph-vue'
 import { PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 const editor = useEditor()

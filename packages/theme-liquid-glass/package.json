@@ -1,5 +1,5 @@
 {
-  "name": "@xenolithengine/theme-liquid-glass",
+  "name": "@xenolithengine/graph-theme-liquid-glass",
   "version": "0.7.0-beta.0",
   "description": "Liquid Glass theme for XenolithGraph — Apple WWDC25-inspired translucent material.",
   "license": "MIT",
@@ -26,9 +26,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolithengine/core": "workspace:*",
-    "@xenolithengine/render-pixi": "workspace:*",
-    "@xenolithengine/theme-xen": "workspace:*"
+    "@xenolithengine/graph-core": "workspace:*",
+    "@xenolithengine/graph-render-pixi": "workspace:*",
+    "@xenolithengine/graph-theme-xen": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0"

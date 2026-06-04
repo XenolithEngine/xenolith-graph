@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Vue SFC — palette sidebar. Schemas + sidebar config from the shared package; the editor's
 // built-in `node:drop` handler spawns the dragged node at the drop point.
-import { XenolithGraph } from '@xenolithengine/vue'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-vue'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 function onReady(editor: XenolithEditor): void {

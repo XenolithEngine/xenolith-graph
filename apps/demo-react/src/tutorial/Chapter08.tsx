@@ -5,10 +5,10 @@
 // `onReady`, minimap toggled via the standard `minimap` prop on <XenolithGraph>.
 
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
-import type { NodeSchema, XenolithGraphV1, CanvasWidgetController } from '@xenolithengine/editor'
-import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
-import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
+import type { NodeSchema, XenolithGraphV1, CanvasWidgetController } from '@xenolithengine/graph-editor'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 import { DemoStage } from '../Layout.js'
 
 const levelWidget: CanvasWidgetController = {

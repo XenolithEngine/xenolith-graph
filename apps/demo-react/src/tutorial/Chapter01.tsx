@@ -4,8 +4,8 @@
 // editor instance when it's mounted. No imperative refs, no manual cleanup. The graph itself is
 // the same xenolith.v1 JSON the vanilla example loads — author once, render anywhere.
 
-import { XenolithGraph } from '@xenolithengine/react'
-import type { XenolithGraphV1 } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-react'
+import type { XenolithGraphV1 } from '@xenolithengine/graph-editor'
 import { DemoStage } from '../Layout.js'
 
 const graph = {

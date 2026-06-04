@@ -63,7 +63,7 @@ A real engine handles a lot more — async ops, exec-pin flow control (the diffe
 
 For the tutorial: read this as the **shape** of any executor. Topological sort + value cache + per-type compute. Bolt that to your real domain — image filters, audio nodes, LLM tools, build steps — and you have a runnable graph for your app.
 
-A more featured executor ships in [`@xenolithengine/plugin-runtime`](https://github.com/XenolithEngine/xenolith-graph/tree/main/packages/plugin-runtime) — type-aware, async-aware, with three engines (interpreted, codegen-JS, AssemblyScript-WASM). It's the same shape, just dialled up.
+A more featured executor ships in [`@xenolithengine/graph-plugin-runtime`](https://github.com/XenolithEngine/xenolith-graph/tree/main/packages/plugin-runtime) — type-aware, async-aware, with three engines (interpreted, codegen-JS, AssemblyScript-WASM). It's the same shape, just dialled up.
 
 ## Highlighting the active node
 

@@ -1,6 +1,6 @@
 // CHAPTER 2 — Register your first node type (Svelte adapter).
-import { createXenolithGraph } from '@xenolithengine/svelte'
-import type { NodeSchema } from '@xenolithengine/editor'
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
+import type { NodeSchema } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

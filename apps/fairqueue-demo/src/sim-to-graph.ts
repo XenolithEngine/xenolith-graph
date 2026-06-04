@@ -4,7 +4,7 @@
 // is drawn by a host-registered `priorityBar` custom widget. Pure and deterministic — the render
 // layer feeds the result to `editor.loadJSON`.
 
-import type { XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, WidgetSpec } from '@xenolithengine/editor'
+import type { XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, WidgetSpec } from '@xenolithengine/graph-editor'
 import type { SimState } from './fairqueue.js'
 
 // Shared by simToGraph (initial nodes) AND the insert-palette schemas (build-fairqueue), so a

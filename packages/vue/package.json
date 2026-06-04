@@ -1,5 +1,5 @@
 {
-  "name": "@xenolithengine/vue",
+  "name": "@xenolithengine/graph-vue",
   "version": "0.7.0-beta.0",
   "description": "Vue adapter for XenolithGraph — <XenolithGraph> component.",
   "license": "MIT",
@@ -26,8 +26,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolithengine/adapter-core": "workspace:*",
-    "@xenolithengine/editor": "workspace:*"
+    "@xenolithengine/graph-adapter-core": "workspace:*",
+    "@xenolithengine/graph-editor": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0",

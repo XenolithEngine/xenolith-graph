@@ -3,8 +3,8 @@
 // wouldCreateCycle() helper to forbid loops. The graph is DATA (connection-validation.json); the only
 // host-specific piece is the `log` sink the guard + edge:connected event report attempts to.
 
-import { wouldCreateCycle } from '@xenolithengine/core'
-import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
+import { wouldCreateCycle } from '@xenolithengine/graph-core'
+import type { XenolithEditor, NodeId } from '@xenolithengine/graph-editor'
 import graph from './connection-validation.json'
 
 export interface Attempt { ok: boolean; text: string }

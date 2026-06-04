@@ -1,5 +1,5 @@
-import type { Graph, Node, NodeId, Edge } from '@xenolithengine/core'
-import { isMacro, macroMembers } from '@xenolithengine/core'
+import type { Graph, Node, NodeId, Edge } from '@xenolithengine/graph-core'
+import { isMacro, macroMembers } from '@xenolithengine/graph-core'
 import type { LayoutGraph } from './engine.js'
 
 /** Pull an engine-neutral `LayoutGraph` out of the editor's live graph. Pure — never mutates.

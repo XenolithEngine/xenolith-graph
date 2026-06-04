@@ -1,5 +1,5 @@
-import type { NodeSchema, XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, XenolithTemplateV1 } from '@xenolithengine/editor'
-import { REROUTE_TYPE, REROUTE_NODE_TYPE, defaultWidgetValue, type WidgetSpec } from '@xenolithengine/core'
+import type { NodeSchema, XenolithGraphV1, XenolithNodeV1, XenolithEdgeV1, XenolithTemplateV1 } from '@xenolithengine/graph-editor'
+import { REROUTE_TYPE, REROUTE_NODE_TYPE, defaultWidgetValue, type WidgetSpec } from '@xenolithengine/graph-core'
 
 export { createCurveWidget } from './curve-widget.js'
 export { createXYPadWidget } from './xy-pad-widget.js'

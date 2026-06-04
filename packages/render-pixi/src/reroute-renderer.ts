@@ -1,6 +1,6 @@
 import { Circle, Container, FillGradient, Graphics, Rectangle } from 'pixi.js'
-import type { Node } from '@xenolithengine/core'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { Node } from '@xenolithengine/graph-core'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import { markPinInteractive } from './node-renderer.js'
 import type { NodeView, NodeVisualState, RenderNodeOptions } from './node-renderer.js'
 import { resolvePinFill, resolvePinStroke } from './style.js'

@@ -1,6 +1,6 @@
 'use client'
 import { createContext, useContext } from 'react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 
 /** The live editor for the enclosing `<XenolithGraph>`, or `null` until it has mounted. In-editor
  *  components (`<XenolithPanel>`, `<XenolithControls>`, hooks) read it from here. */

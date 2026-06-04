@@ -16,7 +16,7 @@ const createEditorBinding = vi.fn(async (_target: unknown, _props: unknown) => {
   })
   return binding
 })
-vi.mock('@xenolithengine/adapter-core', () => ({ createEditorBinding }))
+vi.mock('@xenolithengine/graph-adapter-core', () => ({ createEditorBinding }))
 
 const { register } = await import('./index.js')
 register()

@@ -1,4 +1,4 @@
-# @xenolithengine/svelte
+# @xenolithengine/graph-svelte
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/svelte pixi.js
+pnpm add @xenolithengine/graph-svelte pixi.js
 ```
 
 Peer deps: `svelte >= 4`, `pixi.js@^8.6.0`. WebGL/client-only.
@@ -21,7 +21,7 @@ Peer deps: `svelte >= 4`, `pixi.js@^8.6.0`. WebGL/client-only.
 
 ```svelte
 <script lang="ts">
-  import { xenolith } from '@xenolithengine/svelte'
+  import { xenolith } from '@xenolithengine/graph-svelte'
   import savedGraph from './graph.json'
 
   const props = { graph: savedGraph, minimap: true }

@@ -3,9 +3,9 @@
 //
 // Theme switcher (Xen / Liquid Glass) as a child component, custom level widget registered in
 // `@ready`, minimap toggled via the standard `minimap` prop on <XenolithGraph>.
-import { XenolithGraph } from '@xenolithengine/vue'
-import type { NodeSchema, XenolithEditor, CanvasWidgetController } from '@xenolithengine/editor'
-import { xenTheme } from '@xenolithengine/render-pixi'
+import { XenolithGraph } from '@xenolithengine/graph-vue'
+import type { NodeSchema, XenolithEditor, CanvasWidgetController } from '@xenolithengine/graph-editor'
+import { xenTheme } from '@xenolithengine/graph-render-pixi'
 import Chapter08ThemeSwitcher from './Chapter08ThemeSwitcher.vue'
 
 const levelWidget: CanvasWidgetController = {

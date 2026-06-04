@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolithengine/demo'
 import { DemoStage } from '../Layout.js'
 
-// MCP live demo: connect this editor to a running @xenolithengine/mcp-server, then watch Claude/Cursor
+// MCP live demo: connect this editor to a running @xenolithengine/graph-mcp-server, then watch Claude/Cursor
 // build the graph for you. The editor starts EMPTY — schemas are registered (Source/Filter/Cache/
 // Transform/Validate/...) so the LLM has real types to pick from via list_node_types.
 //

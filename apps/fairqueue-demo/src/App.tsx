@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildFairqueue, type FairqueueHandle, type Metrics } from './build-fairqueue.js'
 import { buildFairqueueRuntime } from './build-fairqueue-runtime.js'
 import { SaveMenu } from './SaveMenu.js'

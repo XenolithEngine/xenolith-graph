@@ -7,8 +7,8 @@ import {
   EDITOR_EVENT_NAMES,
   type EditorBinding,
   type XenolithProps,
-} from '@xenolithengine/adapter-core'
-import type { EditorEvents, XenolithEditor } from '@xenolithengine/editor'
+} from '@xenolithengine/graph-adapter-core'
+import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 
 export { vueWidget, type WidgetProps } from './widget.js'
 export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo } from './hooks.js'

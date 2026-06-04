@@ -2,7 +2,7 @@
 // Child of <XenolithGraph> — `useEditor()` and `useEditorEvent()` resolve via injection.
 // Composables auto-rebind on editor swap and clean up on unmount.
 import { ref, computed } from 'vue'
-import { useEditor, useEditorEvent } from '@xenolithengine/vue'
+import { useEditor, useEditorEvent } from '@xenolithengine/graph-vue'
 
 const editor = useEditor()
 const nodes = ref<number>(0)

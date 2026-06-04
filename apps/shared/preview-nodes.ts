@@ -9,7 +9,7 @@
 // Each "preview" node is just a normal node with one free-floating custom widget; the widget's
 // `draw` is the per-node paint hook. No core API added — this closes G11 by demonstration.
 
-import type { XenolithEditor, CanvasWidgetController } from '@xenolithengine/editor'
+import type { XenolithEditor, CanvasWidgetController } from '@xenolithengine/graph-editor'
 
 // ─── Sparkline ─────────────────────────────────────────────────────────────────────────────────
 // Reads the upstream slider's current value through `setPinLiveValueProvider`, keeps a rolling

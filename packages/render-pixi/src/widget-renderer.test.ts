@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createNodeId, createPinId, type Node, type Pin, type WidgetSpec } from '@xenolithengine/core'
+import { createNodeId, createPinId, type Node, type Pin, type WidgetSpec } from '@xenolithengine/graph-core'
 import { computeWidgetRects, type WidgetLayoutTokens } from './widget-renderer.js'
 
 const GEO: WidgetLayoutTokens = {

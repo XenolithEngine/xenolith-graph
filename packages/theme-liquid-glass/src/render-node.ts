@@ -14,8 +14,8 @@ import {
   type TextStyleFontWeight,
   type TextureSource,
 } from 'pixi.js'
-import type { Node } from '@xenolithengine/core'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { Node } from '@xenolithengine/graph-core'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import {
   computeNodeLayout,
   makeHeaderIcon,
@@ -32,7 +32,7 @@ import {
   type RenderNodeOptions,
   type ThemeRenderContext,
   type WidgetHit,
-} from '@xenolithengine/render-pixi'
+} from '@xenolithengine/graph-render-pixi'
 import { glassFragmentGLSL, glassVertexGLSL } from './glass-shader.js'
 
 /** Module-level registry of every live glass mesh so the theme's per-frame hook can broadcast

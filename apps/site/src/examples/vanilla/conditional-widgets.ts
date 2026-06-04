@@ -2,7 +2,7 @@
 // re-layouts as `body` / `token` show or hide. The same widgets remain editable inline on the
 // node — the toolbar exists only to keep the demo's narrative obvious without the user fishing
 // for the right combo.
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildConditionalWidgets } from '@xenolithengine/demo/conditional-widgets'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

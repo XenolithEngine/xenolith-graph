@@ -1,5 +1,5 @@
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, reactWidget, type WidgetProps } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, reactWidget, type WidgetProps } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildImagePipeline, downloadImageResult } from '@xenolithengine/demo/image-pipeline'
 import { DemoStage } from '../Layout.js'
 

@@ -1,5 +1,5 @@
-import type { NodeId, Node, Edge, Graph } from '@xenolithengine/core'
-import { topoOrder } from '@xenolithengine/core'
+import type { NodeId, Node, Edge, Graph } from '@xenolithengine/graph-core'
+import { topoOrder } from '@xenolithengine/graph-core'
 
 /** Per-node executor: receives the node + a map of inputs (pinId → upstream value),
  *  returns a map of outputs (pinId → produced value). Sync or async. Throw to mark

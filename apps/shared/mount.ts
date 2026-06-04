@@ -1,7 +1,7 @@
 // The honest minimum: no theme (Xen is the default), one node, framed. The node is DATA (mount.json)
 // loaded with editor.loadJSON — the smallest possible xenolith.v1 graph.
 
-import type { XenolithEditor } from '@xenolithengine/editor'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import graph from './mount.json'
 
 export function buildMount(editor: XenolithEditor): void {

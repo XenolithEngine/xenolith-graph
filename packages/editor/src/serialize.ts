@@ -1,5 +1,5 @@
-import type { Edge, Node, NodeId, EdgeId, Pin, WidgetSpec, Comment, TemplateDefinition, TemplateDefId, NodeGlyph, NodeSchema, NodeRegistry } from '@xenolithengine/core'
-import type { RenderEdgeOptions, RenderNodeOptions, GraphCategoryPalette, CategoryColorSpec } from '@xenolithengine/render-pixi'
+import type { Edge, Node, NodeId, EdgeId, Pin, WidgetSpec, Comment, TemplateDefinition, TemplateDefId, NodeGlyph, NodeSchema, NodeRegistry } from '@xenolithengine/graph-core'
+import type { RenderEdgeOptions, RenderNodeOptions, GraphCategoryPalette, CategoryColorSpec } from '@xenolithengine/graph-render-pixi'
 
 export const XENOLITH_GRAPH_VERSION = 'xenolith.v1' as const
 export type XenolithGraphVersion = typeof XENOLITH_GRAPH_VERSION
@@ -53,7 +53,7 @@ export interface XenolithNodeV1 {
   /** Widget list. Same input-compact rule as `pins` — omit on input, parser fills from schema. */
   widgets?: WidgetSpec[]
   render?: { category?: string; title?: string; collapsed?: boolean; color?: string }
-  /** Blueprint "pure" node flag — see {@link import('@xenolithengine/core').Node.pure}. */
+  /** Blueprint "pure" node flag — see {@link import('@xenolithengine/graph-core').Node.pure}. */
   pure?: boolean
   /** Arbitrary host/plugin metadata, passed through verbatim. */
   meta?: Record<string, unknown>

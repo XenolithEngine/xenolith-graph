@@ -1,4 +1,4 @@
-import type { CanvasWidgetController } from '@xenolithengine/editor'
+import type { CanvasWidgetController } from '@xenolithengine/graph-editor'
 
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n))
 

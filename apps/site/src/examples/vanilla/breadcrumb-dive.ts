@@ -1,5 +1,5 @@
 // Vanilla mount for G7 — subgraph breadcrumb. DOM buttons in overlay root dive in/out.
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildBreadcrumbDive } from '@xenolithengine/demo/breadcrumb-dive'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

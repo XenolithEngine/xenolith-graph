@@ -1,6 +1,6 @@
-import { REROUTE_TYPE } from '@xenolithengine/core'
-import type { NodeSchema, PinSchema, WidgetSpec } from '@xenolithengine/core'
-import type { XenolithGraphV1, XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolithengine/editor'
+import { REROUTE_TYPE } from '@xenolithengine/graph-core'
+import type { NodeSchema, PinSchema, WidgetSpec } from '@xenolithengine/graph-core'
+import type { XenolithGraphV1, XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolithengine/graph-editor'
 
 /**
  * Map a ComfyUI node's positional `widgets_values` to typed widgets. Without the server's

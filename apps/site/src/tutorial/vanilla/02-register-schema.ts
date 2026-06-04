@@ -10,7 +10,7 @@
 //   - implicit pins/widgets on JSON nodes
 //   - implicit `render.category` fallback (instances inherit the schema's category)
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter',

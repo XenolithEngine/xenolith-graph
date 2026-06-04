@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
-import { diffGraphs, type XenolithEditor, type GraphDiff } from '@xenolithengine/editor'
-import type { NodeSchema } from '@xenolithengine/core'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/graph-react'
+import { diffGraphs, type XenolithEditor, type GraphDiff } from '@xenolithengine/graph-editor'
+import type { NodeSchema } from '@xenolithengine/graph-core'
 
 // PR-review style diff. BEFORE pane is just the old graph — no highlights, no legend.
 // AFTER pane carries the entire diff story:

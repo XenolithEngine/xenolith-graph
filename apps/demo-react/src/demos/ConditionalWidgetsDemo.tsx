@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/graph-react'
 import { setupConditionalWidgets, CONDITIONAL_WIDGETS_NODE_ID } from '@xenolithengine/demo/conditional-widgets'
 import { DemoStage } from '../Layout.js'
 

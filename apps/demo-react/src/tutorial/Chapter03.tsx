@@ -3,8 +3,8 @@
 // Two schemas, two instances, one edge in JSON. Same data, idiomatic React wiring: schemas are
 // module-scope constants, registration happens inside `onReady`, the graph is loaded once.
 
-import { XenolithGraph } from '@xenolithengine/react'
-import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-react'
+import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/graph-editor'
 import { DemoStage } from '../Layout.js'
 
 const greeterSchema: NodeSchema = {

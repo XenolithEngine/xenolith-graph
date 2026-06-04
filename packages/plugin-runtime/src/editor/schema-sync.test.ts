@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { pinsFromSchemaFields, schemaPinTypeFor, widgetsFromSchemaFields, type SchemaExtraPin } from './schema-sync.js'
-import type { Pin, PinId } from '@xenolithengine/core'
+import type { Pin, PinId } from '@xenolithengine/graph-core'
 
 const pid = (s: string): PinId => s as unknown as PinId
 const schemaPin: Pin = { id: pid('p:schema'), kind: 'data', direction: 'in', type: 'object', multiple: false, label: 'schema' }

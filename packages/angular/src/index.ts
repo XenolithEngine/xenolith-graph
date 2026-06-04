@@ -2,8 +2,8 @@ import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@
 import type { AfterViewInit, OnChanges, OnDestroy } from '@angular/core'
 import {
   createEditorBinding, EDITOR_EVENT_NAMES, type EditorBinding, type XenolithProps,
-} from '@xenolithengine/adapter-core'
-import type { EditorEvents, XenolithEditor } from '@xenolithengine/editor'
+} from '@xenolithengine/graph-adapter-core'
+import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 
 /** `node:click` → `nodeClick` (the `@Output()` name; bound as `(nodeClick)`). */
 export function angularOutputName(event: string): string {

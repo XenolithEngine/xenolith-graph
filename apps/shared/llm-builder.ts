@@ -7,8 +7,8 @@
 // and streams the completion into the Output node. reachableFrom keeps a disconnected / just-deleted
 // node out of the run — it must not light up or be processed.
 
-import { topoOrder, incomers, reachableFrom } from '@xenolithengine/core'
-import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
+import { topoOrder, incomers, reachableFrom } from '@xenolithengine/graph-core'
+import type { XenolithEditor, NodeId } from '@xenolithengine/graph-editor'
 import graph from './llm-builder.json'
 
 export interface LLMBuilderHandle {

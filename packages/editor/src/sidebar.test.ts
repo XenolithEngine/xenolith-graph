@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SidebarManager } from './sidebar.js'
-import type { Node, WidgetSpec } from '@xenolithengine/core'
+import type { Node, WidgetSpec } from '@xenolithengine/graph-core'
 
 const mkNode = (id: string, title: string, widgets: WidgetSpec[], state: Record<string, unknown> = {}): Node => ({
   id: id as never, type: 'X', position: { x: 0, y: 0 },

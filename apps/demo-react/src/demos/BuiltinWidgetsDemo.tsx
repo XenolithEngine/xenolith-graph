@@ -1,4 +1,4 @@
-import { XenolithGraph } from '@xenolithengine/react'
+import { XenolithGraph } from '@xenolithengine/graph-react'
 import { buildBuiltinWidgets } from '@xenolithengine/demo/builtin-widgets'
 import { DemoStage } from '../Layout.js'
 

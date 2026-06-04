@@ -1,5 +1,5 @@
 import { BitmapText, Color, Container, Graphics, FillGradient } from 'pixi.js'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
 export type MacroFrameState = 'default' | 'hover' | 'selected'
 export interface FrameRect { x: number; y: number; width: number; height: number }

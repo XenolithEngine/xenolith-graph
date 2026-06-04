@@ -1,7 +1,7 @@
 import { Geometry, Mesh, Shader } from 'pixi.js'
 
 // Real GLSL iridescent ring — PIXI v8 Mesh pipeline (mat3 2D transforms, individual uniforms
-// inside a named UniformGroup). Mirrors the proven pattern in `@xenolithengine/theme-liquid-glass` —
+// inside a named UniformGroup). Mirrors the proven pattern in `@xenolithengine/graph-theme-liquid-glass` —
 // what works there works here.
 //
 // Renders a rounded-rectangle ring (SDF) whose hue rotates around the perimeter (atan2). A

@@ -1,5 +1,5 @@
 // Vanilla mount for the per-node canvas drawing showcase (G11).
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildPreviewNodes } from '@xenolithengine/demo/preview-nodes'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

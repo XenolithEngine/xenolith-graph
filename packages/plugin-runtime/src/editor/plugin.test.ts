@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { NodeRegistry, TypeRegistry } from '@xenolithengine/core'
-import type { PluginContext } from '@xenolithengine/editor'
+import { NodeRegistry, TypeRegistry } from '@xenolithengine/graph-core'
+import type { PluginContext } from '@xenolithengine/graph-editor'
 import { runtimePlugin } from './plugin.js'
 import { PIN_TYPES, PRIMITIVE_SCHEMAS } from './schemas.js'
 

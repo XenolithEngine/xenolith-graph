@@ -1,5 +1,5 @@
-import type { Edge, Node, NodeId } from '@xenolithengine/core'
-import { isReroute } from '@xenolithengine/core'
+import type { Edge, Node, NodeId } from '@xenolithengine/graph-core'
+import { isReroute } from '@xenolithengine/graph-core'
 
 /** An inline `$reroute` is a pure wire relay — it only means something with BOTH a feed (an edge
  *  into it) and an outgoing edge. Copying a fragment that severs either side would paste a dangling

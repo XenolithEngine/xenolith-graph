@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolithengine/react'
+import { XenolithGraph, XenolithControls, XenolithPanel, XenolithButton, useEditor, useGraphJSON } from '@xenolithengine/graph-react'
 import { initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved } from '@xenolithengine/demo/save-restore'
 import { DemoStage } from '../Layout.js'
 

@@ -3,7 +3,7 @@ import {
   EDITOR_EVENT_NAMES,
   type EditorBinding,
   type XenolithProps,
-} from '@xenolithengine/adapter-core'
+} from '@xenolithengine/graph-adapter-core'
 
 /** Imperative primitive for Svelte hosts that need direct editor access (registering schemas,
  *  opening the sidebar, etc.) — the `use:xenolith` action keeps the binding private. The caller

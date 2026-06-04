@@ -5,8 +5,8 @@
 // `useRef`. The executor itself is plain code — `useEditor()` is the only adapter call.
 
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
-import type { NodeSchema, XenolithGraphV1, NodeId } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
+import type { NodeSchema, XenolithGraphV1, NodeId } from '@xenolithengine/graph-editor'
 import { DemoStage } from '../Layout.js'
 
 const constSchema: NodeSchema = {

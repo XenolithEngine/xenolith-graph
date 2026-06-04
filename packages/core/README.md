@@ -1,4 +1,4 @@
-# @xenolithengine/core
+# @xenolithengine/graph-core
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/core
+pnpm add @xenolithengine/graph-core
 ```
 
 Zero runtime dependencies. Pure ESM, TypeScript-first.
@@ -20,7 +20,7 @@ Zero runtime dependencies. Pure ESM, TypeScript-first.
 ## Usage
 
 ```ts
-import { Graph, CommandBus, AddNode, ConnectPins, createNodeId } from '@xenolithengine/core'
+import { Graph, CommandBus, AddNode, ConnectPins, createNodeId } from '@xenolithengine/graph-core'
 
 const graph = new Graph()
 const bus = new CommandBus({ graph })

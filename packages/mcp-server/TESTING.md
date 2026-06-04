@@ -1,4 +1,4 @@
-# Testing `@xenolithengine/mcp-server` end-to-end
+# Testing `@xenolithengine/graph-mcp-server` end-to-end
 
 This walks through driving the editor from Claude Desktop / Cursor through MCP. The flow is:
 
@@ -11,7 +11,7 @@ Claude Desktop ─stdio MCP─→ xenolith-mcp CLI ─WS─→ browser editor (X
 ```sh
 # From the repo root:
 pnpm install
-pnpm -r --filter '@xenolithengine/mcp-server' build
+pnpm -r --filter '@xenolithengine/graph-mcp-server' build
 node packages/mcp-server/dist/cli.js --port 7777 --token devtoken
 ```
 

@@ -1,4 +1,4 @@
-import type { Node } from '@xenolithengine/core'
+import type { Node } from '@xenolithengine/graph-core'
 
 export interface Vec2 {
   x: number

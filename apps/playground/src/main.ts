@@ -1,9 +1,9 @@
-import { XenolithEditor } from '@xenolithengine/editor'
-import { xenTheme, type XenolithTheme } from '@xenolithengine/render-pixi'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
+import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
 // Synthwave hidden — kept imported so the package still typechecks when re-enabled.
-// import { synthwaveTheme } from '@xenolithengine/theme-synthwave'
-import { holographicTheme } from '@xenolithengine/theme-holographic'
-import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+// import { synthwaveTheme } from '@xenolithengine/graph-theme-synthwave'
+import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
+import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget, createPreviewWidget } from '@xenolithengine/demo'
 
 const editor = await XenolithEditor.init('#app', {

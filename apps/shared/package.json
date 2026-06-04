@@ -30,10 +30,10 @@
   },
   "types": "./demo-graph.ts",
   "dependencies": {
-    "@xenolithengine/core": "workspace:*",
-    "@xenolithengine/editor": "workspace:*",
-    "@xenolithengine/plugin-autolayout": "workspace:*",
-    "@xenolithengine/render-pixi": "workspace:*",
+    "@xenolithengine/graph-core": "workspace:*",
+    "@xenolithengine/graph-editor": "workspace:*",
+    "@xenolithengine/graph-plugin-autolayout": "workspace:*",
+    "@xenolithengine/graph-render-pixi": "workspace:*",
     "dagre": "^0.8.5",
     "elkjs": "^0.11.1"
   }

@@ -1,7 +1,7 @@
 // Vanilla mount — Palette sidebar. The schemas + sidebar config live in the shared package; this
 // file just spins up an editor and points it at them. Drag any tile from the left rail onto the
 // canvas to spawn a node at the drop point.
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

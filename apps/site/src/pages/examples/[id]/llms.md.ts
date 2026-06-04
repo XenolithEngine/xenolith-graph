@@ -42,7 +42,7 @@ export const GET: APIRoute = ({ params }) => {
     '',
     `Open the live demo at ${url} to interact with it in the browser. The same source files are`,
     'reproduced verbatim in the page so you can copy-paste into your own project. Every example is',
-    'self-contained — pick one, copy the files, install `@xenolithengine/editor` + the relevant framework',
+    'self-contained — pick one, copy the files, install `@xenolithengine/graph-editor` + the relevant framework',
     'adapter, and it runs.',
     '',
     '## See also',

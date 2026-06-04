@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, reactWidget, useEditor, type WidgetProps } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, XenolithButton, reactWidget, useEditor, type WidgetProps } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { loadLLMGraph, runLLM } from '@xenolithengine/demo/llm-builder'
 import { DemoStage } from '../Layout.js'
 

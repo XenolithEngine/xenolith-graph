@@ -1,4 +1,4 @@
-# @xenolithengine/adapter-core
+# @xenolithengine/graph-adapter-core
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -9,12 +9,12 @@ Framework-agnostic binding for XenolithGraph — mount, reactive props, events. 
 
 Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an AI-native, embeddable node-graph editor for the web with its own visual design language (Xen).
 
-Most application hosts should use `@xenolithengine/editor` (vanilla) or one of the framework adapters. This package is the primitive every adapter is built on; reach for it only if you're writing a new adapter.
+Most application hosts should use `@xenolithengine/graph-editor` (vanilla) or one of the framework adapters. This package is the primitive every adapter is built on; reach for it only if you're writing a new adapter.
 
 ## Install
 
 ```bash
-pnpm add @xenolithengine/adapter-core
+pnpm add @xenolithengine/graph-adapter-core
 ```
 
 Peer dependency: `pixi.js@^8.6.0`.
@@ -22,7 +22,7 @@ Peer dependency: `pixi.js@^8.6.0`.
 ## Usage
 
 ```ts
-import { createEditorBinding } from '@xenolithengine/adapter-core'
+import { createEditorBinding } from '@xenolithengine/graph-adapter-core'
 
 const binding = await createEditorBinding('#graph', {
   theme: 'xen',

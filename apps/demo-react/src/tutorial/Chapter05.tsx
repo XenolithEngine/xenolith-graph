@@ -6,8 +6,8 @@
 // `useEffect` for one-shot event subscriptions, `<XenolithPanel>` for in-editor overlay UI.
 
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useNodes, useEdges, useSelection, useEditorEvent } from '@xenolithengine/react'
-import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, useNodes, useEdges, useSelection, useEditorEvent } from '@xenolithengine/graph-react'
+import type { NodeSchema, XenolithGraphV1 } from '@xenolithengine/graph-editor'
 import { DemoStage } from '../Layout.js'
 
 const greeterSchema: NodeSchema = {

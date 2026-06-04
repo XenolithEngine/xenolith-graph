@@ -13,11 +13,11 @@ export default defineConfig({
   esbuild: { target: 'es2022' },
   resolve: {
     alias: [
-      { find: '@xenolithengine/core',               replacement: pkgSrc('core') },
-      { find: '@xenolithengine/render-pixi',         replacement: pkgSrc('render-pixi') },
-      { find: '@xenolithengine/editor',              replacement: pkgSrc('editor') },
-      { find: '@xenolithengine/theme-xen',           replacement: pkgSrc('theme-xen') },
-      { find: '@xenolithengine/theme-liquid-glass',  replacement: pkgSrc('theme-liquid-glass') },
+      { find: '@xenolithengine/graph-core',               replacement: pkgSrc('core') },
+      { find: '@xenolithengine/graph-render-pixi',         replacement: pkgSrc('render-pixi') },
+      { find: '@xenolithengine/graph-editor',              replacement: pkgSrc('editor') },
+      { find: '@xenolithengine/graph-theme-xen',           replacement: pkgSrc('theme-xen') },
+      { find: '@xenolithengine/graph-theme-liquid-glass',  replacement: pkgSrc('theme-liquid-glass') },
     ],
   },
 })

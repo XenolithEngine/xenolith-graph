@@ -4,7 +4,7 @@ import {
   EDITOR_EVENT_NAMES,
   type EditorBinding,
   type XenolithProps,
-} from '@xenolithengine/adapter-core'
+} from '@xenolithengine/graph-adapter-core'
 
 /**
  * Solid directive: `<div use:xenolith={props} on:node:click={…} on:selection:changed={…} />`.

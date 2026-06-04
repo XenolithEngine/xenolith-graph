@@ -3,8 +3,8 @@
 //
 // One-shot setup goes through `@ready`. Live event subscriptions go in the child <Chapter05Readout>,
 // where `useEditor()` / `useEditorEvent()` resolve via the injection key <XenolithGraph> provides.
-import { XenolithGraph } from '@xenolithengine/vue'
-import type { NodeSchema, XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-vue'
+import type { NodeSchema, XenolithEditor } from '@xenolithengine/graph-editor'
 import Chapter05Readout from './Chapter05Readout.vue'
 
 const greeterSchema: NodeSchema = {

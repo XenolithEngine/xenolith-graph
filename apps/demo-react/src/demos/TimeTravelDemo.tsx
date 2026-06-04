@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
-import { StepDebugger, type StepRecord, type XenolithEditor, type StepExecutor } from '@xenolithengine/editor'
-import type { Node, NodeId, NodeSchema } from '@xenolithengine/core'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
+import { StepDebugger, type StepRecord, type XenolithEditor, type StepExecutor } from '@xenolithengine/graph-editor'
+import type { Node, NodeId, NodeSchema } from '@xenolithengine/graph-core'
 import { DemoStage } from '../Layout.js'
 
 // Time-travel debugger: auto-run the StepDebugger to completion, then let the user SCRUB

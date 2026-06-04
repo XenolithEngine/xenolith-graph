@@ -1,5 +1,5 @@
 import { Texture, TilingSprite } from 'pixi.js'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
 /**
  * Create a `TilingSprite` filled with the Xen background dot pattern.

@@ -12,7 +12,7 @@
 // All events fire on every path (user interaction, programmatic API, undo / redo) because the
 // editor's bus is bridged off the command bus.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/editor'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1 } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',

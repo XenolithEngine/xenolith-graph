@@ -1,8 +1,8 @@
 // Angular standalone component — mount. The `<xenolith-graph>` component exposes a `(ready)`
 // emitter that fires once the editor is mounted; we do the imperative seed work there.
 import { Component } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolithengine/angular'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraphComponent } from '@xenolithengine/graph-angular'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildMount } from '@xenolithengine/demo/mount'
 
 @Component({

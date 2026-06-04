@@ -1,4 +1,4 @@
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/graph-react'
 import { setupBreadcrumbDive, diveIntoSlug } from '@xenolithengine/demo/breadcrumb-dive'
 import { DemoStage } from '../Layout.js'
 

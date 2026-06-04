@@ -5,11 +5,11 @@
 // macro frames smear across everything. That's the whole demo: same data, two engines, one
 // visibly correct.
 
-import type { XenolithEditor } from '@xenolithengine/editor'
-import { autoLayoutPlugin, type AutoLayoutPlugin, type LayoutOpts } from '@xenolithengine/plugin-autolayout'
-import { dagreEngine } from '@xenolithengine/plugin-autolayout/dagre'
-import { elkEngine } from '@xenolithengine/plugin-autolayout/elk'
-import type { Node, Edge, NodeId, PinId, EdgeId } from '@xenolithengine/core'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
+import { autoLayoutPlugin, type AutoLayoutPlugin, type LayoutOpts } from '@xenolithengine/graph-plugin-autolayout'
+import { dagreEngine } from '@xenolithengine/graph-plugin-autolayout/dagre'
+import { elkEngine } from '@xenolithengine/graph-plugin-autolayout/elk'
+import type { Node, Edge, NodeId, PinId, EdgeId } from '@xenolithengine/graph-core'
 
 type Pos = { x: number; y: number }
 const at = (x: number, y: number): Pos => ({ x, y })

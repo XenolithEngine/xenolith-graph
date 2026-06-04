@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import type { Edge, Node, Pin, TemplateDefinition } from '@xenolithengine/core'
-import { NodeRegistry } from '@xenolithengine/core'
-import type { RenderNodeOptions } from '@xenolithengine/render-pixi'
+import type { Edge, Node, Pin, TemplateDefinition } from '@xenolithengine/graph-core'
+import { NodeRegistry } from '@xenolithengine/graph-core'
+import type { RenderNodeOptions } from '@xenolithengine/graph-render-pixi'
 import {
   parseXenolithGraph,
   serializeXenolithGraph,

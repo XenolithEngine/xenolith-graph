@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
-import type { NodeId, NodeSchema } from '@xenolithengine/core'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
+import type { NodeId, NodeSchema } from '@xenolithengine/graph-core'
 import { DemoStage } from '../Layout.js'
 
 // Per-node "cost / latency" overlay rendered as a colored dot in editor.overlayRoot positioned

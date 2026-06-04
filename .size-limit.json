@@ -1,58 +1,58 @@
 [
   {
-    "name": "@xenolithengine/core",
+    "name": "@xenolithengine/graph-core",
     "path": "packages/core/dist/index.js",
     "limit": "30 KB",
     "gzip": true,
     "ignore": []
   },
   {
-    "name": "@xenolithengine/render-pixi (excl. PIXI)",
+    "name": "@xenolithengine/graph-render-pixi (excl. PIXI)",
     "path": "packages/render-pixi/dist/index.js",
     "limit": "80 KB",
     "gzip": true,
     "ignore": ["pixi.js"]
   },
   {
-    "name": "@xenolithengine/editor (excl. PIXI)",
+    "name": "@xenolithengine/graph-editor (excl. PIXI)",
     "path": "packages/editor/dist/index.js",
     "limit": "120 KB",
     "gzip": true,
     "ignore": ["pixi.js"]
   },
   {
-    "name": "@xenolithengine/react (excl. React)",
+    "name": "@xenolithengine/graph-react (excl. React)",
     "path": "packages/react/dist/index.js",
     "limit": "10 KB",
     "gzip": true,
-    "ignore": ["react", "react-dom", "@xenolithengine/editor", "@xenolithengine/adapter-core"]
+    "ignore": ["react", "react-dom", "@xenolithengine/graph-editor", "@xenolithengine/graph-adapter-core"]
   },
   {
-    "name": "@xenolithengine/adapter-core",
+    "name": "@xenolithengine/graph-adapter-core",
     "path": "packages/adapter-core/dist/index.js",
     "limit": "6 KB",
     "gzip": true,
-    "ignore": ["@xenolithengine/editor"]
+    "ignore": ["@xenolithengine/graph-editor"]
   },
   {
-    "name": "@xenolithengine/theme-xen",
+    "name": "@xenolithengine/graph-theme-xen",
     "path": "packages/theme-xen/dist/index.js",
     "limit": "8 KB",
     "gzip": true
   },
   {
-    "name": "@xenolithengine/theme-liquid-glass",
+    "name": "@xenolithengine/graph-theme-liquid-glass",
     "path": "packages/theme-liquid-glass/dist/index.js",
     "limit": "12 KB",
     "gzip": true,
-    "ignore": ["pixi.js", "@xenolithengine/render-pixi"]
+    "ignore": ["pixi.js", "@xenolithengine/graph-render-pixi"]
   },
   {
-    "name": "@xenolithengine/plugin-autolayout (dagre adapter, excl. dagre)",
+    "name": "@xenolithengine/graph-plugin-autolayout (dagre adapter, excl. dagre)",
     "path": "packages/plugin-autolayout/dist/adapters/dagre.js",
     "limit": "5 KB",
     "gzip": true,
-    "ignore": ["dagre", "@xenolithengine/editor", "@xenolithengine/core"]
+    "ignore": ["dagre", "@xenolithengine/graph-editor", "@xenolithengine/graph-core"]
   }
 ]
 

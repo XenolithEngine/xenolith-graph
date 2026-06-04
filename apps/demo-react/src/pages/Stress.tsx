@@ -1,5 +1,5 @@
-import { XenolithGraph } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 
 // E2E fixture (the SPA is the e2e source, not a shipped product page): load a large graph via
 // loadJSON and leave the viewport at a working zoom so most nodes are off-screen. Used by

@@ -1,12 +1,12 @@
 // Plugin-driven twin of build-fairqueue.ts. IDENTICAL visuals/topology/UX — the ONLY difference is
-// the compute: instead of the native step(), each tick seeds the @xenolithengine/plugin-runtime VM from
+// the compute: instead of the native step(), each tick seeds the @xenolithengine/graph-plugin-runtime VM from
 // the live graph and runs the fairqueue RUNTIME GRAPH (generic primitives + Allocate), then writes
 // the result back. The native build-fairqueue.ts stays as the reference; this proves the same demo
 // runs on the plugin engine. (runtime-graph.test.ts already proves the graph == step() bit-for-bit.)
 
-import type { XenolithEditor, NodeId, Node } from '@xenolithengine/editor'
-import { SetNodeState } from '@xenolithengine/core'
-import { Runtime } from '@xenolithengine/plugin-runtime'
+import type { XenolithEditor, NodeId, Node } from '@xenolithengine/graph-editor'
+import { SetNodeState } from '@xenolithengine/graph-core'
+import { Runtime } from '@xenolithengine/graph-plugin-runtime'
 import { createSim, type Agent, type GoodieSpec } from './fairqueue.js'
 import { simToGraph, AGENT_WIDGETS, GOODIE_WIDGETS, STATE_ID } from './sim-to-graph.js'
 import { graphToSim, type NodeLike, type EdgeLike } from './graph-to-sim.js'

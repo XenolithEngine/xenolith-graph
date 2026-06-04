@@ -1,7 +1,7 @@
 // Public entry: `compile(graph, defs)` → an async-instantiated WASM module that runs the graph.
 // Same call surface as the JS codegen so a host can swap engines per-graph.
 
-import type { RtGraph, NodeDef } from '@xenolithengine/plugin-runtime'
+import type { RtGraph, NodeDef } from '@xenolithengine/graph-plugin-runtime'
 import { emitASSource, varIndexOf, canCompileToAS } from './emit.js'
 import { compileAS } from './compile.js'
 

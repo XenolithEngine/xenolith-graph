@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseXenolithGraph } from '@xenolithengine/editor'
+import { parseXenolithGraph } from '@xenolithengine/graph-editor'
 import { importComfyWorkflow, comfyTypeToXen } from '@xenolithengine/demo/comfy'
 
 const workflow = {
@@ -120,7 +120,7 @@ describe('importComfyWorkflow', () => {
   })
 })
 
-import { REROUTE_TYPE } from '@xenolithengine/core'
+import { REROUTE_TYPE } from '@xenolithengine/graph-core'
 
 describe('importComfyWorkflow — Reroute mapping', () => {
   const wf = {

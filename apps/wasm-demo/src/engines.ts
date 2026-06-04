@@ -2,8 +2,8 @@
 // canvas renderer doesn't care which one is driving it. The graph fed in is the SAME RtGraph that
 // drives the editor (via graphSnapshot), so "what you see in the editor IS what runs".
 
-import { Runtime, BUILTIN_PRIMITIVES, codegen, mandelbrotPixelReference, type RtGraph, type NodeDef } from '@xenolithengine/plugin-runtime'
-import { compile as compileAsWasm } from '@xenolithengine/runtime-as'
+import { Runtime, BUILTIN_PRIMITIVES, codegen, mandelbrotPixelReference, type RtGraph, type NodeDef } from '@xenolithengine/graph-plugin-runtime'
+import { compile as compileAsWasm } from '@xenolithengine/graph-runtime-as'
 
 export type EngineId = 'reference' | 'interp' | 'codegen-js' | 'as-wasm-vars' | 'as-wasm-args'
 

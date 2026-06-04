@@ -1,7 +1,7 @@
 import { DemoPage } from '../Layout.js'
 import { CustomWidgetsDemo } from '../demos/CustomWidgetsDemo.js'
 
-const code = `import { reactWidget } from '@xenolithengine/react' // mounts a React component as a widget
+const code = `import { reactWidget } from '@xenolithengine/graph-react' // mounts a React component as a widget
 
 // Any React component is a widget. Style it with the editor's CSS vars so it tracks the theme:
 function AsyncSelect({ value, setValue }) {

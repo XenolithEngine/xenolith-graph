@@ -1,4 +1,4 @@
-import type { XenolithTheme } from '@xenolithengine/render-pixi'
+import type { XenolithTheme } from '@xenolithengine/graph-render-pixi'
 import { liquidGlassTokens } from './tokens.js'
 import {
   renderNodeLiquidGlass,

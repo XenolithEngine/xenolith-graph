@@ -1,5 +1,5 @@
-import type { NodeSearchResult } from '@xenolithengine/core'
-import type { PaletteStyle } from '@xenolithengine/render-pixi'
+import type { NodeSearchResult } from '@xenolithengine/graph-core'
+import type { PaletteStyle } from '@xenolithengine/graph-render-pixi'
 
 export interface PaletteCallbacks {
   /** Fuzzy search over the registry. */

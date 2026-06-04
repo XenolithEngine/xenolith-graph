@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { Runtime, pinsFromSchemaFields, type RtGraph, type RtNode, type SchemaExtraPin } from '@xenolithengine/plugin-runtime'
-import { flattenAllTemplateInstances, createNodeId, createPinId, createEdgeId, type Node, type Edge, type TemplateDefinition, type TemplateDefId } from '@xenolithengine/core'
+import { Runtime, pinsFromSchemaFields, type RtGraph, type RtNode, type SchemaExtraPin } from '@xenolithengine/graph-plugin-runtime'
+import { flattenAllTemplateInstances, createNodeId, createPinId, createEdgeId, type Node, type Edge, type TemplateDefinition, type TemplateDefId } from '@xenolithengine/graph-core'
 import { fairqueueMergedGraph, MERGED_DEFS } from './runtime-graph.js'
 import { createSim } from './fairqueue.js'
 
@@ -32,15 +32,15 @@ describe('merged graph (headless)', () => {
       position: n.position,
       state: (n.state ?? {}) as Record<string, unknown>,
       pins: n.pins.map((p) => ({
-        id: p.id as unknown as import('@xenolithengine/core').PinId,
+        id: p.id as unknown as import('@xenolithengine/graph-core').PinId,
         kind: p.kind, direction: p.direction, type: String(p.type), multiple: !!p.multiple,
         ...(p.label !== undefined ? { label: p.label } : {}),
       })),
     }))
     const v1Edges = v1.edges.map((edge): Edge => ({
       id: edge.id as unknown as Edge['id'],
-      from: { node: edge.from.node as unknown as Node['id'], pin: edge.from.pin as unknown as import('@xenolithengine/core').PinId },
-      to:   { node: edge.to.node   as unknown as Node['id'], pin: edge.to.pin   as unknown as import('@xenolithengine/core').PinId },
+      from: { node: edge.from.node as unknown as Node['id'], pin: edge.from.pin as unknown as import('@xenolithengine/graph-core').PinId },
+      to:   { node: edge.to.node   as unknown as Node['id'], pin: edge.to.pin   as unknown as import('@xenolithengine/graph-core').PinId },
     }))
     // 2) FLATTEN any `$templateInstance` against the V1 graph's `templates` map. Pure helper from
     //    core — same code path `graphSnapshot({ expandTemplates: true })` runs editor-side.

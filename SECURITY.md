@@ -21,15 +21,15 @@ Report privately via one of these channels:
 Include:
 1. A description of the issue (what you can do, what you observed).
 2. A minimal reproduction (a `xenolith.v1` JSON graph, a code snippet, or a step-by-step is enough).
-3. The version(s) of `@xenolithengine/*` packages affected.
+3. The version(s) of `@xenolithengine/graph-*` packages affected.
 4. Your assessment of impact (data exposure, code execution, DoS, etc.).
 
 We'll acknowledge receipt within 72 hours and aim to publish a fix within 14 days for critical issues. Coordinated disclosure timelines are negotiable for genuinely complex findings.
 
 ## In scope
 
-- All published `@xenolithengine/*` npm packages
-- The MCP server (`@xenolithengine/mcp-server` — WS bridge, token auth)
+- All published `@xenolithengine/graph-*` npm packages
+- The MCP server (`@xenolithengine/graph-mcp-server` — WS bridge, token auth)
 - The site (`xenolithengine.github.io/xenolith-graph`)
 
 ## Out of scope

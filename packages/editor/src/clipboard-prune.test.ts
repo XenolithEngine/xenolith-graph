@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createReroute, createEdgeId, type Node, type Edge, type NodeId, type PinId } from '@xenolithengine/core'
+import { createReroute, createEdgeId, type Node, type Edge, type NodeId, type PinId } from '@xenolithengine/graph-core'
 import { pruneOrphanInlineReroutes } from './clipboard-prune.js'
 
 const plainNode = (id: string): Node => ({

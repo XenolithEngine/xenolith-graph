@@ -1,4 +1,4 @@
-import type { PaletteStyle } from '@xenolithengine/render-pixi'
+import type { PaletteStyle } from '@xenolithengine/graph-render-pixi'
 
 export interface EdgeMenuItem {
   label: string

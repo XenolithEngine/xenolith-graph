@@ -6,8 +6,8 @@
 // don't bring their own schemas (that would make a recipe a different kind of thing). Use
 // `register_node_schema` first if you need to extend the registry.
 
-import type { NodeId, PinId } from '@xenolithengine/core'
-import { createEdgeId } from '@xenolithengine/core'
+import type { NodeId, PinId } from '@xenolithengine/graph-core'
+import { createEdgeId } from '@xenolithengine/graph-core'
 
 export interface RecipeNodeDef {
   /** Placeholder id used inside this recipe's edges. Replaced with a fresh NodeId at instantiate. */

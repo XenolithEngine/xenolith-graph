@@ -18,13 +18,13 @@ export default defineConfig(({ command }) => ({
   esbuild: { target: 'es2022' },
   resolve: {
     alias: [
-      { find: '@xenolithengine/core', replacement: pkgSrc('core') },
-      { find: '@xenolithengine/render-pixi', replacement: pkgSrc('render-pixi') },
-      { find: '@xenolithengine/editor', replacement: pkgSrc('editor') },
-      { find: '@xenolithengine/plugin-runtime', replacement: pkgSrc('plugin-runtime') },
-      { find: '@xenolithengine/adapter-core', replacement: pkgSrc('adapter-core') },
-      { find: '@xenolithengine/react', replacement: resolve(here, '..', '..', 'packages', 'react', 'src', 'index.tsx') },
-      { find: '@xenolithengine/theme-xen', replacement: pkgSrc('theme-xen') },
+      { find: '@xenolithengine/graph-core', replacement: pkgSrc('core') },
+      { find: '@xenolithengine/graph-render-pixi', replacement: pkgSrc('render-pixi') },
+      { find: '@xenolithengine/graph-editor', replacement: pkgSrc('editor') },
+      { find: '@xenolithengine/graph-plugin-runtime', replacement: pkgSrc('plugin-runtime') },
+      { find: '@xenolithengine/graph-adapter-core', replacement: pkgSrc('adapter-core') },
+      { find: '@xenolithengine/graph-react', replacement: resolve(here, '..', '..', 'packages', 'react', 'src', 'index.tsx') },
+      { find: '@xenolithengine/graph-theme-xen', replacement: pkgSrc('theme-xen') },
     ],
   },
 }))

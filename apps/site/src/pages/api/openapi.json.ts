@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { TOOLS } from '@xenolithengine/mcp-server'
+import { TOOLS } from '@xenolithengine/graph-mcp-server'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
 // Auto-generated OpenAPI 3.1 catalog of every MCP tool. Same source as /api/mcp-tools.json — but
@@ -37,7 +37,7 @@ export const GET: APIRoute = () => {
     info: {
       title: 'XenolithGraph MCP Tools',
       version: '1.0.0',
-      description: 'Function-calling catalog mirroring every MCP tool exposed by `@xenolithengine/mcp-server`. Use this if your agent framework reads OpenAPI but not MCP directly.',
+      description: 'Function-calling catalog mirroring every MCP tool exposed by `@xenolithengine/graph-mcp-server`. Use this if your agent framework reads OpenAPI but not MCP directly.',
       contact: { url: 'https://github.com/XenolithEngine/xenolith-graph' },
       license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' },
     },

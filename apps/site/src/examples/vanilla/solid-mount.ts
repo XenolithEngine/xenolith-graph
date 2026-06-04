@@ -2,7 +2,7 @@
 // re-dispatches events with colon names: `on:node:click`). For programmatic editor access we use
 // the parallel imperative primitive `createXenolithGraph`, which the adapter exposes alongside the
 // directive — the caller owns teardown.
-import { createXenolithGraph } from '@xenolithengine/solid'
+import { createXenolithGraph } from '@xenolithengine/graph-solid'
 import { buildMount } from '@xenolithengine/demo/mount'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

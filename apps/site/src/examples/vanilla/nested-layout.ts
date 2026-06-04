@@ -1,6 +1,6 @@
 // Vanilla mount for the Nested Auto-Layout (ELK) example. Same toggling behaviour as the React
 // demo, built with plain DOM buttons in the editor's overlay root.
-import { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { buildNestedLayout, type LayoutEngineId } from '@xenolithengine/demo/nested-layout'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

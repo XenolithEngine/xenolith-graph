@@ -2,7 +2,7 @@
 // node/edge wiring — the same JSON round-trips through serialization and loads on any host. Edges
 // carry the render opts (arrowhead marker, animated flow, label) right in the file.
 
-import type { XenolithEditor, EdgeId } from '@xenolithengine/editor'
+import type { XenolithEditor, EdgeId } from '@xenolithengine/graph-editor'
 import diagram from './diagram.json'
 
 export interface DiagramHandle {

@@ -1,4 +1,4 @@
-import { XenolithGraph } from '@xenolithengine/react'
+import { XenolithGraph } from '@xenolithengine/graph-react'
 import { setupPreviewNodes } from '@xenolithengine/demo/preview-nodes'
 import { DemoStage } from '../Layout.js'
 

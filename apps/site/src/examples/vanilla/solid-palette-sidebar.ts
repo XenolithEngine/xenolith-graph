@@ -1,5 +1,5 @@
 // Solid adapter — palette sidebar.
-import { createXenolithGraph } from '@xenolithengine/solid'
+import { createXenolithGraph } from '@xenolithengine/graph-solid'
 import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

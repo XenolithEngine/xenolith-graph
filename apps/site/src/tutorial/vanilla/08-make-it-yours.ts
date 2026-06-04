@@ -8,9 +8,9 @@
 //      `type: 'custom', renderer: 'level'`. Two functions: `draw` paints into a 2D canvas;
 //      `onPointer` returns the new value during a drag. No DOM, no framework.
 
-import { XenolithEditor, type NodeSchema, type XenolithGraphV1, type CanvasWidgetController } from '@xenolithengine/editor'
-import { xenTheme } from '@xenolithengine/render-pixi'
-import { liquidGlassTheme } from '@xenolithengine/theme-liquid-glass'
+import { XenolithEditor, type NodeSchema, type XenolithGraphV1, type CanvasWidgetController } from '@xenolithengine/graph-editor'
+import { xenTheme } from '@xenolithengine/graph-render-pixi'
+import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 
 // ── Custom widget: a click/drag level bar. Draws a track + fill, returns the new value (0..1)
 //    during a drag — the editor commits it through the command bus, undoable for free.

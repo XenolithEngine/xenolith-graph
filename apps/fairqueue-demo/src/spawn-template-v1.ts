@@ -2,8 +2,8 @@
 // `allocate-template-v1.ts`. The dived view shows the primitive sub-graph from
 // `buildSpawnSubgraphV1`; the outer-graph view sees ONE "Spawn" node.
 
-import type { XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolithengine/editor'
-import type { TemplateDefinition } from '@xenolithengine/core'
+import type { XenolithNodeV1, XenolithPinV1, XenolithEdgeV1 } from '@xenolithengine/graph-editor'
+import type { TemplateDefinition } from '@xenolithengine/graph-core'
 import { buildSpawnSubgraphV1 } from './spawn-graph-v1.js'
 
 const TPL_INPUT    = '$templateInput'    as const

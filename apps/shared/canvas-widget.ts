@@ -2,7 +2,7 @@
 // functions — `draw` paints into a 2D canvas, `onPointer` returns the new value during a drag. No
 // framework, no DOM. The node it lives on is DATA (canvas-widget.json).
 
-import type { CanvasWidgetController, XenolithEditor, NodeId } from '@xenolithengine/editor'
+import type { CanvasWidgetController, XenolithEditor, NodeId } from '@xenolithengine/graph-editor'
 import graph from './canvas-widget.json'
 
 export const levelWidget: CanvasWidgetController = {

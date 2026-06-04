@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
 import { loadAudioGraph, createAudioEngine, type AudioSynthHandle } from '@xenolithengine/demo/audio-synth'
 import { DemoStage } from '../Layout.js'
 

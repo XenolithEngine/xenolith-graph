@@ -4,7 +4,7 @@ import {
   createPinId,
   type Node,
   type Pin,
-} from '@xenolithengine/core'
+} from '@xenolithengine/graph-core'
 import { computeNodeLayout, type LayoutTokens, type NodeLayout } from './layout.js'
 
 const TOKENS: LayoutTokens = {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, useEditor } from '@xenolithengine/graph-react'
 import { setupEdgePaths, setAllEdgePaths, EDGE_PATH_STYLES } from '@xenolithengine/demo/edge-paths'
-import type { EdgePathStyle } from '@xenolithengine/render-pixi'
+import type { EdgePathStyle } from '@xenolithengine/graph-render-pixi'
 import { DemoStage } from '../Layout.js'
 
 // Canon: active style lives in the panel; flipping it dispatches through the editor directly.

@@ -93,10 +93,10 @@ Heavy on big graphs — pair with `editor.withOverlay('Exporting…', async () =
 
 ## ComfyUI import
 
-The `@xenolithengine/runtime` package ships a workflow importer that consumes the JSON ComfyUI writes when you save a workflow:
+The `@xenolithengine/graph-runtime` package ships a workflow importer that consumes the JSON ComfyUI writes when you save a workflow:
 
 ```ts
-import { importComfyWorkflow } from '@xenolithengine/runtime/comfy'
+import { importComfyWorkflow } from '@xenolithengine/graph-runtime/comfy'
 const graph = importComfyWorkflow(json)
 editor.loadJSON(graph)
 ```

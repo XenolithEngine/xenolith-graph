@@ -2,7 +2,7 @@
 // programmatic setup (registering schemas, framing) we use the imperative `createXenolithGraph`
 // primitive the adapter exposes alongside the action. This mount runs on the site under a
 // vanilla loader because the per-example router boots Svelte demos as plain TS.
-import { createXenolithGraph } from '@xenolithengine/svelte'
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
 import { buildMount } from '@xenolithengine/demo/mount'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

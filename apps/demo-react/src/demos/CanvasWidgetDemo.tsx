@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel } from '@xenolithengine/react'
-import type { XenolithEditor, NodeId } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel } from '@xenolithengine/graph-react'
+import type { XenolithEditor, NodeId } from '@xenolithengine/graph-editor'
 import { buildCanvasWidget } from '@xenolithengine/demo/canvas-widget'
 import { DemoStage } from '../Layout.js'
 

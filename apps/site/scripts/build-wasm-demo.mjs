@@ -12,7 +12,7 @@ const repoRoot = resolve(here, '..', '..', '..')
 const demoDist = resolve(repoRoot, 'apps', 'wasm-demo', 'dist')
 const out = resolve(here, '..', 'public', 'wasm')
 
-// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolithengine/*
+// Run vite directly (NOT the package's `build`, which prefixes `tsc -b`). vite resolves @xenolithengine/graph-*
 // via aliases to each package's src, so no built .d.ts/dist is required — same pattern as
 // build-fairqueue.mjs.
 console.log('[wasm-demo] building @xenolithengine/wasm-demo (vite)…')

@@ -1,7 +1,7 @@
 // Svelte adapter — save & restore. Imperative primitive (`createXenolithGraph`) for editor access;
 // shared helpers (`downloadGraph` / `uploadGraph` / `saveToLocal` / `restoreFromLocal`) do the IO.
 // Autosave rides the binding's `history:changed` event.
-import { createXenolithGraph } from '@xenolithengine/svelte'
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
 } from '@xenolithengine/demo/save-restore'

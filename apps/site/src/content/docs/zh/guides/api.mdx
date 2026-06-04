@@ -349,10 +349,10 @@ LOD 随缩放下降切换：full → sprite-baked → flat-batch。
 
 ## Headless 运行时
 
-执行被委托给插件——编辑器自身**不附带执行**。运行时（如 `@xenolithengine/plugin-runtime`、Blueprint VM，正在开发中）作为插件安装，使用上面的[运行时委托 API](#插件)。
+执行被委托给插件——编辑器自身**不附带执行**。运行时（如 `@xenolithengine/graph-plugin-runtime`、Blueprint VM，正在开发中）作为插件安装，使用上面的[运行时委托 API](#插件)。
 
 ```ts
-import { runtime } from '@xenolithengine/plugin-runtime'   // 未来包
+import { runtime } from '@xenolithengine/graph-plugin-runtime'   // 未来包
 editor.use(runtime({ /* 选项 */ }))
 editor.startLoop()    // 开始 tick——运行时决定执行什么
 editor.step()         // 单帧

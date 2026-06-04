@@ -1,7 +1,7 @@
 import type { Graphics } from 'pixi.js'
-import { computeEdgePath, resolveEdgeColor, type RenderEdgeOptions } from '@xenolithengine/render-pixi'
-import type { PinLayout } from '@xenolithengine/render-pixi'
-import type { XenTokens } from '@xenolithengine/theme-xen'
+import { computeEdgePath, resolveEdgeColor, type RenderEdgeOptions } from '@xenolithengine/graph-render-pixi'
+import type { PinLayout } from '@xenolithengine/graph-render-pixi'
+import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
 // Synthwave wire renderer — two-pass bezier: wide blurred glow stroke + sharp on-top stroke.
 // Same Graphics, two draw calls. Cheap, no filter, but the wires now read as neon TUBES sitting

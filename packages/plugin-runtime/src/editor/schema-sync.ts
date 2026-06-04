@@ -3,7 +3,7 @@
 // calls them and forwards the result to `ctx.setNodePins`. Pin id convention: `field:<key>` so the
 // Struct V3 evaluator (which derives field name from id suffix after `:`) sees the right field.
 
-import type { Pin, PinId, WidgetSpec } from '@xenolithengine/core'
+import type { Pin, PinId, WidgetSpec } from '@xenolithengine/graph-core'
 
 /** Declaration for a non-field pin synthesized from a Schema (multi-inputs, named outputs, etc.).
  *  Lives in `Schema.state.extraPins` so the graph author can express things that don't fit the

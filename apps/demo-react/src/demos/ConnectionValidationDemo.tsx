@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XenolithGraph, XenolithPanel, XenolithControls } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, XenolithControls } from '@xenolithengine/graph-react'
 import { buildConnectionValidation, type Attempt } from '@xenolithengine/demo/connection-validation'
 import { DemoStage } from '../Layout.js'
 

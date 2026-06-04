@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { Edge, NodeId, EdgeId, PinId } from '@xenolithengine/core'
+import type { Edge, NodeId, EdgeId, PinId } from '@xenolithengine/graph-core'
 import { computeRerouteBridges } from './reroute-bridge.js'
 
 const n = (s: string): NodeId => s as unknown as NodeId

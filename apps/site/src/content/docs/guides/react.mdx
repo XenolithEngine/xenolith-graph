@@ -3,7 +3,7 @@ title: React adapter
 description: Mount XenolithGraph in a React app, drive it with hooks and panel components, and bring your own UI in via custom widgets.
 ---
 
-The React adapter ships as `@xenolithengine/react`. It is a thin layer over the core editor — every
+The React adapter ships as `@xenolithengine/graph-react`. It is a thin layer over the core editor — every
 public method on `XenolithEditor` works the same way the headless docs describe it. What the
 adapter adds is React-shaped sugar: one component (`<XenolithGraph>`), one Context, a handful of
 selective subscription hooks, and four in-editor panel components.
@@ -16,7 +16,7 @@ and mutates through the editor's imperative API.
 ## Install
 
 ```bash
-pnpm add @xenolithengine/react @xenolithengine/editor pixi.js
+pnpm add @xenolithengine/graph-react @xenolithengine/graph-editor pixi.js
 ```
 
 `pixi.js` is a peer dependency. React 18 or 19 is required.
@@ -24,8 +24,8 @@ pnpm add @xenolithengine/react @xenolithengine/editor pixi.js
 ## Mount the editor
 
 ```tsx
-import { XenolithGraph } from '@xenolithengine/react'
-import type { XenolithEditor } from '@xenolithengine/editor'
+import { XenolithGraph } from '@xenolithengine/graph-react'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 
 function App() {
   return (
@@ -80,7 +80,7 @@ They must be called inside a `<XenolithGraph>` subtree.
 import {
   useEditor, useNodes, useEdges, useSelection, useViewport, useGraphJSON,
   useUndoRedo, useEditorEvent,
-} from '@xenolithengine/react'
+} from '@xenolithengine/graph-react'
 ```
 
 | Hook | Returns | Re-renders on |
@@ -139,7 +139,7 @@ active theme's `--xeno-*` CSS variables — they restyle with `setTheme(...)` fo
 import {
   XenolithGraph, XenolithPanel, XenolithButton,
   XenolithControls, XenolithMiniMap, useUndoRedo,
-} from '@xenolithengine/react'
+} from '@xenolithengine/graph-react'
 
 function Editor() {
   return (
@@ -159,7 +159,7 @@ function Editor() {
 (`accent`, `text`, `muted`) and the widget cell's `width`/`height`.
 
 ```tsx
-import { reactWidget, type WidgetProps } from '@xenolithengine/react'
+import { reactWidget, type WidgetProps } from '@xenolithengine/graph-react'
 
 function Knob({ value, setValue, accent }: WidgetProps) {
   const v = Number(value ?? 0)
@@ -202,7 +202,7 @@ reach for `useEditorEvent(event, handler)`.
 ## Imperative escape hatch
 
 ```tsx
-import { useXenolith } from '@xenolithengine/react'
+import { useXenolith } from '@xenolithengine/graph-react'
 
 function ExternallyMounted() {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -226,7 +226,7 @@ example, mounting into a portal or a third-party slot.
 
 ## Related
 
-- [`@xenolithengine/editor` API reference](../api/) — every method exposed via `useEditor()`
+- [`@xenolithengine/graph-editor` API reference](../api/) — every method exposed via `useEditor()`
 - [Widgets guide](../widgets/) — built-in widgets + the `WidgetSpec` shape `reactWidget` plugs into
 - [Save / export](../save-export/) — `toJSON` / `loadJSON` / `exportImage` patterns
 - [Events](../events-commands/) — the full 24-event surface and which are preventable

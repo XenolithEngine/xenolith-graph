@@ -2,7 +2,7 @@
 // Subscriptions live with the state that records them. `useEditorEvent` auto-rebinds on editor swap
 // and cleans up on unmount. Mounted as a child of <XenolithGraph> so the editor injection resolves.
 import { ref } from 'vue'
-import { useEditorEvent } from '@xenolithengine/vue'
+import { useEditorEvent } from '@xenolithengine/graph-vue'
 
 const log = ref<string[]>([])
 const widgets = ref<Record<string, unknown>>({})

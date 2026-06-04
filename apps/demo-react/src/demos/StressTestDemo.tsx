@@ -1,4 +1,4 @@
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useNodes } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor, useNodes } from '@xenolithengine/graph-react'
 import { setupStressTest, addStressNodes } from '@xenolithengine/demo/stress-test'
 import { DemoStage } from '../Layout.js'
 

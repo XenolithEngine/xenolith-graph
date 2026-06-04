@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent, useSelection } from '@xenolithengine/react'
-import type { WidgetSpec } from '@xenolithengine/editor'
+import { XenolithGraph, XenolithPanel, useEditor, useEditorEvent, useSelection } from '@xenolithengine/graph-react'
+import type { WidgetSpec } from '@xenolithengine/graph-editor'
 import { DemoStage } from '../Layout.js'
 import { loadDemo } from '../demo-data.js'
 

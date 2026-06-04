@@ -7,7 +7,7 @@
 // Hosts call `attachRuntimeBridge(editor, rt)` ONCE after creating the Runtime. From then on,
 // every `rt.tick(...)` automatically refreshes Output widgets. No per-host loop.
 
-import type { XenolithEditor } from '@xenolithengine/editor'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import type { Runtime } from '../vm/interpreter.js'
 import { OUTPUT_VAR_PREFIX } from '../vm/collection.js'
 

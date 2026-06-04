@@ -6,7 +6,7 @@
 // entirely through composable primitives (ForEach + FilterIndices + ArgMax + Index + ArrayWrite +
 // Append + ObjectGet) with NO bespoke `Allocate` evaluator in the VM.
 
-import type { XenolithNodeV1, XenolithEdgeV1, XenolithPinV1 } from '@xenolithengine/editor'
+import type { XenolithNodeV1, XenolithEdgeV1, XenolithPinV1 } from '@xenolithengine/graph-editor'
 
 const ei = (id: string, label = ''): XenolithPinV1 => ({ id, kind: 'exec', direction: 'in',  type: 'exec', multiple: false, label })
 const eo = (id: string, label = ''): XenolithPinV1 => ({ id, kind: 'exec', direction: 'out', type: 'exec', multiple: false, label })

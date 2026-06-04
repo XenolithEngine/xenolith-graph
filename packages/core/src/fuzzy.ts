@@ -3,7 +3,7 @@
  * rewards contiguous runs, matches at word boundaries (camelCase / separators), and an early
  * first match. Returns the matched character indices so the UI can highlight them.
  *
- * Lives in `@xenolithengine/core` (zero-dep invariant) so the node registry's search stays headless —
+ * Lives in `@xenolithengine/graph-core` (zero-dep invariant) so the node registry's search stays headless —
  * hence hand-rolled rather than a package.
  */
 

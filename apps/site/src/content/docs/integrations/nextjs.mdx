@@ -8,10 +8,10 @@ XenolithGraph is a **WebGL/PIXI editor that runs only in the browser**. Any fram
 ## Install
 
 ```sh
-pnpm add @xenolithengine/editor @xenolithengine/react pixi.js
+pnpm add @xenolithengine/graph-editor @xenolithengine/graph-react pixi.js
 ```
 
-`pixi.js` is a peer dependency. Pin it to a version we test against — see the `peerDependencies` field of `@xenolithengine/render-pixi`.
+`pixi.js` is a peer dependency. Pin it to a version we test against — see the `peerDependencies` field of `@xenolithengine/graph-render-pixi`.
 
 ## Mount (App Router, the path most modern apps use)
 
@@ -33,7 +33,7 @@ export default function Page() {
 // app/editor/Editor.tsx
 'use client'
 
-import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/react'
+import { XenolithGraph, XenolithPanel, XenolithButton, useEditor } from '@xenolithengine/graph-react'
 
 function MyPanel() {
   const editor = useEditor()
@@ -75,11 +75,11 @@ export default function EditorPage() { return <Editor /> }
 
 ## Why no SSR mode
 
-A "headless" SSR mode would mean pre-rendering the graph as static SVG on the server. That's a different product. `@xenolithengine/render-pixi` is the only renderer we ship; it requires a `<canvas>` + GPU. If you need a server-rendered preview, use `editor.exportImage()` on the client and upload the resulting PNG — that's a one-shot static render, not interactivity.
+A "headless" SSR mode would mean pre-rendering the graph as static SVG on the server. That's a different product. `@xenolithengine/graph-render-pixi` is the only renderer we ship; it requires a `<canvas>` + GPU. If you need a server-rendered preview, use `editor.exportImage()` on the client and upload the resulting PNG — that's a one-shot static render, not interactivity.
 
 ## Bundle size
 
-`@xenolithengine/editor` + `@xenolithengine/react` together are ~80 kB gzip. PIXI v8 (your peer dep) adds another ~250 kB gzip. The whole thing lazy-loads on the client side, so it doesn't affect your server-rendered initial paint.
+`@xenolithengine/graph-editor` + `@xenolithengine/graph-react` together are ~80 kB gzip. PIXI v8 (your peer dep) adds another ~250 kB gzip. The whole thing lazy-loads on the client side, so it doesn't affect your server-rendered initial paint.
 
 ## Streaming, RSC, Suspense
 

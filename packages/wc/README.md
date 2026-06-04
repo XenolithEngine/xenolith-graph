@@ -1,4 +1,4 @@
-# @xenolithengine/wc
+# @xenolithengine/graph-wc
 
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/blob/main/LICENSE)
@@ -12,7 +12,7 @@ Part of [XenolithGraph](https://github.com/XenolithEngine/xenolith-graph) — an
 ## Install
 
 ```bash
-pnpm add @xenolithengine/wc pixi.js
+pnpm add @xenolithengine/graph-wc pixi.js
 ```
 
 Peer dependency: `pixi.js@^8.6.0`. WebGL/client-only.
@@ -20,7 +20,7 @@ Peer dependency: `pixi.js@^8.6.0`. WebGL/client-only.
 ## Usage
 
 ```ts
-import { register } from '@xenolithengine/wc'
+import { register } from '@xenolithengine/graph-wc'
 register()                       // default tag <xenolith-graph>
 // register('my-graph')          // or with a custom tag
 ```
@@ -29,7 +29,7 @@ register()                       // default tag <xenolith-graph>
 <xenolith-graph style="width:100%;height:100vh" minimap></xenolith-graph>
 
 <script type="module">
-  import { register } from '@xenolithengine/wc'
+  import { register } from '@xenolithengine/graph-wc'
   register()
 
   const el = document.querySelector('xenolith-graph')

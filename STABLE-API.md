@@ -18,7 +18,7 @@ otherwise. File an issue and we'll classify it.
 
 ## Stable
 
-### `@xenolithengine/core`
+### `@xenolithengine/graph-core`
 
 | Symbol | Notes |
 |---|---|
@@ -36,7 +36,7 @@ otherwise. File an issue and we'll classify it.
 | Macro helpers: `isMacro`, `createMacro`, `macroMembers`, `flattenMacroProxies` | |
 | Reroute: `isReroute`, `createReroute`, `REROUTE_NODE_TYPE` | |
 
-### `@xenolithengine/editor`
+### `@xenolithengine/graph-editor`
 
 The `XenolithEditor` class is the main entry point. The **namespaces** below are the canonical
 v0.7 surface — flat methods on the class root (`editor.fitView`, `editor.undo`, …) still work
@@ -84,7 +84,7 @@ but are deprecated and will be removed in v1.0.
 | `BUILTIN_RECIPES`, `createRecipeRegistry`, `instantiateRecipe`, `RecipeDef`, `RecipeNodeDef`, `RecipeEdgeDef`, `RecipeRegistry` | |
 | `diffGraphs`, `GraphDiff` | |
 
-### `@xenolithengine/adapter-core`
+### `@xenolithengine/graph-adapter-core`
 
 | Symbol | Notes |
 |---|---|
@@ -93,7 +93,7 @@ but are deprecated and will be removed in v1.0.
 | `EDITOR_EVENT_NAMES` const | 24 entries — drives every adapter's event-prop derivation. Compile-time exhaustiveness checked against `EditorEvents`. |
 | `XenolithProps`, `applyProps`, `EditorLike` | |
 
-### `@xenolithengine/render-pixi`
+### `@xenolithengine/graph-render-pixi`
 
 | Symbol | Notes |
 |---|---|
@@ -112,27 +112,27 @@ Peer dep: `pixi.js@^8.6.0`.
 
 | Package | Exports |
 |---|---|
-| `@xenolithengine/react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith`; `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
-| `@xenolithengine/vue` | `<XenolithGraph>` (with `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`; in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`. |
-| `@xenolithengine/svelte` | `xenolith` action, `createXenolithGraph`, `XenolithActionReturn`, `svelteEventName`. |
-| `@xenolithengine/solid` | `xenolith` directive, `createXenolithGraph`. |
-| `@xenolithengine/angular` | `XenolithGraphComponent`, standalone. |
-| `@xenolithengine/wc` | `XenolithGraphElement`, `register(tag?)`, `FORWARDED_EVENTS`, `readAttributes`. |
+| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith`; `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
+| `@xenolithengine/graph-vue` | `<XenolithGraph>` (with `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`; in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`. |
+| `@xenolithengine/graph-svelte` | `xenolith` action, `createXenolithGraph`, `XenolithActionReturn`, `svelteEventName`. |
+| `@xenolithengine/graph-solid` | `xenolith` directive, `createXenolithGraph`. |
+| `@xenolithengine/graph-angular` | `XenolithGraphComponent`, standalone. |
+| `@xenolithengine/graph-wc` | `XenolithGraphElement`, `register(tag?)`, `FORWARDED_EVENTS`, `readAttributes`. |
 
 ### Themes
 
 | Package | Export |
 |---|---|
-| `@xenolithengine/theme-xen` | `xenTheme` (default), `xenTokens`, `loadXenFonts`, `mergeTheme`. |
-| `@xenolithengine/theme-liquid-glass` | `liquidGlassTheme`. |
-| `@xenolithengine/theme-holographic` | `holographicTheme`. |
-| `@xenolithengine/theme-synthwave` | `synthwaveTheme`. |
+| `@xenolithengine/graph-theme-xen` | `xenTheme` (default), `xenTokens`, `loadXenFonts`, `mergeTheme`. |
+| `@xenolithengine/graph-theme-liquid-glass` | `liquidGlassTheme`. |
+| `@xenolithengine/graph-theme-holographic` | `holographicTheme`. |
+| `@xenolithengine/graph-theme-synthwave` | `synthwaveTheme`. |
 
 ### Plugins
 
 | Package | Stable surface |
 |---|---|
-| `@xenolithengine/plugin-autolayout` | `autoLayoutPlugin(opts)` factory + sub-entries `@xenolithengine/plugin-autolayout/dagre` and `/elk`. |
+| `@xenolithengine/graph-plugin-autolayout` | `autoLayoutPlugin(opts)` factory + sub-entries `@xenolithengine/graph-plugin-autolayout/dagre` and `/elk`. |
 
 ---
 
@@ -189,7 +189,7 @@ we'll likely promote the underlying capability through a proper public method.
 - `editor.requestRender`, `editor.renderedNodePosition`, `editor.isNodeRendered`,
   `editor.renderedNodeCount`, `editor.setEdgeOptions` (mutator) — renderer internals.
 - `markPinInteractive`, `readPinHandle`, `clearGlowTextureCache`, `clearGradientCache` in
-  `@xenolithengine/render-pixi` — PIXI-internal helpers.
+  `@xenolithengine/graph-render-pixi` — PIXI-internal helpers.
 
 ---
 
@@ -199,9 +199,9 @@ These surfaces exist publicly but may change shape before v1.0. Use them, but pi
 
 | Symbol | What's experimental |
 |---|---|
-| `@xenolithengine/plugin-runtime` — `Runtime`, `attachRuntimeBridge`, `BUILTIN_PRIMITIVES` | Blueprint VM is in active development; backend swap (baked JS / JS codegen / AS-WASM) may rearrange exports. |
-| `@xenolithengine/runtime-as` | AssemblyScript-WASM codegen runtime — entire package experimental. |
-| `@xenolithengine/mcp-server` — tool catalog | The 24-tool surface is stable, but tool argument shapes may add fields under semver-minor. |
+| `@xenolithengine/graph-plugin-runtime` — `Runtime`, `attachRuntimeBridge`, `BUILTIN_PRIMITIVES` | Blueprint VM is in active development; backend swap (baked JS / JS codegen / AS-WASM) may rearrange exports. |
+| `@xenolithengine/graph-runtime-as` | AssemblyScript-WASM codegen runtime — entire package experimental. |
+| `@xenolithengine/graph-mcp-server` — tool catalog | The 24-tool surface is stable, but tool argument shapes may add fields under semver-minor. |
 | `editor.connectMCP(url)` | The WS bridge protocol may add frames; existing frames stay backward-compatible. |
 | `StepDebugger`, `StepExecutor`, `StepRecord`, `StepDebuggerStatus` | Step debugger primitive — used by showcases; the events array shape is still settling. |
 | Touch / mobile interactions (`intent:long-press*`, `intent:gesture-*`) | The 5 gesture events on `InteractionManager` are public but may grow new ones (3-finger, pinch with rotation). |

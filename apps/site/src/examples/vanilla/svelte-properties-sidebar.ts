@@ -1,6 +1,6 @@
 // Svelte adapter — properties sidebar. Imperative primitive + the shared scene builder; the toggle
 // button is a plain DOM control mounted into editor.overlayRoot.
-import { createXenolithGraph } from '@xenolithengine/svelte'
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
 import { setupPropertiesSidebar, PROPERTIES_SIDEBAR_NODE_ID } from '@xenolithengine/demo/properties-sidebar'
 
 export async function mount(target: HTMLElement): Promise<() => void> {

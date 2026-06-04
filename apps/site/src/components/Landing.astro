@@ -54,7 +54,7 @@ const t = (() => {
         p: 'Встроенный MCP-сервер позволяет Claude Desktop / Cursor строить граф напрямую: list_node_types → add_node → connect_pins → auto_layout. Все мутации идут через command bus — undo бесплатный. «Я описываю — редактор строит.»' },
     ],
     quickStartTitle: 'Старт за 30 секунд',
-    quickStartCode: `import { XenolithEditor } from '@xenolithengine/editor'
+    quickStartCode: `import { XenolithEditor } from '@xenolithengine/graph-editor'
 
 // Один вызов — фонты, PIXI, viewport, grid, interaction уже подняты.
 const editor = await XenolithEditor.init('#app')
@@ -98,7 +98,7 @@ editor.loadJSON(myGraph)
         p: '内置 MCP 服务器，让 Claude Desktop / Cursor 直接构建图：list_node_types → add_node → connect_pins → auto_layout。所有变更走 command bus — undo 免费。"我来描述，编辑器来搭。"' },
     ],
     quickStartTitle: '30 秒上手',
-    quickStartCode: `import { XenolithEditor } from '@xenolithengine/editor'
+    quickStartCode: `import { XenolithEditor } from '@xenolithengine/graph-editor'
 
 // 一次调用——字体、PIXI、视口、栅格、交互全部就绪。
 const editor = await XenolithEditor.init('#app')
@@ -142,7 +142,7 @@ editor.loadJSON(myGraph)
         p: 'A built-in MCP server lets Claude Desktop or Cursor build the graph directly: list_node_types → add_node → connect_pins → auto_layout. All mutations flow through the command bus — undo is free. "I describe it, the editor builds it."' },
     ],
     quickStartTitle: '30-second start',
-    quickStartCode: `import { XenolithEditor } from '@xenolithengine/editor'
+    quickStartCode: `import { XenolithEditor } from '@xenolithengine/graph-editor'
 
 // One call — fonts, PIXI, viewport, grid, interactions are wired.
 const editor = await XenolithEditor.init('#app')

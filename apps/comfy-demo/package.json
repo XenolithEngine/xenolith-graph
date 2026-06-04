@@ -13,12 +13,12 @@
     "playwright:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
-    "@xenolithengine/core": "workspace:*",
+    "@xenolithengine/graph-core": "workspace:*",
     "@xenolithengine/demo": "workspace:*",
-    "@xenolithengine/editor": "workspace:*",
-    "@xenolithengine/render-pixi": "workspace:*",
-    "@xenolithengine/theme-xen": "workspace:*",
-    "@xenolithengine/theme-liquid-glass": "workspace:*",
+    "@xenolithengine/graph-editor": "workspace:*",
+    "@xenolithengine/graph-render-pixi": "workspace:*",
+    "@xenolithengine/graph-theme-xen": "workspace:*",
+    "@xenolithengine/graph-theme-liquid-glass": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

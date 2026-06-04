@@ -10,14 +10,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xenolithengine/adapter-core": "workspace:*",
-    "@xenolithengine/core": "workspace:*",
-    "@xenolithengine/editor": "workspace:*",
-    "@xenolithengine/plugin-runtime": "workspace:*",
-    "@xenolithengine/react": "workspace:*",
-    "@xenolithengine/render-pixi": "workspace:*",
-    "@xenolithengine/runtime-as": "workspace:*",
-    "@xenolithengine/theme-xen": "workspace:*",
+    "@xenolithengine/graph-adapter-core": "workspace:*",
+    "@xenolithengine/graph-core": "workspace:*",
+    "@xenolithengine/graph-editor": "workspace:*",
+    "@xenolithengine/graph-plugin-runtime": "workspace:*",
+    "@xenolithengine/graph-react": "workspace:*",
+    "@xenolithengine/graph-render-pixi": "workspace:*",
+    "@xenolithengine/graph-runtime-as": "workspace:*",
+    "@xenolithengine/graph-theme-xen": "workspace:*",
     "pixi.js": "^8.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

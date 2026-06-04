@@ -1,6 +1,6 @@
 // CHAPTER 3 — Connect nodes with typed edges (Svelte adapter).
-import { createXenolithGraph } from '@xenolithengine/svelte'
-import type { NodeSchema } from '@xenolithengine/editor'
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
+import type { NodeSchema } from '@xenolithengine/graph-editor'
 
 const greeterSchema: NodeSchema = {
   type: 'Greeter', title: 'Greeter', category: 'data',
