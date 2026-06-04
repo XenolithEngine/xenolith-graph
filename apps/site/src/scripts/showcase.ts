@@ -25,6 +25,11 @@ async function buildShowcase(mountEl: HTMLElement, theme: XenolithTheme) {
   for (const schema of demoSchemas) editor.registry.register(schema)
   editor.loadJSON(demoGraph)
 
+  // Landing showcases are read-only previews — at this canvas size the graph is heavily zoomed
+  // out by fitView, and the chrome (Tab palette in particular) uses fixed CSS px, so it appears
+  // visually huge relative to the nodes. Live mode hides palette / breadcrumb / controls.
+  editor.setLiveMode(true)
+
   const fitToMount = (): void => {
     const w = mountEl.clientWidth
     const h = mountEl.clientHeight
