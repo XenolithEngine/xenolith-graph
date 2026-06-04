@@ -121,6 +121,10 @@ export class InsertPalette {
       // every palette row, bloating each item to ~3× its intended height.
       font:          '13px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       letterSpacing: 'normal',
+      // `text-align` also inherits — Vite React template sets `#root { text-align: center }`. The
+      // palette is a SIBLING of the editor's overlayRoot (mounted directly in `host`), so the
+      // reset I put on overlayRoot doesn't reach here. Set explicitly on the palette root.
+      textAlign:     'left',
     } satisfies Partial<CSSStyleDeclaration>)
 
     const input = document.createElement('input')

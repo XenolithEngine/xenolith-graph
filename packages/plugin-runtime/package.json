@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-plugin-runtime",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0-beta.4",
   "description": "Blueprint-style node runtime for XenolithGraph: typed exec/data primitives + a headless interpreter that runs a graph as a simulation. Installs as an editor plugin.",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-editor",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0-beta.4",
   "description": "XenolithGraph editor — composes core, renderer, interaction, and plugins.",
   "license": "MIT",
   "type": "module",

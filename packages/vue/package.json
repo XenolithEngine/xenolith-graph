@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-vue",
-  "version": "0.7.0-beta.3",
+  "version": "0.7.0-beta.4",
   "description": "Vue adapter for XenolithGraph — <XenolithGraph> component.",
   "license": "MIT",
   "type": "module",

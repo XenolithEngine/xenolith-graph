@@ -202,7 +202,7 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
-export const VERSION = '0.7.0-beta.3'
+export const VERSION = '0.7.0-beta.4'
 
 const MARQUEE_DRAG_THRESHOLD = 4
 const NODE_DRAG_THRESHOLD = 4
@@ -2079,6 +2079,17 @@ export class XenolithEditor {
     // sibling-margin rules to the canvas and overlay chrome. `.not-content` is Starlight's escape
     // hatch — harmless outside Starlight (just an additional class on the user's element).
     el.classList.add('not-content')
+    // Typography reset on the host — every chrome DOM child (palette, edge-menu, widget-overlay,
+    // controls, panels, breadcrumb, minimap, perf overlay) is appended either here or into
+    // overlayRoot; both descend from the host. Resetting once at the host means each child
+    // inherits sane defaults instead of the consumer app's `:root { font: 18px/145% }`,
+    // `text-align: center`, `letter-spacing: 0.18px` etc. Color stays inherited so theme tokens
+    // can still flow through if a theme relies on that.
+    Object.assign(el.style, {
+      font: '13px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      letterSpacing: 'normal',
+      textAlign: 'left',
+    } as Partial<CSSStyleDeclaration>)
     el.appendChild(app.canvas)
     const editor = new XenolithEditor(app, el, theme, opts)
     // Debug aid for screenshot tooling, e2e probes, perf measurements — always expose the most

@@ -32,6 +32,12 @@ export interface XenolithGraphProps extends XenolithProps, EventCallbacks {
 
 const EDITOR_KEYS = ['theme', 'graph', 'zoomBounds', 'minimap', 'disableGrid', 'snap', 'resizeToWindow', 'fitOnLoad', 'isValidConnection'] as const
 
+// Module-level promise chain that serializes all editor mount/unmount lifecycle operations.
+// React 19 StrictMode in dev runs every useEffect mount → cleanup → mount. With async PIXI init
+// in the middle that races two apps onto the same host. Routing both init and teardown through
+// this single chain guarantees ordering across the whole lifecycle.
+let pendingChain: Promise<void> = Promise.resolve()
+
 function pickEditorProps(props: XenolithGraphProps): XenolithProps {
   const out: XenolithProps = {}
   for (const k of EDITOR_KEYS) if (props[k] !== undefined) (out as Record<string, unknown>)[k] = props[k]
@@ -53,27 +59,55 @@ export function XenolithGraph(props: XenolithGraphProps): ReactElement {
   cbRef.current = props
 
   // Mount once. Subscriptions read the live cbRef, so they survive prop changes.
+  // React 19 StrictMode runs every useEffect twice in dev (mount → cleanup → mount). Because
+  // `createEditorBinding` is async (PIXI Application.init is async), a naive implementation
+  // starts a second editor before the first one finishes, leaving two PIXI apps registering
+  // global filter extensions on the same canvas → BindGroup state corrupts, first frame
+  // renders empty. The fix: serialize mount/destroy through a single promise chain on a ref —
+  // every cleanup waits for the in-flight init to settle, every re-mount waits for the
+  // previous binding to be fully torn down before starting its own init.
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
     let disposed = false
     const offs: Array<() => void> = []
-    void createEditorBinding(host, pickEditorProps(cbRef.current)).then((binding) => {
-      if (disposed) { binding.destroy(); return }
-      bindingRef.current = binding
-      cbRef.current.onReady?.(binding.editor)
-      setEditor(binding.editor)
-      for (const [event, prop] of Object.entries(EVENT_PROP) as [keyof EditorEvents, keyof EventCallbacks][]) {
-        offs.push(binding.on(event, (payload) => {
-          ;(cbRef.current[prop] as ((p: unknown) => void) | undefined)?.(payload)
-        }))
-      }
-    })
+    type Cell = { binding: EditorBinding | null }
+    const cell: Cell = { binding: null }
+
+    // Wait for any pending teardown from a prior mount cycle (StrictMode) to finish before we
+    // touch the host. Chains all serializing through a shared module-level promise.
+    pendingChain = pendingChain
+      .catch(() => {})
+      .then(async () => {
+        if (disposed) return
+        const binding = await createEditorBinding(host, pickEditorProps(cbRef.current))
+        if (disposed) { binding.destroy(); return }
+        cell.binding = binding
+        bindingRef.current = binding
+        cbRef.current.onReady?.(binding.editor)
+        setEditor(binding.editor)
+        for (const [event, prop] of Object.entries(EVENT_PROP) as [keyof EditorEvents, keyof EventCallbacks][]) {
+          offs.push(binding.on(event, (payload) => {
+            ;(cbRef.current[prop] as ((p: unknown) => void) | undefined)?.(payload)
+          }))
+        }
+      })
+
     return () => {
       disposed = true
       for (const off of offs) off()
-      bindingRef.current?.destroy()
-      bindingRef.current = null
+      // Push teardown onto the same chain — guarantees we don't destroy() before the init
+      // promise has resolved (and thus before there's a binding to tear down), and any
+      // subsequent mount waits for this destroy() to finish before starting fresh.
+      pendingChain = pendingChain
+        .catch(() => {})
+        .then(() => {
+          if (cell.binding) {
+            cell.binding.destroy()
+            cell.binding = null
+          }
+          if (bindingRef.current === cell.binding) bindingRef.current = null
+        })
       setEditor(null)
     }
   }, [])

@@ -77,7 +77,11 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
 
 <style>
   .dfr { border: 1px solid var(--xn-hair, #2a2a2a); border-radius: 12px; overflow: hidden; background: #161616; }
-  .dfr-preview { position: relative; height: 460px; background: #1A1A1A; }
+  /* Preview height clamps to the viewport so the framework-switcher row stays visible without
+   * scrolling on laptop screens. Fixed 460px caused the chips to be clipped below the fold on
+   * a typical 13" laptop window — `min(460px, calc(100vh - 280px))` keeps room for header (49px)
+   * + page padding + the dfr-bar itself. */
+  .dfr-preview { position: relative; height: min(460px, calc(100vh - 280px)); min-height: 320px; background: #1A1A1A; }
   .dfr-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 10px; border-top: 1px solid #2a2a2a; flex-wrap: wrap; }
   .dfr-switch, .dfr-actions { display: flex; gap: 6px; align-items: center; }
   .dfr-chip { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 7px; border: 1px solid #333; background: #1d1d1d; color: #cfcfcf; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }

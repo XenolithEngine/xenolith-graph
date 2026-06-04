@@ -52,6 +52,9 @@ describe('<XenolithGraph>', () => {
     render(<XenolithGraph />)
     await flush()
     cleanup()
+    // teardown is queued on the same async chain as mount (so StrictMode double-mount can be
+    // serialised safely) — let the microtask queue drain before asserting destroy() was called.
+    await flush()
     expect(binding.destroy).toHaveBeenCalledTimes(1)
   })
 })

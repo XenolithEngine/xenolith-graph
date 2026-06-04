@@ -7,7 +7,7 @@ import { RESOURCES } from './resources.js'
 /** Build the MCP server: advertise our tools, and on each tool call forward args to the connected
  *  editor over the WS bridge. The MCP SDK handles stdio framing + JSON-RPC. */
 export function createMcpServer(bridge: EditorBridge): McpServer {
-  const mcp = new McpServer({ name: 'xenolith-graph', version: '0.7.0-beta.3' })
+  const mcp = new McpServer({ name: 'xenolith-graph', version: '0.7.0-beta.4' })
 
   // Resources — read-only context. Each one forwards to an existing remote tool over the WS
   // bridge so the editor needs no separate code path. MCP clients (Claude Desktop / Cursor)
