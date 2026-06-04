@@ -36,7 +36,8 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
             </button>
           : <button class="dfr-chip" disabled title={`${f.label} — coming soon`}>
               <svg class="dfr-fwi" viewBox="0 0 24 24" aria-hidden="true"><path d={FW_ICON[f.key].path} fill={FW_ICON[f.key].color} /></svg>
-              {f.label}<span class="dfr-soon">soon</span>
+              <span>{f.label}</span>
+              <span class="dfr-soon">soon</span>
             </button>
       ))}
     </div>
@@ -83,7 +84,7 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
   .dfr-chip.active { background: rgba(252,180,0,.16); border-color: #FCB400; color: #fff; }
   .dfr-chip:disabled { opacity: .5; cursor: default; }
   .dfr-fwi { width: 15px; height: 15px; flex: none; display: block; }
-  .dfr-soon { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; }
+  .dfr-soon { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; margin-left: 4px; }
   .dfr-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; border: 1px solid #333; background: #1d1d1d; color: #cfcfcf; cursor: pointer; }
   .dfr-icon:hover:not(:disabled) { background: #2a2a2a; color: #fff; }
   .dfr-icon.active { background: rgba(252,180,0,.16); border-color: #FCB400; color: #fff; }
