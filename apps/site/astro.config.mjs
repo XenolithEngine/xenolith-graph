@@ -158,6 +158,7 @@ export default defineConfig({
         },
       ],
       head: [
+        { tag: 'meta', attrs: { name: 'google-site-verification', content: '3175SdIF7FEG-pbpeKgSN8XVl5kmWm4oCzHHgUM3LDg' } },
         { tag: 'meta', attrs: { property: 'og:image',        content: 'https://xenolithengine.github.io/xenolith-graph/og.png' } },
         { tag: 'meta', attrs: { property: 'og:image:width',  content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
