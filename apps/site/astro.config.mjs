@@ -2,6 +2,29 @@ import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import react from '@astrojs/react'
 import vue from '@astrojs/vue'
+import { readFile, writeFile, rm } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+
+// Starlight ships @astrojs/sitemap which always emits sitemap-index.xml + sitemap-0.xml. We want
+// the standard /sitemap.xml URL (single file, ~98 entries — well below the 50k shard threshold),
+// so we rename sitemap-0.xml → sitemap.xml and delete the index after build. Robots.txt points at
+// /sitemap.xml accordingly.
+const collapseSitemap = () => ({
+  name: 'xenolith-collapse-sitemap',
+  hooks: {
+    'astro:build:done': async ({ dir }) => {
+      const root = fileURLToPath(dir)
+      try {
+        const shard = await readFile(`${root}sitemap-0.xml`, 'utf8')
+        await writeFile(`${root}sitemap.xml`, shard)
+        await rm(`${root}sitemap-0.xml`)
+        await rm(`${root}sitemap-index.xml`)
+      } catch {
+        // First-run / no sitemap yet — nothing to collapse.
+      }
+    },
+  },
+})
 
 export default defineConfig({
   site: 'https://xenolithengine.github.io',
@@ -169,5 +192,8 @@ export default defineConfig({
         }) },
       ],
     }),
+    // MUST be after starlight() — Starlight registers @astrojs/sitemap internally; integration
+    // hooks run in registration order, so this needs to fire AFTER sitemap files are written.
+    collapseSitemap(),
   ],
 })
