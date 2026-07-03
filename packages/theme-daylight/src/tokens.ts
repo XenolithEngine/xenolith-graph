@@ -81,7 +81,20 @@ const daylightOverride: DeepPartial<XenTokens> = {
   },
   geometry: {
     node: {
-      radius: 12,
+      radius:       12,
+      // Header band matches the Figma "Node Draft" spec: title at top:12 + height:16 = 28.
+      headerHeight: 28,
+    },
+    header: {
+      // Gap between header bottom (y=28) and first pin's halo top (y=37) — 9px per Figma.
+      toPinsGap: 9,
+    },
+    pin: {
+      // Row cell height MUST equal the halo diameter (20px) so 20px halos don't overlap when the
+      // row layout computes centers from rowHeight — same size the render-node.ts custom renderer
+      // uses (`HALO_RADIUS * 2`). rowSpacing = Figma inter-halo gap (9px, matches its auto-layout).
+      rowHeight:  20,
+      rowSpacing: 9,
     },
     // Wider wires than Xen — Daylight reads on a light grey canvas with low-contrast pin colours,
     // so a 2px wire (Xen default) looks anemic. 3px matches the Figma source.

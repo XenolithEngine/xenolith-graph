@@ -5460,12 +5460,19 @@ export class XenolithEditor {
       this.#updateGrid()
     }
 
+    // Invalidate cached node.size — it was measured against the PREVIOUS theme's geometry
+    // (headerHeight, pin/widget row heights, header toPinsGap). Themes with a taller header or
+    // bigger pin halos (Daylight: 20px halos vs Xen's 11px pin row) would keep the old body height
+    // and their pin rows would render OUTSIDE the body silhouette. #ensureSize below re-measures.
+    for (const n of this.graph.nodes()) delete (n as { size?: unknown }).size
+
     // Re-render every node through the new theme. We rebuild each NodeView from the source-of-
     // truth Node and discard the old container; collapsed state, position, and selection are
     // restored from the Graph + Selection (which are theme-agnostic).
     for (const [id, oldView] of [...this.#views]) {
       const node = this.graph.getNode(id)
       if (!node) continue
+      this.#ensureSize(node as Node, this.#renderOpts.get(id) ?? {})
       const wasCollapsed = oldView.isCollapsed()
       const baseOpts = this.#renderOpts.get(id) ?? {}
       const newView = this.#renderNode(node, { ...baseOpts, collapsed: wasCollapsed })
