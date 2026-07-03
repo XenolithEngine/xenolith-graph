@@ -1,0 +1,60 @@
+{
+  "name": "@xenolithengine/graph-theme-daylight",
+  "version": "0.7.0-beta.4",
+  "description": "Daylight — original light-mode design language for XenolithGraph. Soft grey canvas, protruding pin halos, Helvetica typography.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@xenolithengine/graph-core": "workspace:*",
+    "@xenolithengine/graph-render-pixi": "workspace:*",
+    "@xenolithengine/graph-theme-xen": "workspace:*"
+  },
+  "peerDependencies": {
+    "pixi.js": "^8.6.0"
+  },
+  "devDependencies": {
+    "pixi.js": "^8.6.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "theme",
+    "daylight",
+    "light-mode",
+    "node-editor"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XenolithEngine/xenolith-graph.git",
+    "directory": "packages/theme-daylight"
+  },
+  "homepage": "https://xenolithengine.github.io/xenolith-graph/",
+  "bugs": {
+    "url": "https://github.com/XenolithEngine/xenolith-graph/issues"
+  },
+  "author": "XenolithEngine"
+}

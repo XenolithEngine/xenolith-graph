@@ -96,8 +96,8 @@ import HeadMeta from '../components/HeadMeta.astro'
     </div>
     <div class="playground-switcher" id="theme-switcher">
       <button data-theme="xen" class="active">Xen</button>
+      <button data-theme="daylight">Daylight</button>
       <button data-theme="liquid-glass">Liquid Glass</button>
-      <button data-theme="holographic">Holographic</button>
     </div>
     <div id="app"></div>
     <div class="playground-hint">
@@ -111,20 +111,30 @@ import HeadMeta from '../components/HeadMeta.astro'
       import { XenolithEditor } from '@xenolithengine/graph-editor'
       import { xenTheme } from '@xenolithengine/graph-render-pixi'
       import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
-      import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
+      import { daylightTheme } from '@xenolithengine/graph-theme-daylight'
       import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget } from '@xenolithengine/demo'
 
-      const THEMES = { xen: xenTheme, 'liquid-glass': liquidGlassTheme, holographic: holographicTheme }
+      const THEMES = { xen: xenTheme, daylight: daylightTheme, 'liquid-glass': liquidGlassTheme }
+
+      // Query param `?theme=xen|daylight|liquid-glass` lets us hand a designer a link that opens
+      // straight into a specific look. Unknown / missing values fall back to Xen.
+      const initialName = new URLSearchParams(window.location.search).get('theme') ?? 'xen'
+      const initialTheme = THEMES[initialName] ?? xenTheme
 
       const editor = await XenolithEditor.init('#app', {
-        theme: xenTheme,
+        theme: initialTheme,
         zoomBounds: [0.1, 2],
         minimap: true,
         controls: { position: 'right-center', orientation: 'vertical' },
       })
 
       const switcher = document.getElementById('theme-switcher')
+      // Sync the switcher's active pill with whatever theme actually mounted (may differ from Xen
+      // when ?theme= was passed).
       if (switcher) {
+        for (const btn of switcher.querySelectorAll('button')) {
+          btn.classList.toggle('active', btn.dataset.theme === (THEMES[initialName] ? initialName : 'xen'))
+        }
         switcher.addEventListener('click', (e) => {
           const target = e.target instanceof HTMLButtonElement ? e.target : null
           const name = target?.dataset.theme

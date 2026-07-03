@@ -4751,6 +4751,13 @@ export class XenolithEditor {
     // their real edges present as ordinary data. Materialise the collapse (derive proxy pins, rewire)
     // deepest-nested first, so an inner macro is a real collapsed node before an outer one collapses.
     this.#materializeLoadedMacros()
+    // #materializeLoadedMacros mutates edges via graph._removeEdge/_addEdge (bypassing the command
+    // bus / event hooks), so #edgesByNode still holds the pre-collapse edge ids for macro members
+    // and doesn't know about the new proxy-pin edges. Rebuild the index once before views are
+    // created — otherwise #connectedPinIdsFor(macro) returns empty during the initial render pass
+    // (Xen hides this because data-pin paint doesn't depend on connection state; Daylight, which
+    // paints a bullseye for connected data pins, made the bug visible).
+    this.#rebuildEdgeIndex()
     if (parsed.viewport) this.#viewport.setState(parsed.viewport)
     // Build views: virtualized → cull near viewport; otherwise materialise everything 1:1.
     if (willVirtualize) this.#cullToViewport()

@@ -1,13 +1,24 @@
 import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
-// Synthwave hidden — kept imported so the package still typechecks when re-enabled.
+// Synthwave / Holographic hidden — not part of the standard playground rotation.
 // import { synthwaveTheme } from '@xenolithengine/graph-theme-synthwave'
-import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
+// import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
 import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
+import { daylightTheme } from '@xenolithengine/graph-theme-daylight'
 import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget, createPreviewWidget } from '@xenolithengine/demo'
 
+// Query param `?theme=xen|daylight|liquid-glass` (default: xen) — lets us hand a designer
+// a link that opens straight into a specific look, no clicking. Unknown values fall back to Xen.
+const themeById: Record<string, XenolithTheme> = {
+  'xen':          xenTheme,
+  'daylight':     daylightTheme,
+  'liquid-glass': liquidGlassTheme,
+}
+const initialThemeId = new URLSearchParams(window.location.search).get('theme') ?? 'xen'
+const initialTheme = themeById[initialThemeId] ?? xenTheme
+
 const editor = await XenolithEditor.init('#app', {
-  theme: xenTheme,
+  theme: initialTheme,
   zoomBounds: [0.1, 2],
   minimap: true,
 })
@@ -29,10 +40,9 @@ editor.setControls({ position: 'top-right', orientation: 'horizontal' })
 // -----------------------------------------------------------------------------------------------
 const themes: { label: string; theme: XenolithTheme }[] = [
   { label: 'Xen',          theme: xenTheme },
+  { label: 'Daylight',     theme: daylightTheme },
   { label: 'Liquid Glass', theme: liquidGlassTheme },
-  { label: 'Holographic',  theme: holographicTheme },
-  // Synthwave hidden temporarily — visual fun but not in this playground pass.
-  // { label: 'Synthwave',    theme: synthwaveTheme },
+  // Holographic / Synthwave hidden — visual experiments, not in this playground pass.
 ]
 // Lives in the editor's overlay root and styles itself purely from the theme's `--xeno-*` design
 // tokens (the editor re-writes them on setTheme), so the panel restyles with the active theme — no
@@ -46,7 +56,7 @@ switcher.style.cssText = `
   border: 1px solid var(--xeno-border);
   font-family: 'Inter', system-ui, sans-serif; font-size: 12px;
 `
-let active = themes[0]!
+let active = themes.find((t) => t.theme === initialTheme) ?? themes[0]!
 const paint = (): void => {
   for (const child of switcher.children) {
     const on = (child as HTMLElement).textContent === active.label

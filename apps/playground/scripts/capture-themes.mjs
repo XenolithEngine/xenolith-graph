@@ -38,7 +38,8 @@ async function shoot(themeLabel, fileName) {
   console.log('wrote', target)
 }
 
-await shoot('Liquid Glass', 'liquid-glass.png')
 await shoot('Xen',          'xen.png')
+await shoot('Daylight',     'daylight.png')
+await shoot('Liquid Glass', 'liquid-glass.png')
 
 await browser.close()

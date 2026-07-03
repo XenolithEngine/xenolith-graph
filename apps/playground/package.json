@@ -22,6 +22,7 @@
     "@xenolithengine/graph-theme-liquid-glass": "workspace:*",
     "@xenolithengine/graph-theme-synthwave": "workspace:*",
     "@xenolithengine/graph-theme-holographic": "workspace:*",
+    "@xenolithengine/graph-theme-daylight": "workspace:*",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {

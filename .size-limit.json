@@ -41,6 +41,13 @@
     "gzip": true
   },
   {
+    "name": "@xenolithengine/graph-theme-daylight",
+    "path": "packages/theme-daylight/dist/index.js",
+    "limit": "8 KB",
+    "gzip": true,
+    "ignore": ["pixi.js", "@xenolithengine/graph-render-pixi"]
+  },
+  {
     "name": "@xenolithengine/graph-theme-liquid-glass",
     "path": "packages/theme-liquid-glass/dist/index.js",
     "limit": "12 KB",

@@ -255,6 +255,9 @@ importers:
       '@xenolithengine/graph-render-pixi':
         specifier: workspace:*
         version: link:../../packages/render-pixi
+      '@xenolithengine/graph-theme-daylight':
+        specifier: workspace:*
+        version: link:../../packages/theme-daylight
       '@xenolithengine/graph-theme-holographic':
         specifier: workspace:*
         version: link:../../packages/theme-holographic
@@ -343,6 +346,9 @@ importers:
       '@xenolithengine/graph-svelte':
         specifier: workspace:^
         version: link:../../packages/svelte
+      '@xenolithengine/graph-theme-daylight':
+        specifier: workspace:*
+        version: link:../../packages/theme-daylight
       '@xenolithengine/graph-theme-liquid-glass':
         specifier: workspace:*
         version: link:../../packages/theme-liquid-glass
@@ -722,6 +728,28 @@ importers:
 
   packages/test-fixtures:
     devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@24.12.4)(jiti@2.7.0)(jsdom@25.0.1)
+
+  packages/theme-daylight:
+    dependencies:
+      '@xenolithengine/graph-core':
+        specifier: workspace:*
+        version: link:../core
+      '@xenolithengine/graph-render-pixi':
+        specifier: workspace:*
+        version: link:../render-pixi
+      '@xenolithengine/graph-theme-xen':
+        specifier: workspace:*
+        version: link:../theme-xen
+    devDependencies:
+      pixi.js:
+        specifier: ^8.6.0
+        version: 8.18.1
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

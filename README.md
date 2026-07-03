@@ -18,7 +18,7 @@ An embeddable, drop-in node-graph editor for the web with a polished design syst
 
 <p align="center"><a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img alt="Try it live" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20live%20%E2%80%94%20open%20the%20playground-FCB400?style=for-the-badge&labelColor=0A0A0A" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/examples/" target="_blank" rel="noopener noreferrer"><img alt="Examples gallery" src="https://img.shields.io/badge/Examples%20gallery%20%E2%86%92-1d1d1d?style=for-the-badge" /></a></p>
 
-<p><a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme (click to open the live playground)" width="49%" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/playground/" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/liquid-glass.png" alt="Liquid Glass — shader-based frosted theme (click to open the live playground)" width="49%" /></a></p>
+<p><a href="https://xenolithengine.github.io/xenolith-graph/playground/?theme=xen" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme (click to open the live playground)" width="32%" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/playground/?theme=daylight" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/daylight.png" alt="Daylight — original light-mode theme (click to open the live playground)" width="32%" /></a> <a href="https://xenolithengine.github.io/xenolith-graph/playground/?theme=liquid-glass" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/liquid-glass.png" alt="Liquid Glass — shader-based frosted theme (click to open the live playground)" width="32%" /></a></p>
 
 ## What it does
 
@@ -70,7 +70,7 @@ One call (or one component) boots: fonts, PIXI v8 renderer, viewport, grid, pan/
 - **Auto-layout plugin.** `@xenolithengine/graph-plugin-autolayout` with Dagre and ELK adapters. One call arranges any graph; animated tweens included; bypasses the command bus per-frame and commits the final positions as one undo entry.
 - **Pluggable edge paths.** Per-edge style: `bezier` (default), `smoothstep`, `step`, `linear`. Labels, arrowheads, animated marching dashes.
 - **Plugin host.** `editor.use(plugin)` with a `PluginContext` that exposes schema/types/icons/widgets, an event bus, and runtime-delegation surfaces (`onTick`, `startLoop`/`stopLoop`/`step`, `setNodePins`, `setWidgetValue({ephemeral})`, `setNodePositionEphemeral`, `expandTemplateInstance`, `graphSnapshot`, `setEdgeAnimated`).
-- **Two themes shipped.** Xen (dark/gold, original design system) and Liquid Glass (shader-based refraction + rim lighting via PIXI Mesh+Shader). Swap at runtime with `editor.setTheme(theme)`.
+- **Three themes shipped.** Xen (dark/gold, original design system), Daylight (light-mode, protruding pin halos, Helvetica typography), and Liquid Glass (shader-based refraction + rim lighting via PIXI Mesh+Shader). Swap at runtime with `editor.setTheme(theme)`.
 - **Live Mode.** `editor.setLiveMode(true)` hides editor chrome (palette, breadcrumb, controls) — perfect for read-only previews and demos.
 - **Perf for real graphs.** Viewport virtualization + 3-tier LOD (full → sprite-baked → flat-batch). Render-on-demand (static graphs idle at 0 fps cost). BitmapText glyph atlas for node/widget text. Shared GPU texture caches.
 - **Framework adapters.** First-class **React** (`@xenolithengine/graph-react`) and **Vue 3** (`@xenolithengine/graph-vue`) — both ship `<XenolithPanel>`/`<XenolithControls>`/`<XenolithMiniMap>`/`<XenolithButton>` with reactive selector hooks/composables, custom-widget wrappers (`reactWidget` / `vueWidget`), and full Learn pages. Thin starter packages also ship for **Svelte**, **Solid**, **Angular**, and **Web Components** (`@xenolithengine/graph-wc`) — they mount the editor and expose a typed handle, but idiomatic hooks / panel components for those four are a v1.0 item, not BETA.
@@ -88,6 +88,7 @@ Honest numbers, measured by [size-limit](https://github.com/ai/size-limit) on th
 | `@xenolithengine/graph-editor` | **74.3 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
 | `@xenolithengine/graph-react` | **2.3 KB** | Adapter on top of `@xenolithengine/graph-editor` |
 | `@xenolithengine/graph-theme-xen` | **2.3 KB** | Default theme tokens + bundled Inter |
+| `@xenolithengine/graph-theme-daylight` | **5.0 KB** | Light-mode theme, custom pin-halo renderer |
 | `@xenolithengine/graph-theme-liquid-glass` | **7.9 KB** | Shader-based frosted-glass theme |
 | `@xenolithengine/graph-plugin-autolayout` (dagre adapter) | **0.8 KB** | (excl. `dagre` peer dep — ~30 KB if you opt in) |
 | **`pixi.js` (peer dep)** | **~250 KB** | The WebGL renderer we ship on top of |
@@ -132,7 +133,7 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 - **Renderer** — `@xenolithengine/graph-render-pixi` WebGL editor, viewport virtualization + LOD past 300 nodes
 - **Editor** — `@xenolithengine/graph-editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 24 typed events (4 preventable), context-menu plugin API
 - **Adapters** — React (`@xenolithengine/graph-react`) and Vue 3 (`@xenolithengine/graph-vue`) with full hook / composable parity, panel components, and `reactWidget` / `vueWidget` wrappers. Thin starter adapters for Svelte, Solid, Angular, and Web Components (`@xenolithengine/graph-wc`) — idiomatic hooks for those four are post-BETA
-- **Themes** — Xen (default, original design system) + Liquid Glass (refraction-based glass) + Holographic, runtime `setTheme()` swap
+- **Themes** — Xen (default, original design system) + Daylight (light-mode) + Liquid Glass (refraction-based glass), runtime `setTheme()` swap
 - **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` ports)
 - **Header icons** — 13 built-in Feather glyphs, `editor.icons.register(name, svgInner)` for custom
 - **Macros & templates** — group selection inline, extract as reusable template, dive-in with breadcrumb, convert either direction
@@ -183,6 +184,7 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 | `@xenolithengine/graph-render-pixi` | PIXI v8 renderer (nodes, edges, comments, macros, widgets, glyphs, LOD). PIXI is a peer dependency. |
 | `@xenolithengine/graph-editor` | Composes renderer + interaction + commands + plugin host. The public entry point. |
 | `@xenolithengine/graph-theme-xen` | Default Xen design tokens, bundled Inter fonts. |
+| `@xenolithengine/graph-theme-daylight` | Daylight theme — light-mode canvas, protruding pin halos, Helvetica typography. |
 | `@xenolithengine/graph-theme-liquid-glass` | Liquid Glass theme — radial backdrop + GLSL Mesh material. |
 | `@xenolithengine/demo` | One `xenolith.v1` data graph + ComfyUI importer + topology-reactive runners. Consumed by every demo host. |
 | `@xenolithengine/graph-adapter-core`, `@xenolithengine/graph-wc` | Framework-agnostic editor wrapper + universal web component. |

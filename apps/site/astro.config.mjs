@@ -60,6 +60,7 @@ export default defineConfig({
         '@xenolithengine/graph-theme-liquid-glass':  new URL('../../packages/theme-liquid-glass/src/index.ts',  import.meta.url).pathname,
         '@xenolithengine/graph-theme-synthwave':     new URL('../../packages/theme-synthwave/src/index.ts',     import.meta.url).pathname,
         '@xenolithengine/graph-theme-holographic':   new URL('../../packages/theme-holographic/src/index.ts',   import.meta.url).pathname,
+        '@xenolithengine/graph-theme-daylight':      new URL('../../packages/theme-daylight/src/index.ts',      import.meta.url).pathname,
         '@xenolithengine/graph-plugin-autolayout/dagre': new URL('../../packages/plugin-autolayout/src/adapters/dagre.ts', import.meta.url).pathname,
         '@xenolithengine/graph-plugin-autolayout/elk':   new URL('../../packages/plugin-autolayout/src/adapters/elk.ts',   import.meta.url).pathname,
         '@xenolithengine/graph-plugin-autolayout':       new URL('../../packages/plugin-autolayout/src/index.ts',           import.meta.url).pathname,
