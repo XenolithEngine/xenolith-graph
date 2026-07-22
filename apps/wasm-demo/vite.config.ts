@@ -7,7 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const pkgSrc = (name: string): string => resolve(here, '..', '..', 'packages', name, 'src', 'index.ts')
 
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/xenolith-graph/wasm/' : '/',
+  base: command === 'build' ? '/wasm/' : '/',
   plugins: [react()],
   server: { port: 5183 },
   build: { target: 'es2022' },

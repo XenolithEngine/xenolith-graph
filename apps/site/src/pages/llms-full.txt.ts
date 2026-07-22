@@ -6,8 +6,8 @@ import type { APIRoute } from 'astro'
 import { EXAMPLES, CATEGORY_ORDER } from '../examples/manifest.ts'
 import { TOOLS } from '@xenolithengine/graph-mcp-server'
 
-const SITE = 'https://xenolithengine.github.io'
-const BASE = '/xenolith-graph'
+const SITE = 'https://graph.xenolith.studio'
+const BASE = ''
 
 // Build-time inclusion of EN guide sources only. Russian/Chinese intentionally excluded.
 const RAW = import.meta.glob('../content/docs/guides/*.mdx', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>

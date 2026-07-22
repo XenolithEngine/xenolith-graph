@@ -50,8 +50,8 @@ const onReady = (editor) => editor.fitView()
 
 ## Docs
 
-- [Vue guide](https://xenolithengine.github.io/xenolith-graph/guides/vue/)
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [Vue guide](https://graph.xenolith.studio/guides/vue/)
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

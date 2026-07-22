@@ -49,7 +49,7 @@
     "url": "git+https://github.com/XenolithEngine/xenolith-graph.git",
     "directory": "packages/runtime-as"
   },
-  "homepage": "https://xenolithengine.github.io/xenolith-graph/",
+  "homepage": "https://graph.xenolith.studio/",
   "bugs": {
     "url": "https://github.com/XenolithEngine/xenolith-graph/issues"
   },

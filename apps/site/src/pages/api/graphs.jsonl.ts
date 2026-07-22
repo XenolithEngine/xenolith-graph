@@ -10,8 +10,8 @@ import { EXAMPLES } from '../../examples/manifest.ts'
 // document. Convention also used by HuggingFace / OpenAI for datasets.
 
 export const GET: APIRoute = () => {
-  const ORIGIN = 'https://xenolithengine.github.io'
-  const BASE = '/xenolith-graph'
+  const ORIGIN = 'https://graph.xenolith.studio'
+  const BASE = ''
   const lines = EXAMPLES.map((e) => JSON.stringify({
     id: e.id,
     title: e.title,

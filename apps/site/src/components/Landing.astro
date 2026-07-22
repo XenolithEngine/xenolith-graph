@@ -11,10 +11,10 @@ type Lang = 'en' | 'ru' | 'zh'
 interface Props { lang: Lang }
 const { lang } = Astro.props
 
-const docPath = lang === 'en' ? '/xenolith-graph/guides/install/' : `/xenolith-graph/${lang}/guides/install/`
-const learnPath = '/xenolith-graph/learn/'
-const playgroundPath = '/xenolith-graph/playground/'
-const examplesPath = '/xenolith-graph/examples/'
+const docPath = lang === 'en' ? '/guides/install/' : `/${lang}/guides/install/`
+const learnPath = '/learn/'
+const playgroundPath = '/playground/'
+const examplesPath = '/examples/'
 const examplesLabel = lang === 'ru' ? 'Примеры' : lang === 'zh' ? '示例' : 'Examples'
 const learnLabel    = lang === 'ru' ? 'Туториал' : lang === 'zh' ? '教程' : 'Learn'
 const betaNote      = lang === 'ru'
@@ -30,7 +30,7 @@ const t = (() => {
     ctaPrimary:   'Открыть документацию',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — тема по умолчанию',
-    showcaseSub: 'Реальный граф под Xen — оригинальной design-системой XenolithGraph. Дополнительные темы (например Liquid Glass) включаются в [playground](/xenolith-graph/playground/) и [Examples](/xenolith-graph/examples/).',
+    showcaseSub: 'Реальный граф под Xen — оригинальной design-системой XenolithGraph. Дополнительные темы (например Liquid Glass) включаются в [playground](/playground/) и [Examples](/examples/).',
     featuresTitle: 'Что внутри',
     featuresSub: 'Всё что нужно реальному редактору графов из коробки — UX, модель, темы, плагины. Берите то что нужно — остальное не мешает.',
     features: [
@@ -74,7 +74,7 @@ editor.loadJSON(myGraph)
     ctaPrimary:   '查看文档',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — 默认主题',
-    showcaseSub: '使用 XenolithGraph 原创设计系统 Xen 渲染的真实图。其他主题(如 Liquid Glass)在 [playground](/xenolith-graph/playground/) 与 [Examples](/xenolith-graph/examples/) 中提供。',
+    showcaseSub: '使用 XenolithGraph 原创设计系统 Xen 渲染的真实图。其他主题(如 Liquid Glass)在 [playground](/playground/) 与 [Examples](/examples/) 中提供。',
     featuresTitle: '内置什么',
     featuresSub:   '真实图编辑器所需的一切，开箱即用 — UX、模型、主题、插件。需要什么就用什么，其余不挡路。',
     features: [
@@ -118,7 +118,7 @@ editor.loadJSON(myGraph)
     ctaPrimary:   'Open documentation',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — the default theme',
-    showcaseSub: 'A real graph rendered with Xen, the original XenolithGraph design system. Additional themes (e.g. Liquid Glass) live in the [playground](/xenolith-graph/playground/) and the [Examples](/xenolith-graph/examples/) gallery.',
+    showcaseSub: 'A real graph rendered with Xen, the original XenolithGraph design system. Additional themes (e.g. Liquid Glass) live in the [playground](/playground/) and the [Examples](/examples/) gallery.',
     featuresTitle: 'What is inside',
     featuresSub: 'Everything a real-world graph editor needs out of the box — UX, model, themes, plugins. Pick the parts you want, the rest stays out of the way.',
     features: [

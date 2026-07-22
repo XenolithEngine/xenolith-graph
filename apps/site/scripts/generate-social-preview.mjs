@@ -67,7 +67,7 @@ const overlaySvg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="$
     <text class="mono" x="0" y="0" font-size="14" font-weight="500" fill="rgba(252, 180, 0, 0.85)" letter-spacing="0.16em">BETA · 0.7.0</text>
   </g>
   <g transform="translate(${W - SAFE - 56}, ${H - SAFE - 28})">
-    <text class="mono" x="0" y="0" font-size="14" font-weight="500" fill="rgba(255,255,255,0.50)" letter-spacing="0.10em" text-anchor="end">xenolithengine.github.io/xenolith-graph</text>
+    <text class="mono" x="0" y="0" font-size="14" font-weight="500" fill="rgba(255,255,255,0.50)" letter-spacing="0.10em" text-anchor="end">graph.xenolith.studio</text>
   </g>
 
   <rect x="0" y="${H - 4}" width="${W}" height="4" fill="url(#gold)" opacity="0.6"/>

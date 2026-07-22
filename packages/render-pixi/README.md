@@ -42,8 +42,8 @@ const view   = renderNode(node, { layout, theme: xenTheme, /* ... */ })
 
 ## Docs
 
-- [Theme authoring guide](https://xenolithengine.github.io/xenolith-graph/guides/api/)
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [Theme authoring guide](https://graph.xenolith.studio/guides/api/)
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

@@ -1,5 +1,5 @@
 // Snapshot the playground graph (PIXI canvas only, no DOM overlays) for use as the OG image
-// backdrop. Requires the site dev server running (http://localhost:4321/xenolith-graph).
+// backdrop. Requires the site dev server running (http://localhost:4321).
 // Output: apps/site/src/assets/og-backdrop.jpg
 import { chromium } from '@playwright/test'
 import { writeFile } from 'node:fs/promises'
@@ -21,7 +21,7 @@ function workspaceRoot(from) {
   throw new Error('could not locate workspace root from ' + from)
 }
 const OUT = resolve(workspaceRoot(here), 'apps', 'site', 'src', 'assets', 'og-backdrop.jpg')
-const BASE = (process.env.BASE_URL ?? 'http://localhost:4321/xenolith-graph').replace(/\/$/, '')
+const BASE = (process.env.BASE_URL ?? 'http://localhost:4321').replace(/\/$/, '')
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1600, height: 840 }, deviceScaleFactor: 2 })

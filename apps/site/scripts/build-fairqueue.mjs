@@ -1,5 +1,5 @@
 // Build the fairqueue priority-queue demo SPA (apps/fairqueue-demo) and drop its static output into
-// the site's public/ so it ships with the docs site at /xenolith-graph/fairqueue/. Run before
+// the site's public/ so it ships with the docs site at /fairqueue/. Run before
 // `astro build` (Astro copies public/ verbatim into dist/). The SPA's vite base is set to that
 // sub-path. Mirrors build-react-demos.mjs.
 import { execSync } from 'node:child_process'

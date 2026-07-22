@@ -36,7 +36,7 @@ editor.setTheme(daylightTheme)
 
 ## Docs
 
-- [Theming guide](https://xenolithengine.github.io/xenolith-graph/guides/api/)
+- [Theming guide](https://graph.xenolith.studio/guides/api/)
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

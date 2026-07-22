@@ -20,7 +20,7 @@ pnpm install
 
 # Pick one of these to start hacking:
 pnpm --filter @xenolithengine/playground dev      # http://localhost:5173 — theme switcher + every editor feature
-pnpm --filter @xenolithengine/site dev            # http://localhost:4321/xenolith-graph — docs + landing
+pnpm --filter @xenolithengine/site dev            # http://localhost:4321 — docs + landing
 pnpm --filter @xenolithengine/demo-react dev      # http://localhost:5174 — the React showcase apps
 ```
 

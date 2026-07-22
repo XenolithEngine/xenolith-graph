@@ -17,8 +17,8 @@ export const GET: APIRoute = ({ params }) => {
   if (!tool) return new Response('not found', { status: 404 })
 
   const schema = zodToJsonSchema(tool.schema, { target: 'openApi3' })
-  const ORIGIN = 'https://xenolithengine.github.io'
-  const BASE = '/xenolith-graph'
+  const ORIGIN = 'https://graph.xenolith.studio'
+  const BASE = ''
 
   const body = [
     `# ${tool.name}`,

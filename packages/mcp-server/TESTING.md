@@ -31,7 +31,7 @@ In another terminal, start the site:
 pnpm --filter @xenolithengine/site dev
 ```
 
-Open <http://localhost:4321/xenolith-graph/examples/mcp-live/>. The MCP panel is top-left:
+Open <http://localhost:4321/examples/mcp-live/>. The MCP panel is top-left:
 
 1. The URL field should already be `ws://127.0.0.1:7777?token=devtoken`.
 2. Click **Connect**. The dot turns green and the log says `status: open`.

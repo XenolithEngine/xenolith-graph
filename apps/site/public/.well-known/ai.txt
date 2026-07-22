@@ -21,12 +21,12 @@ Allow: /api/graphs.jsonl
 Allow: /examples/
 
 # Preferred URLs for LLM-friendly content:
-LLMs-Index: https://xenolithengine.github.io/xenolith-graph/llms.txt
-LLMs-Full:  https://xenolithengine.github.io/xenolith-graph/llms-full.txt
-Agents-Manifest: https://xenolithengine.github.io/xenolith-graph/agents.md
-MCP-Catalog: https://xenolithengine.github.io/xenolith-graph/api/mcp-tools.json
-OpenAPI: https://xenolithengine.github.io/xenolith-graph/api/openapi.json
-Sitemap: https://xenolithengine.github.io/xenolith-graph/sitemap.xml
+LLMs-Index: https://graph.xenolith.studio/llms.txt
+LLMs-Full:  https://graph.xenolith.studio/llms-full.txt
+Agents-Manifest: https://graph.xenolith.studio/agents.md
+MCP-Catalog: https://graph.xenolith.studio/api/mcp-tools.json
+OpenAPI: https://graph.xenolith.studio/api/openapi.json
+Sitemap: https://graph.xenolith.studio/sitemap.xml
 
 # Contact for questions about scraping policy or partnership:
 Contact: ai-policy@xenolithengine.dev

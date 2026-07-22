@@ -48,8 +48,8 @@ Editor events are re-dispatched as kebab-named `CustomEvent`s off the host node 
 
 ## Docs
 
-- [SvelteKit integration](https://xenolithengine.github.io/xenolith-graph/integrations/sveltekit/)
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [SvelteKit integration](https://graph.xenolith.studio/integrations/sveltekit/)
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

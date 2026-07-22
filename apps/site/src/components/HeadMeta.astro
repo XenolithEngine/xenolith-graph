@@ -28,15 +28,14 @@ const {
   author = 'XenolithEngine',
 } = Astro.props as Props
 
-const ORIGIN = 'https://xenolithengine.github.io'
-const SITE_BASE = '/xenolith-graph'
-// Compose the canonical URL by stripping any leading base — callers pass either a project-rooted
-// path (`/examples/diagram/`) or an already-prefixed one, both should land at the same canonical.
-const cleanPath = path.startsWith(SITE_BASE) ? path : `${SITE_BASE}${path.startsWith('/') ? path : `/${path}`}`
+const ORIGIN = 'https://graph.xenolith.studio'
+// Served at the domain root, so callers pass a root-relative path (`/examples/diagram/`).
+// Normalise the leading slash so a bare path can't produce `https://hostexamples/...`.
+const cleanPath = path.startsWith('/') ? path : `/${path}`
 const canonical = `${ORIGIN}${cleanPath}`
 const absImage = image
-  ? (image.startsWith('http') ? image : `${ORIGIN}${image.startsWith(SITE_BASE) ? image : `${SITE_BASE}${image.startsWith('/') ? image : `/${image}`}`}`)
-  : `${ORIGIN}${SITE_BASE}/og.png`
+  ? (image.startsWith('http') ? image : `${ORIGIN}${image.startsWith('/') ? image : `/${image}`}`)
+  : `${ORIGIN}/og.png`
 ---
 <meta name="description" content={description} />
 <meta name="author" content={author} />

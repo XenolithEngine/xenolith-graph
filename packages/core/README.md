@@ -48,8 +48,8 @@ bus.redo()  // re-adds b
 
 ## Docs
 
-- [Full guide](https://xenolithengine.github.io/xenolith-graph/guides/api/) — top-level architecture
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [Full guide](https://graph.xenolith.studio/guides/api/) — top-level architecture
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

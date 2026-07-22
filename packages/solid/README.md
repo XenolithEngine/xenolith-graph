@@ -48,7 +48,7 @@ Editor events are re-dispatched as same-named `CustomEvent`s — Solid's `on:` b
 
 ## Docs
 
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

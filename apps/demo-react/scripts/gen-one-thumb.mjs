@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '..', '..', 'site', 'public', 'examples', 'thumbs')
-const BASE = (process.env.BASE_URL ?? 'http://localhost:4321/xenolith-graph').replace(/\/$/, '')
+const BASE = (process.env.BASE_URL ?? 'http://localhost:4321').replace(/\/$/, '')
 const id = process.argv[2]
 if (!id) { console.error('usage: node gen-one-thumb.mjs <example-id>'); process.exit(1) }
 await mkdir(OUT, { recursive: true })

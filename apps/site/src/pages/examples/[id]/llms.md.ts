@@ -15,8 +15,8 @@ export const GET: APIRoute = ({ params }) => {
   const example = EXAMPLES.find((e) => e.id === id)
   if (!example) return new Response('not found', { status: 404 })
 
-  const ORIGIN = 'https://xenolithengine.github.io'
-  const BASE = '/xenolith-graph'
+  const ORIGIN = 'https://graph.xenolith.studio'
+  const BASE = ''
   const url = `${ORIGIN}${BASE}/examples/${example.id}/`
   const frameworks = Object.keys(example.impls).join(', ')
   const files = Object.entries(example.impls)

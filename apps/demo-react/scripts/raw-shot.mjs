@@ -1,7 +1,7 @@
 import { chromium } from '@playwright/test'
 const b = await chromium.launch()
 const p = await b.newPage({ viewport: { width: 1000, height: 640 }, deviceScaleFactor: 2 })
-await p.goto('http://localhost:4321/xenolith-graph/examples/palette-sidebar/?cb=' + Date.now())
+await p.goto('http://localhost:4321/examples/palette-sidebar/?cb=' + Date.now())
 await p.locator('canvas').first().waitFor({ timeout: 30000 })
 await p.waitForTimeout(2500)
 const out = await p.evaluate(() => {

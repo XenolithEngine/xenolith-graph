@@ -27,16 +27,17 @@ const collapseSitemap = () => ({
 })
 
 export default defineConfig({
-  site: 'https://xenolithengine.github.io',
-  base: '/xenolith-graph',
+  site: 'https://graph.xenolith.studio',
+  // Served at the domain root (graph.xenolith.studio) — no `base` prefix. The old
+  // project-pages URL (xenolithengine.github.io/xenolith-graph) 301s here via the
+  // GitHub Pages custom domain, so previously published links keep working.
   // Redirects for URLs we promised in already-published artifacts (npm READMEs, social posts).
   // Keep these forever — bumping the React adapter from npm with a different link would mean
   // republishing all packages.
-  // NOTE: Astro does NOT prepend `base` to redirect targets — must include `/xenolith-graph` here.
   redirects: {
     // Astro normalises trailing-slash variants — declaring both forms collides. Single canonical
     // entry covers both `/guides/quickstart` and `/guides/quickstart/` requests.
-    '/guides/quickstart': '/xenolith-graph/guides/install/',
+    '/guides/quickstart': '/guides/install/',
   },
   vite: {
     // Force a single physical copy of PIXI (its extensions self-register on import; two copies →
@@ -160,24 +161,24 @@ export default defineConfig({
       ],
       head: [
         { tag: 'meta', attrs: { name: 'google-site-verification', content: '3175SdIF7FEG-pbpeKgSN8XVl5kmWm4oCzHHgUM3LDg' } },
-        { tag: 'meta', attrs: { property: 'og:image',        content: 'https://xenolithengine.github.io/xenolith-graph/og.png' } },
+        { tag: 'meta', attrs: { property: 'og:image',        content: 'https://graph.xenolith.studio/og.png' } },
         { tag: 'meta', attrs: { property: 'og:image:width',  content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
         { tag: 'meta', attrs: { name: 'twitter:card',        content: 'summary_large_image' } },
-        { tag: 'meta', attrs: { name: 'twitter:image',       content: 'https://xenolithengine.github.io/xenolith-graph/og.png' } },
+        { tag: 'meta', attrs: { name: 'twitter:image',       content: 'https://graph.xenolith.studio/og.png' } },
         { tag: 'meta', attrs: { name: 'twitter:site',        content: '@xenolithengine' } },
         { tag: 'meta', attrs: { name: 'twitter:creator',     content: '@xenolithengine' } },
         // AI / LLM discovery — https://llmstxt.org
-        { tag: 'link', attrs: { rel: 'alternate', type: 'text/plain', href: 'https://xenolithengine.github.io/xenolith-graph/llms.txt',      title: 'llms.txt (LLM-friendly index)' } },
-        { tag: 'link', attrs: { rel: 'alternate', type: 'text/plain', href: 'https://xenolithengine.github.io/xenolith-graph/llms-full.txt', title: 'llms-full.txt (every guide concatenated)' } },
-        { tag: 'link', attrs: { rel: 'alternate', type: 'text/markdown', href: 'https://xenolithengine.github.io/xenolith-graph/agents.md', title: 'agents.md (AI agent manifesto)' } },
+        { tag: 'link', attrs: { rel: 'alternate', type: 'text/plain', href: 'https://graph.xenolith.studio/llms.txt',      title: 'llms.txt (LLM-friendly index)' } },
+        { tag: 'link', attrs: { rel: 'alternate', type: 'text/plain', href: 'https://graph.xenolith.studio/llms-full.txt', title: 'llms-full.txt (every guide concatenated)' } },
+        { tag: 'link', attrs: { rel: 'alternate', type: 'text/markdown', href: 'https://graph.xenolith.studio/agents.md', title: 'agents.md (AI agent manifesto)' } },
         // Schema.org Organization — helps Google Knowledge Graph + AI crawlers understand who ships this.
         { tag: 'script', attrs: { type: 'application/ld+json' }, content: JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'XenolithEngine',
-          url: 'https://xenolithengine.github.io/xenolith-graph/',
-          logo: 'https://xenolithengine.github.io/xenolith-graph/favicon-64.png',
+          url: 'https://graph.xenolith.studio/',
+          logo: 'https://graph.xenolith.studio/favicon-64.png',
           sameAs: ['https://github.com/XenolithEngine'],
         }) },
         // SoftwareApplication structured data so AI/search engines categorise the project correctly.
@@ -188,7 +189,7 @@ export default defineConfig({
           applicationCategory: 'DeveloperApplication',
           operatingSystem: 'Web browser',
           description: 'Drop-in node-graph editor for the web — Blueprint-style typed pins, in-node widgets, macros, AI-native via MCP. WebGL renderer.',
-          url: 'https://xenolithengine.github.io/xenolith-graph/',
+          url: 'https://graph.xenolith.studio/',
           license: 'https://opensource.org/licenses/MIT',
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         }) },

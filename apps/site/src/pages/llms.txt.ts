@@ -5,8 +5,8 @@
 import type { APIRoute } from 'astro'
 import { EXAMPLES, CATEGORY_ORDER } from '../examples/manifest.ts'
 
-const SITE = 'https://xenolithengine.github.io'
-const BASE = '/xenolith-graph'
+const SITE = 'https://graph.xenolith.studio'
+const BASE = ''
 const url = (p: string): string => `${SITE}${BASE}${p}`
 
 const GUIDES: { slug: string; title: string }[] = [

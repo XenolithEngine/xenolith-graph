@@ -30,7 +30,7 @@ We'll acknowledge receipt within 72 hours and aim to publish a fix within 14 day
 
 - All published `@xenolithengine/graph-*` npm packages
 - The MCP server (`@xenolithengine/graph-mcp-server` — WS bridge, token auth)
-- The site (`xenolithengine.github.io/xenolith-graph`)
+- The site (`graph.xenolith.studio`)
 
 ## Out of scope
 

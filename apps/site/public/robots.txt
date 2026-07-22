@@ -30,4 +30,4 @@ Allow: /
 User-agent: Bytespider
 Allow: /
 
-Sitemap: https://xenolithengine.github.io/xenolith-graph/sitemap.xml
+Sitemap: https://graph.xenolith.studio/sitemap.xml

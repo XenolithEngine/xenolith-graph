@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test'
 // the gate: if it passes, the demo works. If it fails, we haven't fixed anything.
 
 test('auto-layout demo panel is interactive', async ({ page }) => {
-  await page.goto('/xenolith-graph/examples/auto-layout/')
+  await page.goto('/examples/auto-layout/')
 
   // Wait for the editor canvas to mount inside the demo preview.
   const canvas = page.locator('.dfr-preview canvas')

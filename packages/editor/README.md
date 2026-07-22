@@ -53,8 +53,8 @@ editor.clipboard.copy()
 
 ## Docs
 
-- [Quickstart guide](https://xenolithengine.github.io/xenolith-graph/guides/quickstart/)
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [Quickstart guide](https://graph.xenolith.studio/guides/quickstart/)
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

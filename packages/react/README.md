@@ -49,8 +49,8 @@ export function Editor() {
 
 ## Docs
 
-- [React guide](https://xenolithengine.github.io/xenolith-graph/guides/react/)
-- [API reference](https://xenolithengine.github.io/xenolith-graph/guides/api/) — every method exposed by `XenolithEditor`
+- [React guide](https://graph.xenolith.studio/guides/react/)
+- [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 
 MIT © XenolithEngine

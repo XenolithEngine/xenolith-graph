@@ -31,7 +31,7 @@ Three endpoints worth knowing about — fetch them directly, they're cheap:
 
 ## Canonical URL map (DO NOT GUESS paths)
 
-All URLs are under base `https://xenolithengine.github.io/xenolith-graph`. If a path you tried 404s, look it up here instead of guessing variants — there is no `/adapters/*`, no `/docs/*`, no `/api-reference/*`.
+All URLs are under base `https://graph.xenolith.studio`. If a path you tried 404s, look it up here instead of guessing variants — there is no `/adapters/*`, no `/docs/*`, no `/api-reference/*`.
 
 **Guides** (`/guides/<slug>/`):
 - `install`, `init`, `api`, `react`, `vue`, `widgets`, `macros-templates`, `theme`, `save-export`, `events-commands`, `icons`, `plugins`

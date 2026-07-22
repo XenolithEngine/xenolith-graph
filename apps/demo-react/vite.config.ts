@@ -10,7 +10,7 @@ const pkgSrc = (name: string): string => resolve(here, '..', '..', 'packages', n
 // On `build` the app is emitted under the docs-site sub-path (it ships inside apps/site/public);
 // dev stays at '/' so the port-5180 server and Playwright keep working.
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/xenolith-graph/react-demos/' : '/',
+  base: command === 'build' ? '/react-demos/' : '/',
   plugins: [react()],
   server: { port: 5180 },
   build: { target: 'es2022' },

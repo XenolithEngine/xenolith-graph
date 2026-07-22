@@ -19,7 +19,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'pnpm dev -- --port 4321',
-    url: 'http://localhost:4321/xenolith-graph/',
+    url: 'http://localhost:4321/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

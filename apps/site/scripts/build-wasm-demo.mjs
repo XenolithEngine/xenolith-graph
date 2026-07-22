@@ -1,5 +1,5 @@
 // Build the WASM/AssemblyScript Mandelbrot demo SPA (apps/wasm-demo) and drop its static output
-// into the site's public/ so it ships with the docs site at /xenolith-graph/wasm/. Run before
+// into the site's public/ so it ships with the docs site at /wasm/. Run before
 // `astro build` (Astro copies public/ verbatim into dist/). The SPA's vite base is set to that
 // sub-path. Mirrors build-fairqueue.mjs.
 import { execSync } from 'node:child_process'
