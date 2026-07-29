@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../lib/base'
 import '../styles/fonts.css'
 import '../styles/theme.css'
 import { TUTORIAL } from '../tutorial/manifest.ts'
@@ -11,13 +12,12 @@ interface Props {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[]
 }
 const { title, activeId, description, path, jsonLd } = Astro.props as Props
-const base = import.meta.env.BASE_URL
 const desc = description ?? 'A guided, hands-on tutorial — from blank canvas to a running graph. Each chapter builds on the previous one in the same xenolith.v1 JSON format.'
 const nav = [
-  { label: 'Learn',      href: `${base}/learn/` },
-  { label: 'Docs',       href: `${base}/guides/install/` },
-  { label: 'Examples',   href: `${base}/examples/` },
-  { label: 'Playground', href: `${base}/playground/` },
+  { label: 'Learn',      href: `${BASE}learn/` },
+  { label: 'Docs',       href: `${BASE}guides/install/` },
+  { label: 'Examples',   href: `${BASE}examples/` },
+  { label: 'Playground', href: `${BASE}playground/` },
   { label: 'GitHub',     href: 'https://github.com/XenolithEngine/xenolith-graph' },
 ]
 ---
@@ -27,7 +27,7 @@ const nav = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    <link rel="icon" href={`${base}/favicon-64.png`} />
+    <link rel="icon" href={`${BASE}favicon-64.png`} />
     <HeadMeta title={title} description={desc} path={path} ogType="website" jsonLd={jsonLd} />
     <style is:global>
       html, body { margin: 0; background: #121212; color: #e8e8e8; font-family: var(--xn-sans, system-ui, sans-serif); }
@@ -56,7 +56,7 @@ const nav = [
   </head>
   <body>
     <header class="tut-header">
-      <a class="tut-brand" href={base}>XENOLITHGRAPH</a>
+      <a class="tut-brand" href={BASE}>XENOLITHGRAPH</a>
       <nav class="tut-nav">
         {nav.map((n) => (
           <a href={n.href} aria-current={n.label === 'Learn' ? 'page' : undefined}>{n.label}</a>
@@ -65,10 +65,10 @@ const nav = [
     </header>
     <div class="tut-body">
       <aside class="tut-side">
-        <a class={`tut-side-home${activeId ? '' : ' active'}`} href={`${base}/learn/`}>Learn</a>
+        <a class={`tut-side-home${activeId ? '' : ' active'}`} href={`${BASE}learn/`}>Learn</a>
         <ol>
           {TUTORIAL.map((c) => (
-            <li><a class={c.id === activeId ? 'active' : ''} href={`${base}/learn/${c.id}/`}>{c.title}</a></li>
+            <li><a class={c.id === activeId ? 'active' : ''} href={`${BASE}learn/${c.id}/`}>{c.title}</a></li>
           ))}
         </ol>
       </aside>

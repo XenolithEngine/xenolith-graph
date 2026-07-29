@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../../lib/base'
 import ExamplesLayout from '../../layouts/ExamplesLayout.astro'
 import DemoFrame from '../../components/DemoFrame.astro'
 import ReactExample from '../../examples/ReactExample.tsx'
@@ -10,7 +11,6 @@ export function getStaticPaths() {
 }
 
 const { example } = Astro.props
-const base = import.meta.env.BASE_URL
 
 // Raw source for the "Show code" tabs, loaded at build time from four roots:
 //  - demo-react/src      → React wrapper components, referenced as `demos/Foo.tsx`
@@ -76,10 +76,10 @@ const jsonLd = {
   path={`/examples/${example.id}/`}
   thumb={`/examples/thumbs/${example.id}.jpg`}
   jsonLd={jsonLd}
-  llmsAlt={`${base}/examples/${example.id}/llms.md`}
+  llmsAlt={`${BASE}examples/${example.id}/llms.md`}
   activeId={example.id}
 >
-  <a href={`${base}/examples/`} style="font-size:13px;color:#9a9a9a;text-decoration:none;">← All examples</a>
+  <a href={`${BASE}examples/`} style="font-size:13px;color:#9a9a9a;text-decoration:none;">← All examples</a>
   <h1 style="margin:8px 0 4px;font-size:26px;">{example.title}</h1>
   <p style="margin:0 0 18px;color:#9a9a9a;max-width:70ch;">{example.blurb}</p>
 

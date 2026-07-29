@@ -1,7 +1,7 @@
 ---
+import { BASE } from '../../lib/base'
 import TutorialLayout from '../../layouts/TutorialLayout.astro'
 import { TUTORIAL } from '../../tutorial/manifest.ts'
-const base = import.meta.env.BASE_URL
 ---
 <TutorialLayout
   title="Learn XenolithGraph — a step-by-step tutorial"
@@ -27,7 +27,7 @@ const base = import.meta.env.BASE_URL
   <ol class="chap-list">
     {TUTORIAL.map((c, i) => (
       <li class="chap-item">
-        <a href={`${base}/learn/${c.id}/`} class="chap-link">
+        <a href={`${BASE}learn/${c.id}/`} class="chap-link">
           <span class="chap-no">{String(i + 1).padStart(2, '0')}</span>
           <span class="chap-body">
             <strong class="chap-title">{c.title}</strong>

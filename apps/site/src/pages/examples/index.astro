@@ -1,7 +1,7 @@
 ---
+import { BASE } from '../../lib/base'
 import ExamplesLayout from '../../layouts/ExamplesLayout.astro'
 import { EXAMPLES, CATEGORY_ORDER, FRAMEWORKS } from '../../examples/manifest.ts'
-const base = import.meta.env.BASE_URL
 const byCategory = CATEGORY_ORDER
   .map((cat) => ({ cat, items: EXAMPLES.filter((e) => e.category === cat) }))
   .filter((g) => g.items.length > 0)
@@ -31,7 +31,7 @@ const fwLabels = (e: (typeof EXAMPLES)[number]): string =>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
       {/* Extra-large external demo — has its own layout, runtime + AssemblyScript codegen. We
           link out instead of squeezing into the standard `<DemoFrame>` per-id page. */}
-      <a href={`${base}/wasm/`} class="ex-tile ex-tile-special">
+      <a href={`${BASE}wasm/`} class="ex-tile ex-tile-special">
         <div class="ex-thumb ex-thumb-wasm" aria-hidden="true">
           <span class="ex-badge">AS-WASM</span>
         </div>
@@ -49,8 +49,8 @@ const fwLabels = (e: (typeof EXAMPLES)[number]): string =>
       <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#7a7a7a;margin:0 0 14px;">{g.cat}</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
         {g.items.map((e) => (
-          <a href={`${base}/examples/${e.id}/`} class="ex-tile">
-            <img class="ex-thumb" src={`${base}/examples/thumbs/${e.id}.jpg`} alt={e.title} loading="lazy" />
+          <a href={`${BASE}examples/${e.id}/`} class="ex-tile">
+            <img class="ex-thumb" src={`${BASE}examples/thumbs/${e.id}.jpg`} alt={e.title} loading="lazy" />
 
             <div class="ex-tile-body">
               <strong>{e.title}</strong>
