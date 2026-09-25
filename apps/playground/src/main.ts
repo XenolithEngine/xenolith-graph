@@ -1,8 +1,5 @@
 import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
-// Synthwave / Holographic hidden — not part of the standard playground rotation.
-// import { synthwaveTheme } from '@xenolithengine/graph-theme-synthwave'
-// import { holographicTheme } from '@xenolithengine/graph-theme-holographic'
 import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
 import { daylightTheme } from '@xenolithengine/graph-theme-daylight'
 import { demoGraph, demoSchemas, createCurveWidget, createXYPadWidget, createPreviewWidget } from '@xenolithengine/demo'
@@ -42,7 +39,6 @@ const themes: { label: string; theme: XenolithTheme }[] = [
   { label: 'Xen',          theme: xenTheme },
   { label: 'Daylight',     theme: daylightTheme },
   { label: 'Liquid Glass', theme: liquidGlassTheme },
-  // Holographic / Synthwave hidden — visual experiments, not in this playground pass.
 ]
 // Lives in the editor's overlay root and styles itself purely from the theme's `--xeno-*` design
 // tokens (the editor re-writes them on setTheme), so the panel restyles with the active theme — no
