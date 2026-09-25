@@ -4,11 +4,11 @@
 // Every call logs an MCP-style transcript line, so the demo doubles as a live test of the tool
 // semantics and a self-contained "agents build graphs" video — no Claude required to roll it.
 import type { XenolithEditor } from '@xenolithengine/graph-editor'
-import type { Edge, Node, NodeId, Pin, PinId } from '@xenolithengine/graph-core'
+import type { Edge, Node, NodeId, Pin, PinId, NodeSchema } from '@xenolithengine/graph-core'
 import { createEdgeId } from '@xenolithengine/graph-core'
 
 /** Node types the session registers and builds with — typed float pins + one widget each. */
-export const agentSchemas = [
+export const agentSchemas: NodeSchema[] = [
   {
     type: 'Signal', title: 'Signal', category: 'source',
     pins: [{ kind: 'data', direction: 'out', type: 'float', label: 'out' }],
@@ -176,7 +176,7 @@ function summarize(result: unknown): string {
   if (Array.isArray(result)) return `${result.length} items`
   if (typeof result === 'object' && result !== null) {
     const r = result as Record<string, unknown>
-    if (r.id !== undefined) return `id=${String(r.id).slice(0, 8)}`
+    if (r['id'] !== undefined) return `id=${String(r['id']).slice(0, 8)}`
     return Object.keys(r).slice(0, 3).join(',')
   }
   return String(result)
