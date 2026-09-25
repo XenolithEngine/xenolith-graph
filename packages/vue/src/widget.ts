@@ -7,6 +7,8 @@ import type { DomWidgetController } from '@xenolithengine/graph-editor'
 export interface WidgetProps {
   value: unknown
   setValue: (v: unknown) => void
+  /** Opens the properties sidebar for the widget's node. */
+  openSidebar: () => void
   accent: string
   text:   string
   muted:  string
@@ -32,6 +34,7 @@ export function vueWidget(Component: Component): DomWidgetController {
   const state = reactive<WidgetProps>({
     value: undefined,
     setValue: () => {},
+    openSidebar: () => {},
     accent: '', text: '', muted: '',
     width: 0, height: 0,
   })
@@ -40,6 +43,7 @@ export function vueWidget(Component: Component): DomWidgetController {
     mount(el, c) {
       state.value = c.value
       state.setValue = c.setValue
+      state.openSidebar = c.openSidebar
       state.accent = c.accent; state.text = c.text; state.muted = c.muted
       state.width = c.width;   state.height = c.height
       // Pass the reactive bag itself as the props object — Vue spreads its keys onto the child

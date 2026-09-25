@@ -8,6 +8,8 @@ import type { DomWidgetController } from '@xenolithengine/graph-editor'
 export interface WidgetProps {
   value: unknown
   setValue: (v: unknown) => void
+  /** Opens the properties sidebar for the widget's node. */
+  openSidebar: () => void
   accent: string
   text: string
   muted: string
@@ -21,12 +23,14 @@ export interface WidgetProps {
 export function reactWidget(Component: (props: WidgetProps) => ReactNode): DomWidgetController {
   let root: Root | null = null
   let setValue: (v: unknown) => void = () => {}
+  let openSidebar: () => void = () => {}
   const toProps = (c: { value: unknown; accent: string; text: string; muted: string; width: number; height: number }): WidgetProps =>
-    ({ value: c.value, setValue, accent: c.accent, text: c.text, muted: c.muted, width: c.width, height: c.height })
+    ({ value: c.value, setValue, openSidebar, accent: c.accent, text: c.text, muted: c.muted, width: c.width, height: c.height })
 
   return {
     mount(el, c) {
       setValue = c.setValue
+      openSidebar = c.openSidebar
       root = createRoot(el)
       root.render(<Component {...toProps(c)} />)
       return () => { root?.unmount(); root = null }

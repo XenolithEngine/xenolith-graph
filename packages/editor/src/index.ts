@@ -1,4 +1,4 @@
-import { Application, BitmapFontManager, Color, Container, EventEmitter as PixiEventEmitter, FederatedPointerEvent, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, TilingSprite, type ColorSource, type ContainerChild, type TextureSource } from 'pixi.js'
+import { Application, BitmapFontManager, Color, Container, EventEmitter as PixiEventEmitter, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, TilingSprite, type ColorSource, type ContainerChild } from 'pixi.js'
 import {
   AddNode,
   CommandBus,
@@ -9,10 +9,7 @@ import {
   MoveNode,
   AddComment,
   RemoveComment,
-  MoveComment,
-  ResizeComment,
   SetCommentText,
-  nodesInsideComment,
   createCommentId,
   NodeRegistry,
   TypeRegistry,
@@ -26,24 +23,14 @@ import {
   rerouteNodeSchema,
   REROUTE_NODE_TYPE,
   isMacro,
-  createMacro,
   macroMembers,
   flattenMacroProxies,
   flattenAllTemplateInstances,
-  planMacroCollapse,
-  disconnectedWidgetBoundPins,
-  MACRO_TYPE,
   type MacroProxyRecord,
-  planTemplateExtraction,
-  planTemplateUnpack,
-  templateInterface,
-  materializeInterface,
-  templateDefContains,
   flattenTemplateInstance,
   type FlattenedTemplate,
   isTemplateInstance,
   isTemplateBoundary,
-  TEMPLATE_INSTANCE_TYPE,
   TEMPLATE_INPUT_TYPE,
   TEMPLATE_OUTPUT_TYPE,
   type TemplateDefId,
@@ -55,8 +42,8 @@ import {
   widgetValue,
   widgetBindKey,
   widgetVisibility,
+  widgetRendersInBody,
   migrateNodePayload,
-  comboOptions,
   type CoreEvents,
   type WidgetStyle,
   type Edge,
@@ -85,27 +72,22 @@ import {
   createGridSprite,
   createPixiTextMeasurer,
   drawEdge,
+  mergeEdgeOptions,
   measureNodeSize,
   InteractionManager,
   nodeBounds,
-  rectFromPoints,
   rectIntersects,
   renderNode,
   IconRegistry,
-  renderComment,
-  type CommentView,
-  renderMacroFrame,
   type MacroFrameView,
   resolveCategoryGradient,
   renderRerouteNode,
   renderRerouteNodeBox,
   rerouteSize,
   rerouteBoxSize,
-  computeGroupSnappedDelta,
   computeWidgetRects,
   fitView,
   isDomWidgetController,
-  readPinHandle,
   resolvePinFill,
   screenToWorld,
   worldToScreen,
@@ -122,13 +104,10 @@ import {
   resolveWidgetStyle,
   widgetCssVars,
   themeCssVars,
-  type CanvasWidgetController,
   type CustomWidgetController,
   type DomWidgetController,
   type WidgetLayoutTokens,
   type NodeView,
-  type WidgetHit,
-  type PinHandle,
   type PinLayout,
   type RenderEdgeOptions,
   type RenderNodeOptions,
@@ -141,22 +120,26 @@ import {
   type XenolithTheme,
   type ZoomBounds,
 } from '@xenolithengine/graph-render-pixi'
-import { xenTokens, mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
+import { mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
 import { loadFonts, type FontUrlMap } from './fonts.js'
 import { canConnect } from './pin-compat.js'
 import { CommandRegistry } from './commands-registry.js'
 import { SidebarManager } from './sidebar.js'
+import { CommentController } from './comments-controller.js'
+import { Subgraph } from './subgraph.js'
+import { PointerController } from './pointer-controller.js'
 import { PaletteSidebar, type PaletteSidebarOpts } from './palette-sidebar.js'
 import { computeRerouteBridges } from './reroute-bridge.js'
 import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
 import { InsertPalette } from './palette.js'
 import { pruneOrphanInlineReroutes } from './clipboard-prune.js'
 import { EdgeContextMenu, type EdgeMenuItem } from './edge-menu.js'
-import { ContextMenuRegistry, type ContextMenuItemSpec, type ContextMenuTarget } from './context-menu.js'
-import { WidgetOverlay, type OverlayRect } from './widget-overlay.js'
+import { ContextMenuRegistry } from './context-menu.js'
+import type { WidgetOverlay } from './widget-overlay.js'
 import { Minimap, type MinimapPosition } from './minimap.js'
-import { EditorControls, type ControlsOptions, type ControlsPosition } from './controls.js'
+import { EditorControls, type ControlsOptions } from './controls.js'
 import { createGraphEventBridge, firePreventable, type EditorEvents } from './events.js'
+import type { McpClient, McpEditorSurface } from './mcp.js'
 import { PluginHost, type PluginContext, type XenolithPlugin } from './plugin.js'
 import {
   parseXenolithGraph,
@@ -202,15 +185,12 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
-export const VERSION = '0.7.0-beta.4'
+export const VERSION = '0.7.0-beta.5'
 
-const MARQUEE_DRAG_THRESHOLD = 4
-const NODE_DRAG_THRESHOLD = 4
 
 export interface XenolithEditorOptions {
-  /** Either a full XenolithTheme (Xen, Liquid Glass, Pixel Art, …) or a partial token override
-   *  that is deep-merged into the default Xen theme. Themes can be swapped at runtime via
-   *  `editor.setTheme(...)`. */
+  /** Full theme (Xen, Daylight, Liquid Glass) or a partial token override merged into Xen.
+   *  Swap at runtime with `editor.setTheme(...)`. */
   theme?: XenolithTheme | DeepPartial<XenTokens>
   background?: string
   resizeToWindow?: boolean
@@ -329,38 +309,6 @@ interface ClipboardSnapshot {
   edgeOpts:   Map<EdgeId, RenderEdgeOptions>
 }
 
-type DragState =
-  | { kind: 'idle' }
-  | { kind: 'pending'; nodeId: NodeId; startScreen: { x: number; y: number }; shift: boolean; alt: boolean }
-  | {
-      kind: 'active'
-      startScreen: { x: number; y: number }
-      anchorId: NodeId
-      initialPositions: Map<NodeId, { x: number; y: number }>
-      affectedEdges: Set<EdgeId>
-      alt: boolean
-    }
-  | {
-      kind: 'pin-drag'
-      source: PinHandle
-      ghost: Graphics
-      hoveredTarget: PinHandle | null
-      /** When the drag began by tearing an edge off a connected pin, this is the original edge.
-       *  Esc restores it; a successful drop on a new target leaves it removed. */
-      rewireOriginal: Edge | null
-    }
-
-type MarqueeState =
-  | { kind: 'idle' }
-  | { kind: 'pending'; startScreen: { x: number; y: number }; startWorld: { x: number; y: number }; shift: boolean }
-  | {
-      kind: 'active'
-      startScreen: { x: number; y: number }
-      startWorld: { x: number; y: number }
-      gfx: Graphics
-      shift: boolean
-    }
-
 /** Multiply a colour's RGB by `f` (<1 darkens) — used to tone down LOD node fills. */
 /** Coerce loosely-typed palette input (AI clients pass raw "#RRGGBB" strings or even CSS
  *  `linear-gradient(...)` expressions) into the discriminated union the renderer expects:
@@ -459,6 +407,7 @@ export class XenolithEditor {
     readonly lastPointerWorld: { x: number; y: number } | null
   }>
   get view() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const self = this
     return this.#viewNs ??= Object.freeze({
       pan: (dx: number, dy: number) => self.pan(dx, dy),
@@ -480,6 +429,7 @@ export class XenolithEditor {
     clear: () => void
   }>
   get history() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const self = this
     return this.#historyNs ??= Object.freeze({
       undo: () => self.undo(),
@@ -500,6 +450,7 @@ export class XenolithEditor {
     deleteSelection: () => void
   }>
   get clipboard() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const self = this
     return this.#clipboardNs ??= Object.freeze({
       copy: () => self.copySelection(),
@@ -529,6 +480,7 @@ export class XenolithEditor {
     setBreadcrumbVisible: (visible: boolean) => void
   }>
   get chrome() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const self = this
     return this.#chromeNs ??= Object.freeze({
       setControls: (opts: ControlsOptions | false) => self.setControls(opts),
@@ -594,6 +546,9 @@ export class XenolithEditor {
   readonly #lodLayer: Container<ContainerChild>
   #commentsLayer!: Container
   #commentHeadersLayer!: Container
+  #comments!: CommentController
+  #pointer!: PointerController
+  #sub!: Subgraph
   #macroFramesLayer!: Container
   /** Top layer (above nodes): an EXPANDED macro's frame + member views are reparented here so the
    *  whole group paints over everything else. Nested macros stack by depth within it. */
@@ -602,7 +557,12 @@ export class XenolithEditor {
   /** Macros mid expand-animation. Their members + frame are primed invisible by the next sync (before
    *  paint) so the grow-in starts from nothing — without this one full-opacity frame paints first (jitter). */
   readonly #expandingMacros = new Set<NodeId>()
-  readonly #commentViews = new Map<CommentId, CommentView>()
+  /** Double-click window for an expanded macro frame header (rename). */
+  #macroFrameLastTap = 0
+  /** Member → owning macro. Rebuilt lazily; null means dirty. */
+  #macroParentIndex: Map<NodeId, NodeId> | null = null
+  /** In-flight fit-to-macro viewport tween. */
+  #viewportTweenRaf: number | null = null
   readonly #viewport: Viewport
   readonly #interaction: InteractionManager | null
   readonly #zoomBounds: ZoomBounds
@@ -634,6 +594,8 @@ export class XenolithEditor {
   /** Render opts per edge, kept persistent so undo of a DisconnectEdge can re-materialise the
    *  edge graphics with the same wire colour / type hint it had before. */
   readonly #edgeOpts = new Map<EdgeId, RenderEdgeOptions>()
+  /** Applied under per-edge options. An explicit field on the edge wins. */
+  #defaultEdgeOptions: RenderEdgeOptions = {}
   /** Edge ids incident to each node (both endpoints), so edge virtualization can materialise only
    *  the wires touching a visible node without scanning every edge. */
   readonly #edgesByNode = new Map<NodeId, EdgeId[]>()
@@ -681,13 +643,6 @@ export class XenolithEditor {
   readonly #pluginHost = new PluginHost(() => this.#pluginContext())
   #hoveredId: NodeId | null = null
   readonly #marqueeHovered = new Set<NodeId>()
-  #dragState: DragState = { kind: 'idle' }
-  #commentDrag:
-    | { kind: 'move'; id: CommentId; startScreen: { x: number; y: number }; commentStart: { x: number; y: number }; nodeStarts: Map<NodeId, { x: number; y: number }> }
-    | { kind: 'resize'; id: CommentId; startScreen: { x: number; y: number }; sizeStart: { x: number; y: number } }
-    | null = null
-  #commentLastTap = 0
-  #selectedComments = new Set<CommentId>()
   /** Members of every currently-collapsed macro — their node views + internal edges are hidden. */
   #hiddenMembers = new Set<NodeId>()
   #interactive = true
@@ -780,6 +735,77 @@ export class XenolithEditor {
     app.stage.addChild(this.#world)
 
     this.#viewport = new Viewport(this.#world, opts.viewport)
+    this.#comments = new CommentController({
+      graph: () => this.graph,
+      commandBus: () => this.commandBus,
+      selection: this.selection,
+      theme: () => this.#theme,
+      viewport: this.#viewport,
+      commentsLayer: this.#commentsLayer,
+      commentHeadersLayer: this.#commentHeadersLayer,
+      views: this.#views,
+      edgesByNode: this.#edgesByNode,
+      lodLevel: () => this.#lodLevel,
+      interactive: () => this.#interactive,
+      requestRender: () => this.#requestRender(),
+      redrawEdge: (id) => this.#redrawEdge(id),
+      virtualizeActive: () => this.#virtualizeActive(),
+      virtualizeBands: () => this.#virtualizeBands(),
+      rectIntersects,
+      ensureEdgeMenu: () => this.#ensureEdgeMenu(),
+      ensureWidgetOverlay: () => this.#ensureWidgetOverlay(),
+      updateVisualStates: () => this.#updateVisualStates(),
+      removeComment: (id) => this.removeComment(id),
+      setCommentColor: (id, color) => this.setCommentColor(id, color),
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
+    const ptrSelf = this
+    this.#pointer = new PointerController({
+      ed: ptrSelf,
+      get app() { return ptrSelf.#app },
+      get comments() { return ptrSelf.#comments },
+      connectionAllowed: (sourceNode, sourcePin, targetNode, targetPin) => ptrSelf.#connectionAllowed(sourceNode, sourcePin, targetNode, targetPin),
+      deepestExpandedMacro: () => ptrSelf.#deepestExpandedMacro(),
+      disposeEdgeGraphics: (edgeId) => ptrSelf.#disposeEdgeGraphics(edgeId),
+      drawEdge: (g, from, to, opts) => ptrSelf.#drawEdge(g, from, to, opts),
+      get edgeHoverGfx() { return ptrSelf.#edgeHoverGfx },
+      get edgeOpts() { return ptrSelf.#edgeOpts },
+      get edgeRecords() { return ptrSelf.#edgeRecords },
+      edgesAttachedTo: (nodeIds) => ptrSelf.#edgesAttachedTo(nodeIds),
+      get edgesLayer() { return ptrSelf.#edgesLayer },
+      get events() { return ptrSelf.#events },
+      findIncidentEdgeId: (nodeId, pinId) => ptrSelf.#findIncidentEdgeId(nodeId, pinId),
+      get hiddenMembers() { return ptrSelf.#hiddenMembers },
+      get host() { return ptrSelf.#host },
+      get hoveredEdgeMid() { return ptrSelf.#hoveredEdgeMid },
+      set hoveredEdgeMid(v) { ptrSelf.#hoveredEdgeMid = v },
+      get hoveredId() { return ptrSelf.#hoveredId },
+      set hoveredId(v) { ptrSelf.#hoveredId = v },
+      get interactive() { return ptrSelf.#interactive },
+      isDisplayModeWidget: (node, w) => ptrSelf.#isDisplayModeWidget(node, w),
+      get lastPointerScreen() { return ptrSelf.#lastPointerScreen },
+      set lastPointerScreen(v) { ptrSelf.#lastPointerScreen = v },
+      get lastPointerWorld() { return ptrSelf.#lastPointerWorld },
+      set lastPointerWorld(v) { ptrSelf.#lastPointerWorld = v },
+      macroIsAncestor: (ancestor, id) => ptrSelf.#macroIsAncestor(ancestor, id),
+      get marqueeHovered() { return ptrSelf.#marqueeHovered },
+      get nodesLayer() { return ptrSelf.#nodesLayer },
+      pinWorldPosition: (node, pinId) => ptrSelf.#pinWorldPosition(node, pinId),
+      redrawEdge: (edgeId) => ptrSelf.#redrawEdge(edgeId),
+      requestRender: () => ptrSelf.#requestRender(),
+      get snapSize() { return ptrSelf.#snapSize },
+      get theme() { return ptrSelf.#theme },
+      updateEdgeMidpointHover: (world) => ptrSelf.#updateEdgeMidpointHover(world),
+      updateVisualStates: () => ptrSelf.#updateVisualStates(),
+      get viewport() { return ptrSelf.#viewport },
+      get views() { return ptrSelf.#views },
+      get widgetControllers() { return ptrSelf.#widgetControllers },
+      get widgetOverlay() { return ptrSelf.#widgetOverlay },
+      set widgetOverlay(v) { ptrSelf.#widgetOverlay = v },
+      widgetThemeColors: (spec) => ptrSelf.#widgetThemeColors(spec),
+      get world() { return ptrSelf.#world },
+    })
 
     if (!opts.disableInteraction) {
       this.#interaction = new InteractionManager(app.canvas as HTMLCanvasElement)
@@ -1018,6 +1044,57 @@ export class XenolithEditor {
     this.#isValidConnection = opts.isValidConnection
     if (opts.controls) this.setControls(typeof opts.controls === 'object' ? opts.controls : {})
     this.#updateGrid() // size the infinite grid to the initial viewport
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
+    const subSelf = this
+    this.#sub = new Subgraph({
+      ed: subSelf,
+      get app() { return subSelf.#app },
+      get breadcrumbDisabled() { return subSelf.#breadcrumbDisabled },
+      get breadcrumbEl() { return subSelf.#breadcrumbEl },
+      set breadcrumbEl(v) { subSelf.#breadcrumbEl = v },
+      get coreEvents() { return subSelf.#coreEvents },
+      get currentDefId() { return subSelf.#currentDefId },
+      set currentDefId(v) { subSelf.#currentDefId = v },
+      get definitions() { return subSelf.#definitions },
+      get displayBus() { return subSelf.#displayBus },
+      set displayBus(v) { subSelf.#displayBus = v },
+      get displayGraph() { return subSelf.#displayGraph },
+      set displayGraph(v) { subSelf.#displayGraph = v },
+      get diveStack() { return subSelf.#diveStack },
+      get edgeRecords() { return subSelf.#edgeRecords as never },
+      get edgesLayer() { return subSelf.#edgesLayer },
+      get events() { return subSelf.#events },
+      get expandingMacros() { return subSelf.#expandingMacros },
+      get hiddenMembers() { return subSelf.#hiddenMembers },
+      set hiddenMembers(v) { subSelf.#hiddenMembers = v },
+      get interactive() { return subSelf.#interactive },
+      get liveMode() { return subSelf.#liveMode },
+      get macroFrameLastTap() { return subSelf.#macroFrameLastTap },
+      set macroFrameLastTap(v) { subSelf.#macroFrameLastTap = v },
+      get macroFrames() { return subSelf.#macroFrames },
+      get macroFramesLayer() { return subSelf.#macroFramesLayer },
+      get macroOverlayLayer() { return subSelf.#macroOverlayLayer },
+      get macroParentIndex() { return subSelf.#macroParentIndex },
+      set macroParentIndex(v) { subSelf.#macroParentIndex = v },
+      get nodesLayer() { return subSelf.#nodesLayer },
+      get renderOpts() { return subSelf.#renderOpts },
+      get rootGraph() { return subSelf.#rootGraph },
+      get templateRegistry() { return subSelf.#templateRegistry },
+      get theme() { return subSelf.#theme },
+      get viewport() { return subSelf.#viewport },
+      get viewportTweenRaf() { return subSelf.#viewportTweenRaf },
+      set viewportTweenRaf(v) { subSelf.#viewportTweenRaf = v },
+      get views() { return subSelf.#views },
+      get zoomBounds() { return subSelf.#zoomBounds },
+      ensureSize: (node, render) => subSelf.#ensureSize(node, render),
+      ensureView: (node) => subSelf.#ensureView(node),
+      ensureWidgetOverlay: () => subSelf.#ensureWidgetOverlay(),
+      propagateRerouteTypes: () => subSelf.#propagateRerouteTypes(),
+      rebuildDisplay: () => subSelf.#rebuildDisplay(),
+      requestRender: () => subSelf.#requestRender(),
+      teardownDisplay: () => subSelf.#teardownDisplay(),
+    })
   }
 
   #hostResizeObserver: ResizeObserver | null = null
@@ -1353,8 +1430,8 @@ export class XenolithEditor {
   /** True while `id` is being live-dragged (node drag or comment-group move) — its view sits at the
    *  cursor offset, ahead of the not-yet-committed `node.position`. */
   #isLiveDraggingNode(id: NodeId): boolean {
-    if (this.#dragState.kind === 'active' && this.#dragState.initialPositions.has(id)) return true
-    if (this.#commentDrag?.kind === 'move' && this.#commentDrag.nodeStarts.has(id)) return true
+    if (this.#pointer.isDraggingNode(id)) return true
+    if (this.#comments.isDraggingNode(id)) return true
     return false
   }
 
@@ -1484,7 +1561,7 @@ export class XenolithEditor {
   #cullToViewport(): void {
     if (!this.#virtualizeActive()) return
     // Comments virtualize on the same pan/zoom pass as nodes (thousands off-screen otherwise).
-    if (this.graph.commentCount > 0) this.#syncComments()
+    if (this.graph.commentCount > 0) this.#comments.sync()
     const level = lodLevel(this.#viewport.state.zoom, this.#lodLevel, this.#lodThresholds)
     if (level !== this.#lodLevel) this.#applyLODLevel(level)
     // 'flat' draws the whole graph as static batch Graphics in world space — pan/zoom ride the
@@ -1521,7 +1598,7 @@ export class XenolithEditor {
     this.#lodLevel = level
     // Comments collapse to a plain rectangle at any non-full LOD (no per-frame gradient/title cost).
     const simpleComments = level !== 'full'
-    for (const v of this.#commentViews.values()) v.setSimplified(simpleComments)
+    this.#comments.setSimplified(simpleComments)
     for (const id of [...this.#views.keys()]) this.#destroyViewOffscreen(id)
     this.#lodLayer.removeChildren().forEach((c) => c.destroy())
     // Leaving full: the per-edge Graphics are replaced by the LOD line batch, so free them.
@@ -2131,224 +2208,14 @@ export class XenolithEditor {
     return this.#theme.renderNode?.(node, enriched, this.#themeContext()) ?? renderNode(node, this.#theme.tokens, enriched)
   }
   #drawEdge(g: Graphics, from: PinLayout, to: PinLayout, opts: RenderEdgeOptions): Graphics {
-    return this.#theme.drawEdge?.(g, from, to, opts) ?? drawEdge(g, from, to, this.#theme.tokens, opts)
+    const merged = mergeEdgeOptions(this.#defaultEdgeOptions, opts)
+    return this.#theme.drawEdge?.(g, from, to, merged) ?? drawEdge(g, from, to, this.#theme.tokens, merged)
   }
   #renderEdge(from: PinLayout, to: PinLayout, opts: RenderEdgeOptions): Graphics {
     return this.#drawEdge(new Graphics(), from, to, opts)
   }
   #createGrid(): Container {
     return this.#theme.createGrid?.() ?? createGridSprite(this.#theme.tokens)
-  }
-
-  /** Reconcile comment-frame VIEWS with the graph's comments, viewport-virtualized exactly like
-   *  nodes: past the threshold only comments intersecting the viewport band get a live PIXI view
-   *  (each owns FillGradient textures + a BitmapText — thousands of them off-screen is what crashed
-   *  a doubled-up demo). Off-screen comments stay as graph data and re-materialise on pan. */
-  #syncComments(): void {
-    const virtualize = this.#virtualizeActive()
-    const bands = virtualize ? this.#virtualizeBands() : null
-    const seen = new Set<string>()
-    for (const c of this.graph.comments()) {
-      seen.add(String(c.id))
-      const live = this.#commentViews.has(c.id)
-      let want = true
-      if (bands) {
-        const r = { x: c.position.x, y: c.position.y, width: c.size.x, height: c.size.y }
-        want = live ? rectIntersects(r, bands.outer) : rectIntersects(r, bands.inner)
-      }
-      if (!want) { if (live) this.#destroyCommentView(c.id); continue }
-      this.#ensureCommentView(c as Comment)
-    }
-    for (const [id] of [...this.#commentViews]) {
-      if (!seen.has(String(id))) { this.#destroyCommentView(id); this.#selectedComments.delete(id) }
-    }
-    this.#requestRender()
-  }
-
-  /** Create the view if missing (or refresh it), restoring selected visual + LOD state. */
-  #ensureCommentView(c: Comment): void {
-    const existing = this.#commentViews.get(c.id)
-    if (existing) { existing.update(c); return }
-    const view = renderComment(c, this.#theme.tokens, this.#theme.commentHeaderStyle ?? 'gradient')
-    if (this.#lodLevel !== 'full') view.setSimplified(true)
-    if (this.#selectedComments.has(c.id)) view.setVisualState('selected')
-    this.#commentViews.set(c.id, view)
-    this.#commentsLayer.addChild(view.container)
-    this.#commentHeadersLayer.addChild(view.headerLayer)
-    this.#wireCommentInteraction(c.id, view)
-  }
-
-  /** Drop a comment's live view (frees gradients + BitmapText); the graph data + selection remain. */
-  #destroyCommentView(id: CommentId): void {
-    const v = this.#commentViews.get(id)
-    if (!v) return
-    v.destroy()
-    this.#commentViews.delete(id)
-  }
-
-  /** Wire a comment's header (drag-to-move-with-contents, double-click-to-rename) and resize grip. */
-  #wireCommentInteraction(id: CommentId, view: CommentView): void {
-    view.header.on('pointerover', () => { if (!this.#selectedComments.has(id)) { view.setVisualState('hover'); this.#requestRender() } })
-    view.header.on('pointerout', () => { if (!this.#selectedComments.has(id)) { view.setVisualState('default'); this.#requestRender() } })
-    // Right-click → context menu: rename, recolour (built-in colour picker), delete.
-    view.header.on('rightdown', (e: FederatedPointerEvent) => {
-      if (!this.#interactive) return
-      e.stopPropagation()
-      this.#ensureEdgeMenu().open({ x: e.global.x, y: e.global.y }, [
-        { label: 'Rename', onSelect: () => this.#editCommentText(id, view) },
-        { label: 'Colour…', onSelect: () => this.#editCommentColor(id, view) },
-        { label: 'Delete', onSelect: () => this.removeComment(id) },
-      ])
-    })
-    view.header.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0 || !this.#interactive) return
-      e.stopPropagation()
-      this.#selectComment(id)
-      const now = performance.now()
-      if (now - this.#commentLastTap < 320) {
-        this.#commentLastTap = 0
-        this.#commentDrag = null
-        // Defer past this pointer event — opening/focusing the input synchronously inside pointerdown
-        // lets the rest of the gesture steal focus, so the field never appears (menu Rename works
-        // because it fires from a separate, later event).
-        requestAnimationFrame(() => this.#editCommentText(id, this.#commentViews.get(id) ?? view))
-        return
-      }
-      this.#commentLastTap = now
-      const c = this.graph.getComment(id)
-      if (!c) return
-      // Capture the nodes sitting inside the frame NOW; drag moves them together with it.
-      const members = nodesInsideComment(c, [...this.graph.nodes()])
-      const nodeStarts = new Map<NodeId, { x: number; y: number }>()
-      for (const nid of members) {
-        const n = this.graph.getNode(nid)
-        if (n) nodeStarts.set(nid, { x: n.position.x, y: n.position.y })
-      }
-      this.#commentDrag = {
-        kind: 'move', id,
-        startScreen: { x: e.global.x, y: e.global.y },
-        commentStart: { x: c.position.x, y: c.position.y },
-        nodeStarts,
-      }
-    })
-    view.resizeHandle.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0 || !this.#interactive) return
-      e.stopPropagation()
-      const c = this.graph.getComment(id)
-      if (!c) return
-      this.#commentDrag = { kind: 'resize', id, startScreen: { x: e.global.x, y: e.global.y }, sizeStart: { x: c.size.x, y: c.size.y } }
-    })
-  }
-
-  /** Live-drag the comment frame (and, in 'move', its captured member nodes); returns true if it
-   *  handled the move so the caller can early-out of the node-drag path. */
-  #updateCommentDrag(screen: { x: number; y: number }): void {
-    const d = this.#commentDrag
-    if (!d) return
-    const zoom = this.#viewport.state.zoom
-    const dx = (screen.x - d.startScreen.x) / zoom
-    const dy = (screen.y - d.startScreen.y) / zoom
-    const view = this.#commentViews.get(d.id)
-    const c = this.graph.getComment(d.id)
-    if (!view || !c) return
-    if (d.kind === 'move') {
-      view.container.position.set(d.commentStart.x + dx, d.commentStart.y + dy)
-      view.headerLayer.position.set(d.commentStart.x + dx, d.commentStart.y + dy)
-      const affected = new Set<EdgeId>()
-      for (const [nid, start] of d.nodeStarts) {
-        this.#views.get(nid)?.container.position.set(start.x + dx, start.y + dy)
-        for (const eid of this.#edgesByNode.get(nid) ?? []) affected.add(eid)
-      }
-      for (const eid of affected) this.#redrawEdge(eid)
-    } else {
-      const geo = this.#theme.tokens.geometry.comment
-      const w = Math.max(geo.minWidth, d.sizeStart.x + dx)
-      const h = Math.max(geo.minHeight, d.sizeStart.y + dy)
-      view.update({ ...(c as Comment), size: { x: w, y: h } })
-    }
-    this.#requestRender()
-  }
-
-  /** Commit the live comment drag/resize through the command bus (one undoable step). */
-  #endCommentDrag(screen: { x: number; y: number }): void {
-    const d = this.#commentDrag
-    if (!d) return
-    this.#commentDrag = null
-    const zoom = this.#viewport.state.zoom
-    const dx = (screen.x - d.startScreen.x) / zoom
-    const dy = (screen.y - d.startScreen.y) / zoom
-    if (d.kind === 'move') {
-      if (dx === 0 && dy === 0) return
-      this.commandBus.transaction(() => {
-        this.commandBus.apply(new MoveComment(d.id, { x: d.commentStart.x + dx, y: d.commentStart.y + dy }))
-        for (const [nid, start] of d.nodeStarts) {
-          this.commandBus.apply(new MoveNode(nid, { x: start.x + dx, y: start.y + dy }))
-        }
-      })
-    } else {
-      const geo = this.#theme.tokens.geometry.comment
-      const w = Math.max(geo.minWidth, d.sizeStart.x + dx)
-      const h = Math.max(geo.minHeight, d.sizeStart.y + dy)
-      this.commandBus.apply(new ResizeComment(d.id, { x: w, y: h }))
-    }
-  }
-
-  /** Open the inline editor over a comment's header to rename it. */
-  #editCommentText(id: CommentId, view: CommentView): void {
-    const c = this.graph.getComment(id)
-    if (!c) return
-    const vp = this.#viewport.state
-    const sx = c.position.x * vp.zoom + vp.x
-    const sy = c.position.y * vp.zoom + vp.y
-    const t = this.#theme.tokens
-    const ct = t.typography.comment
-    const base = c as Comment
-    // The DOM field stays fully transparent and borderless — only its caret shows. The visible glyphs
-    // are the live WebGL title (updated per keystroke via onInput), so ZERO font-metric mismatch and
-    // the text never shifts. setEditing(true) makes the title show its FULL text (no ellipsis) while
-    // editing — it may run past the frame, which is fine; the user sees everything they type.
-    view.setEditing(true)
-    this.#requestRender()
-    this.#ensureWidgetOverlay().editText({
-      rect: { x: sx, y: sy, width: c.size.x * vp.zoom, height: view.headerHeight * vp.zoom },
-      value: c.text,
-      style: {
-        background:  'transparent',
-        text:        'transparent',
-        border:      'transparent',
-        borderWidth: 0,
-        radius:      0,
-        paddingX:    10 * vp.zoom,
-        paddingY:    2 * vp.zoom,
-        fontSize:    ct.size * vp.zoom,
-        fontFamily:  t.typography.fontFamily,
-        fontWeight:  '700',
-        placeholder: '',
-        selection:   'transparent',
-      },
-      caretColor: ct.color,
-      selectAll: false,
-      autoGrow: true,
-      onInput:  (text: string) => { this.#commentViews.get(id)?.update({ ...base, text }); this.#requestRender() },
-      onCommit: (text: string) => { this.commandBus.apply(new SetCommentText(id, text)); this.#syncComments() },
-      // Restore ellipsis truncation + re-sync from the graph (an Escape/cancel reverts the preview).
-      onClose:  () => { this.#commentViews.get(id)?.setEditing(false); this.#syncComments() },
-    })
-  }
-
-  /** Open the built-in colour picker over a comment's header; live-preview, commit one undoable step. */
-  #editCommentColor(id: CommentId, view: CommentView): void {
-    const c = this.graph.getComment(id)
-    if (!c) return
-    const vp = this.#viewport.state
-    const sx = c.position.x * vp.zoom + vp.x
-    const sy = c.position.y * vp.zoom + vp.y
-    this.#ensureWidgetOverlay().editColor({
-      rect: { x: sx, y: sy, width: c.size.x * vp.zoom, height: view.headerHeight * vp.zoom },
-      value: c.color ?? '#8A38F5',
-      onInput: (hex: string) => { view.update({ ...(c as Comment), color: hex }); this.#requestRender() },
-      onCommit: (hex: string) => this.setCommentColor(id, hex),
-    })
   }
 
   /** True when a DOM input/textarea/select/contenteditable has focus (a widget or comment editor) —
@@ -2363,28 +2230,6 @@ export class XenolithEditor {
   #ensureEdgeMenu(): EdgeContextMenu {
     if (!this.#edgeMenu) this.#edgeMenu = new EdgeContextMenu(this.#host, this.#theme.paletteStyle)
     return this.#edgeMenu
-  }
-
-  /** Select a comment exclusively (clears node selection + any other comment). */
-  #selectComment(id: CommentId): void {
-    if (this.#selectedComments.size === 1 && this.#selectedComments.has(id)) return
-    this.#clearCommentSelection()
-    if (this.selection.size > 0) { this.selection.clear(); this.#updateVisualStates() }
-    this.#selectedComments.add(id)
-    const v = this.#commentViews.get(id)
-    if (v) {
-      v.setVisualState('selected')
-      // Raise above other comments so a comment dragged over another sits on top (both layers).
-      this.#commentsLayer.setChildIndex(v.container, this.#commentsLayer.children.length - 1)
-      this.#commentHeadersLayer.setChildIndex(v.headerLayer, this.#commentHeadersLayer.children.length - 1)
-    }
-    this.#requestRender()
-  }
-
-  #clearCommentSelection(): void {
-    if (this.#selectedComments.size === 0) return
-    for (const id of this.#selectedComments) this.#commentViews.get(id)?.setVisualState('default')
-    this.#selectedComments.clear()
   }
 
   /** Make the background grid effectively infinite: instead of one giant fixed TilingSprite (which
@@ -2653,1071 +2498,146 @@ export class XenolithEditor {
   }
 
   // ----- macro (public API) — inline collapse, pin-proxied; all through the command bus -----
-
-  /** Group nodes into a collapsed macro. Boundary edges are rewired onto proxy pins (planMacroCollapse);
-   *  members + internal edges hide. Defaults to the current selection. Returns the macro's id, or null
-   *  if there's nothing groupable (macros can't be nested into a new macro here). */
   createMacroFromSelection(memberIds?: NodeId[], title = 'Macro'): NodeId | null {
-    const ids = (memberIds ?? this.selection.ids()) as NodeId[]
-    // Members may themselves be macros — macro-in-macro nesting is allowed (a nested macro is just a
-    // collapsed node with proxy pins by the time it's a member). Template interface boundary nodes
-    // ($templateInput/$templateOutput) are NEVER groupable — they ARE the template's in/out pins, and
-    // collapsing them away would silently destroy the interface.
-    const members = ids.filter((id) => { const n = this.graph.getNode(id); return !!n && !isTemplateBoundary(n) })
-    if (members.length === 0) return null
-    let minX = Infinity, minY = Infinity
-    for (const id of members) { const n = this.graph.getNode(id)!; minX = Math.min(minX, n.position.x); minY = Math.min(minY, n.position.y) }
-    // Place the collapsed macro at the top-left of its members (so it lands where the anchor node was,
-    // not floating above the group).
-    const macro = createMacro({ x: minX, y: minY }, members)
-    const edges = [...this.graph.edges()] as Edge[]
-    // Lift free widget-bound IN-pins of every member onto the macro so the macro's pin surface
-    // matches Convert-to-Template (which exposes the same open boundary pins). Without this, the
-    // user collapsing a Transform+Validate group loses access to its `scale/mode/mirror/response`
-    // widget pins — the bug from 2026-05-30 (image #25/#26).
-    const incomingByPin = new Set<string>()
-    for (const e of edges) incomingByPin.add(String(e.to.pin))
-    const hasIncoming = (pinId: PinId): boolean => incomingByPin.has(String(pinId))
-    const liftPins: { node: NodeId; pin: PinId }[] = []
-    for (const id of members) {
-      const n = this.graph.getNode(id) as Node | undefined
-      if (!n) continue
-      for (const lift of disconnectedWidgetBoundPins(n, hasIncoming)) liftPins.push(lift)
-    }
-    const plan = planMacroCollapse(macro.id, members, edges, (n, p) => this.#pinInfo(n, p), { pin: createPinId, edge: createEdgeId }, { liftPins })
-    macro.pins = plan.pins
-    macro.state['proxyMap'] = plan.proxyMap as unknown
-    // Collapsed macro reads as an ORDINARY node with pins (NOT a pill) — render.collapsed stays false;
-    // state.collapsed (macro semantics: members hidden) is the toggle. Title names the group.
-    const render: RenderNodeOptions = { category: 'macro', title }
-    this.#renderOpts.set(macro.id, render)
-    this.commandBus.transaction(() => {
-      this.commandBus.apply(new AddNode(macro))
-      for (const eid of plan.disconnect) this.commandBus.apply(new DisconnectEdge(eid))
-      for (const e of plan.connect) this.commandBus.apply(new ConnectPins(e))
-    })
-    this.selection.replaceWith([macro.id])
-    return macro.id
+    return this.#sub.createMacroFromSelection(memberIds, title)
   }
-
-  /** Ungroup a collapsed/expanded macro: dissolve the `Macro` wrapper and leave its members in the
-   *  graph with their original edges restored. Undoable as one transaction. */
   ungroupMacro(id: NodeId): boolean {
-    const macro = this.graph.getNode(id)
-    if (!macro || !isMacro(macro)) return false
-    const members = macroMembers(macro as Node)
-    this.commandBus.transaction(() => {
-      // If collapsed, move every edge currently on a macro proxy pin back onto the member pin it
-      // proxies. We reconnect by the edge's CURRENT endpoints (not the stored proxyMap edgeId), so it
-      // survives a neighbour macro having re-pointed the edge (macro→macro proxy↔proxy) — that
-      // staleness is what made the old planMacroExpand path throw "edge not found".
-      if (macro.state['collapsed']) {
-        const proxyMap = (macro.state['proxyMap'] ?? []) as MacroProxyRecord[]
-        const pinToMember = new Map<string, { node: NodeId; pin: PinId; dir: 'in' | 'out' }>()
-        for (const r of proxyMap) pinToMember.set(String(r.macroPin), { node: r.memberNode, pin: r.memberPin, dir: r.direction })
-        for (const e of [...this.graph.edges()] as Edge[]) {
-          if (e.to.node === id && pinToMember.has(String(e.to.pin))) {
-            const m = pinToMember.get(String(e.to.pin))!
-            this.commandBus.apply(new DisconnectEdge(e.id))
-            this.commandBus.apply(new ConnectPins({ id: createEdgeId(), from: { ...e.from }, to: { node: m.node, pin: m.pin } }))
-          } else if (e.from.node === id && pinToMember.has(String(e.from.pin))) {
-            const m = pinToMember.get(String(e.from.pin))!
-            this.commandBus.apply(new DisconnectEdge(e.id))
-            this.commandBus.apply(new ConnectPins({ id: createEdgeId(), from: { node: m.node, pin: m.pin }, to: { ...e.to } }))
-          }
-        }
-      }
-      this.commandBus.apply(new RemoveNode(id))
-    })
-    this.#applyMacroVisibility()
-    this.selection.replaceWith(members.filter((m) => !!this.graph.getNode(m)))
-    this.#requestRender()
-    return true
+    return this.#sub.ungroupMacro(id)
   }
-
-  // ----- live-template (public API) — reusable subgraph: one definition, many instances -----
-
-  /** The reusable template definitions registered in this document, keyed by id. */
-  get definitions(): ReadonlyMap<TemplateDefId, TemplateDefinition> { return this.#definitions }
-
-  /** Convert a selection into a reusable template: the members move into a fresh definition (with
-   *  auto-derived `$templateInput`/`$templateOutput` boundary nodes), the outer graph keeps a single
-   *  `$templateInstance` node wired in their place. Returns the instance node id, or null if there's
-   *  nothing to extract. Undoable as one transaction. */
   createTemplateFromSelection(memberIds?: NodeId[], title = 'Template'): NodeId | null {
-    const ids = (memberIds ?? this.selection.ids()) as NodeId[]
-    // Templates operate on FREE nodes only. Skip macro nodes and any node that is a member of a macro
-    // (e.g. an expanded Gather/Pack's inlets/Merge/Sub), so converting a selection that overlaps a
-    // macro can't drag the macro's guts into the template or orphan the macro by moving its members.
-    // Also skip template interface boundaries ($templateInput/$templateOutput): they ARE the parent
-    // template's in/out pins — pulling them into a nested template would destroy the interface.
-    const members = ids
-      .map((id) => this.graph.getNode(id))
-      .filter((n): n is Node => !!n && !isMacro(n) && !isTemplateBoundary(n) && this.#macroParentOf(n.id) === undefined) as Node[]
-    return this.#extractTemplateFromMembers(members, title)
+    return this.#sub.createTemplateFromSelection(memberIds, title)
   }
-
-  /** Core template-extraction step shared by the public Cmd+Shift+G path and the macro-conversion
-   *  path. Trusts the caller's member list (no filtering) — the public entry filters first.
-   *  `hiddenMembers` go into the definition + are removed from the outer graph but DON'T contribute
-   *  to the template interface — used for nested-macro members whose pins are behind a proxy. */
   #extractTemplateFromMembers(members: Node[], title: string, hiddenMembers: Node[] = []): NodeId | null {
-    if (members.length === 0) return null
-    let minX = Infinity, minY = Infinity
-    for (const m of members) { minX = Math.min(minX, m.position.x); minY = Math.min(minY, m.position.y) }
-    const instanceId = createNodeId()
-    const plan = planTemplateExtraction(
-      instanceId, members, [...this.graph.edges()] as Edge[],
-      (n, p) => this.#pinInfo(n, p),
-      { node: createNodeId, pin: createPinId, edge: createEdgeId, def: () => createNodeId() as unknown as TemplateDefId },
-      title,
-      hiddenMembers,
-    )
-    this.#definitions.set(plan.definition.id, plan.definition)
-    this.#registerTemplateSchema(plan.definition.id)
-    // Boundary nodes get minimal render opts so the dived-in view (and serialization) name them.
-    for (const bn of plan.definition.nodes) {
-      if (!this.#renderOpts.has(bn.id) && (bn.type === '$templateInput' || bn.type === '$templateOutput')) {
-        this.#renderOpts.set(bn.id, { category: 'utility', title: bn.type === '$templateInput' ? 'In' : 'Out' })
-      }
-    }
-    const instance: Node = {
-      id: instanceId, type: TEMPLATE_INSTANCE_TYPE, position: { x: minX, y: minY },
-      state: { definitionId: plan.definition.id, pinBoundary: plan.pinBoundary }, pins: plan.instancePins,
-    }
-    this.#renderOpts.set(instanceId, { category: 'macro', title })
-    this.commandBus.transaction(() => {
-      this.commandBus.apply(new AddNode(instance))
-      for (const eid of plan.outerDisconnect) this.commandBus.apply(new DisconnectEdge(eid))
-      for (const id of plan.removeFromOuter) this.commandBus.apply(new RemoveNode(id))
-      for (const e of plan.outerConnect) this.commandBus.apply(new ConnectPins(e))
-    })
-    this.selection.replaceWith([instanceId])
-    return instanceId
+    return this.#sub.extractTemplateFromMembers(members, title, hiddenMembers)
   }
-
-  /** (Re)register a definition as a palette schema so it shows in Tab search and can be inserted as a
-   *  fresh instance. Pins mirror the current interface; call after create / rename / interface edit. */
   #registerTemplateSchema(defId: TemplateDefId): void {
-    const def = this.#definitions.get(defId)
-    if (!def) return
-    const iface = templateInterface(def)
-    this.#templateRegistry.register({
-      type: String(defId),
-      title: def.title,
-      category: 'macro',
-      description: 'Reusable template instance',
-      keywords: ['template', 'subgraph', def.title.toLowerCase()],
-      pins: iface.map((s) => ({ kind: 'data', direction: s.direction, type: s.type, multiple: s.direction === 'out', ...(s.label !== undefined ? { label: s.label } : {}) })),
-    })
+    return this.#sub.registerTemplateSchema(defId)
   }
-
-  /** Rename a template definition — updates its title, every live instance's displayed title, the
-   *  palette entry, and the breadcrumb. */
   renameTemplate(defId: TemplateDefId, title: string): void {
-    const def = this.#definitions.get(defId)
-    if (!def || title.trim() === '') return
-    def.title = title
-    for (const g of new Set([this.#rootGraph, this.#displayGraph])) {
-      for (const n of g.nodes()) {
-        if (!isTemplateInstance(n) || n.state['definitionId'] !== defId) continue
-        const r = this.#renderOpts.get(n.id) ?? {}; r.title = title; this.#renderOpts.set(n.id, r)
-        if (this.#views.has(n.id)) this.#resizeNodeView(n.id)
-      }
-    }
-    this.#registerTemplateSchema(defId)
-    this.#updateBreadcrumb()
-    this.#requestRender()
+    return this.#sub.renameTemplate(defId, title)
   }
-
-  /** Unpack a `$templateInstance`: inline a fresh copy of its definition's members into the current
-   *  graph (boundary nodes dissolve, outer edges reconnect to the member pins), then remove the
-   *  instance. The definition and other instances are untouched. Undoable as one transaction. */
   unpackTemplateInstance(id: NodeId): boolean {
-    const inst = this.graph.getNode(id)
-    if (!inst || !isTemplateInstance(inst)) return false
-    const defId = inst.state['definitionId'] as TemplateDefId | undefined
-    const def = defId !== undefined ? this.#definitions.get(defId) : undefined
-    if (!def) return false
-    const plan = planTemplateUnpack(inst as Node, def, [...this.graph.edges()] as Edge[], { node: createNodeId, pin: createPinId, edge: createEdgeId })
-    // Carry render opts (title/category/colour) from each definition member onto its inlined copy.
-    for (const [oldId, newId] of Object.entries(plan.nodeRemap)) {
-      const ro = this.#renderOpts.get(oldId as NodeId)
-      if (ro) this.#renderOpts.set(newId as NodeId, { ...ro })
-    }
-    this.commandBus.transaction(() => {
-      for (const n of plan.addNodes) this.commandBus.apply(new AddNode(n))
-      for (const eid of plan.removeEdges) this.commandBus.apply(new DisconnectEdge(eid))
-      this.commandBus.apply(new RemoveNode(id))
-      for (const e of plan.addEdges) this.commandBus.apply(new ConnectPins(e))
-    })
-    // Selection covers TOP-LEVEL inlined members only. A node that's `state.members` of a nested
-    // Macro that's also in the inlined set is "inside" — leaving it in the selection would let a
-    // follow-up createMacroFromSelection list it BOTH on the new outer macro AND on the nested
-    // one (double membership → phantom interface pins on the next convert-to-template cycle).
-    const inlinedIds = new Set(plan.addNodes.map((n) => String(n.id)))
-    const insideAnother = new Set<string>()
-    for (const n of plan.addNodes) {
-      if (n.type !== 'Macro') continue
-      for (const m of macroMembers(n)) if (inlinedIds.has(String(m))) insideAnother.add(String(m))
-    }
-    this.selection.replaceWith(plan.addNodes.filter((n) => !insideAnother.has(String(n.id))).map((n) => n.id))
-    this.#requestRender()
-    return true
+    return this.#sub.unpackTemplateInstance(id)
   }
-
-  /** Convert a `$templateInstance` into an editable collapsed **Group** (Macro): inline a fresh copy of
-   *  the definition's members, then wrap them in a macro. Now you can expand/edit it inline instead of
-   *  diving — the link to the shared definition is dropped (it becomes a one-off group). Returns the
-   *  new macro id, or null. */
   convertTemplateInstanceToMacro(id: NodeId): NodeId | null {
-    const node = this.graph.getNode(id)
-    if (!node || !isTemplateInstance(node)) return null
-    const title = this.#renderOpts.get(id)?.title
-    // Wrap unpack + re-collapse in a single outer transaction so one Ctrl+Z undoes the whole
-    // conversion atomically (the inner methods' transactions join the outer one — without this,
-    // undo only rolls back the macro re-collapse and leaves the graph as a sea of inlined members).
-    let macroId: NodeId | null = null
-    this.commandBus.transaction(() => {
-      if (!this.unpackTemplateInstance(id)) return // inlines members + selects them
-      macroId = this.createMacroFromSelection(undefined, title ?? 'Group') // wraps the selection in a macro
-    })
-    return macroId
+    return this.#sub.convertTemplateInstanceToMacro(id)
   }
-
-  /** Convert a **Group** (Macro) into a reusable **Template**: dissolve the macro, then extract a
-   *  template definition + instance from the FULL subgraph (its direct members + transitively any
-   *  nested macros' members). Nested collapsed macros become collapsed Macro nodes inside the
-   *  definition — diving into the template, you still see them as groups. Returns the instance id. */
   convertMacroToTemplate(id: NodeId): NodeId | null {
-    const node = this.graph.getNode(id)
-    if (!node || !isMacro(node)) return null
-    const title = this.#renderOpts.get(id)?.title
-    // Wrap ungroup + template-extraction in one outer transaction so a single Ctrl+Z atomically
-    // restores the original collapsed macro. Without this, undo only rolled back the extraction
-    // and left the macro dissolved into loose members across the canvas.
-    let instanceId: NodeId | null = null
-    this.commandBus.transaction(() => {
-      if (!this.ungroupMacro(id)) return // dissolves outer macro + selects its direct members
-      // Direct members shape the template's interface (their boundary-crossing pins become In/Out
-      // boundaries). Nested-macro members are pulled in as HIDDEN (definition-only): they're behind
-      // their parent macro's proxy pins so have no real edges, and iterating their pins would mint
-      // phantom $templateInput/$templateOutput for every "free-looking" pin. They still must come
-      // along — the parent macro references them by id, so leaving them in the outer graph would
-      // orphan them.
-      //
-      // Iteration is IN ORDER of the original macro's `state.members` so the resulting template
-      // instance's pins appear in the same order as the macro's proxy pins (A, B, C — not C, B, A
-      // from a stack-pop reversal that bit us before).
-      const direct = this.selection.ids() as NodeId[]
-      const directSet = new Set(direct.map(String))
-      // Defensive: if `direct` somehow contains BOTH a Macro AND nodes that are members of it
-      // (e.g. an unpack→re-collapse cycle left them flat in the outer macro's `state.members`),
-      // demote those inner-via-another-macro members to "hidden" so their pins don't double up.
-      const memberOfAnotherMacroInDirect = new Set<string>()
-      for (const nid of direct) {
-        const n = this.graph.getNode(nid)
-        if (n && isMacro(n)) {
-          for (const m of macroMembers(n as Node)) {
-            if (directSet.has(String(m))) memberOfAnotherMacroInDirect.add(String(m))
-          }
-        }
-      }
-      const interfaceMembers: Node[] = []
-      const hidden: Node[] = []
-      const seen = new Set<string>()
-      // Pass 1 — direct selection in order. Each ends up in `interfaceMembers` unless it's already
-      // claimed by another macro in `direct` (then it joins `hidden`).
-      for (const nid of direct) {
-        if (seen.has(String(nid))) continue
-        seen.add(String(nid))
-        const n = this.graph.getNode(nid)
-        if (!n || isTemplateBoundary(n)) continue
-        if (memberOfAnotherMacroInDirect.has(String(nid))) hidden.push(n as Node)
-        else interfaceMembers.push(n as Node)
-      }
-      // Pass 2 — BFS into nested macros' members (these weren't in `direct` so they were never
-      // selected — but they must come along so the included nested Macro doesn't orphan them).
-      const queue: NodeId[] = []
-      for (const n of [...interfaceMembers, ...hidden]) {
-        if (isMacro(n)) for (const m of macroMembers(n)) queue.push(m)
-      }
-      while (queue.length) {
-        const nid = queue.shift()!
-        if (seen.has(String(nid))) continue
-        seen.add(String(nid))
-        const n = this.graph.getNode(nid)
-        if (!n || isTemplateBoundary(n)) continue
-        hidden.push(n as Node)
-        if (isMacro(n)) for (const m of macroMembers(n as Node)) queue.push(m)
-      }
-      instanceId = this.#extractTemplateFromMembers(interfaceMembers, title ?? 'Template', hidden)
-    })
-    return instanceId
+    return this.#sub.convertMacroToTemplate(id)
   }
-
-  /** Mint a fresh `$templateInstance` node for a definition (pins materialised from its interface). */
   #instantiateTemplateInstance(defId: TemplateDefId, worldPos: { x: number; y: number }): Node | null {
-    const def = this.#definitions.get(defId)
-    if (!def) return null
-    const { pins, pinBoundary } = materializeInterface(templateInterface(def), createPinId)
-    return { id: createNodeId(), type: TEMPLATE_INSTANCE_TYPE, position: { ...worldPos }, state: { definitionId: defId, pinBoundary }, pins }
+    return this.#sub.instantiateTemplateInstance(defId, worldPos)
   }
-
-  /** Insert a fresh instance of a template definition (the palette/insertNode path for a `$template…`
-   *  type). Refused if it would create a cycle (instancing the definition we're currently inside, or
-   *  one that transitively contains it). */
   #insertTemplateInstance(defId: TemplateDefId, worldPos: { x: number; y: number }, opts: { center?: boolean }): Node | null {
-    if (this.#wouldRecurse(defId)) return null
-    const node = this.#instantiateTemplateInstance(defId, worldPos)
-    if (!node) return null
-    const render: RenderNodeOptions = { category: 'macro', title: this.#definitions.get(defId)!.title }
-    if (opts.center) {
-      this.#ensureSize(node, render)
-      node.position = { x: worldPos.x - node.size!.x / 2, y: worldPos.y - node.size!.y / 2 }
-    }
-    this.#renderOpts.set(node.id, render)
-    this.commandBus.apply(new AddNode(node))
-    this.selection.replaceWith([node.id])
-    return node
+    return this.#sub.insertTemplateInstance(defId, worldPos, opts)
   }
-
-  /** Dive depth — 0 at the root document, 1+ while editing nested template definitions. */
-  get diveDepth(): number { return this.#diveStack.length }
-
-  /** The definitions on the current dive branch — the one being edited plus every ancestor. Inserting
-   *  (or diving into) any of these would create a recursive cycle, so they're refused and hidden from
-   *  the palette. Read straight from the dive stack so it's correct even before the active definition
-   *  is flushed back into #definitions. */
   #diveChainDefs(): ReadonlySet<TemplateDefId> {
-    const chain = new Set<TemplateDefId>()
-    if (this.#currentDefId !== null) chain.add(this.#currentDefId)
-    for (const f of this.#diveStack) if (f.defId !== null) chain.add(f.defId)
-    return chain
+    return this.#sub.diveChainDefs()
   }
-
-  /** Would inserting an instance of `defId` here create a cycle? True for any definition on the
-   *  current dive branch, or one that (already) transitively contains the definition we're inside. */
   #wouldRecurse(defId: TemplateDefId): boolean {
-    if (this.#currentDefId === null) return false
-    return this.#diveChainDefs().has(defId) || templateDefContains(this.#definitions, defId, this.#currentDefId)
+    return this.#sub.wouldRecurse(defId)
   }
-
-  /** Enter a `$templateInstance`'s shared definition: the canvas swaps to render the definition's
-   *  own graph (members + boundary nodes) on a per-level command bus, so edits land in the definition
-   *  and the root is untouched until `diveOut`. Returns false if the node isn't an instance, its
-   *  definition is missing, or entering would re-open a definition already in the dive chain. */
   diveInto(instanceId: NodeId): boolean {
-    const inst = this.#displayGraph.getNode(instanceId)
-    if (!inst || !isTemplateInstance(inst)) return false
-    const defId = inst.state['definitionId'] as TemplateDefId | undefined
-    if (defId === undefined) return false
-    const def = this.#definitions.get(defId)
-    if (!def) return false
-    // No re-entry: refuse a definition already open in the chain, or one that transitively contains
-    // the definition we're currently inside (defensive — construction already prevents cycles).
-    if (defId === this.#currentDefId || this.#diveStack.some((f) => f.defId === defId)) return false
-    if (this.#currentDefId !== null && templateDefContains(this.#definitions, defId, this.#currentDefId)) return false
-
-    this.#diveStack.push({
-      graph: this.#displayGraph, bus: this.#displayBus,
-      selectionIds: this.selection.ids().slice() as NodeId[],
-      viewport: this.#viewport.state, defId: this.#currentDefId,
-    })
-
-    // A live graph + per-level bus for the definition. Sharing #coreEvents keeps the command→sync
-    // bridge firing against the now-displayed definition graph.
-    const g = new Graph()
-    for (const n of def.nodes) g._addNode(n)
-    for (const e of def.edges) g._addEdge(e)
-    const bus = new CommandBus({ graph: g, events: this.#coreEvents })
-
-    this.#teardownDisplay()
-    this.selection.clear()
-    this.#displayGraph = g
-    this.#displayBus = bus
-    this.#currentDefId = defId
-    this.#rebuildDisplay()
-    this.fitView()
-    this.#updateBreadcrumb()
-    this.#events.emit('dive:changed', { depth: this.diveDepth, definitionId: String(defId) })
-    return true
+    return this.#sub.diveInto(instanceId)
   }
-
-  /** Pop out of one or more template definitions. `toDepth` is the dive depth to return to (default:
-   *  one level up; 0 returns all the way to the root document). Flushes each edited definition back
-   *  into its stored data and re-syncs the affected instances' pins on the parent. */
   diveOut(toDepth = this.diveDepth - 1): void {
-    if (this.#diveStack.length === 0) return
-    const target = Math.max(0, Math.min(toDepth, this.#diveStack.length - 1))
-    while (this.#diveStack.length > target) {
-      // Resolve wildcard/boundary types on the definition NOW (the per-edit sync is deferred to a
-      // microtask that may not have run yet), so the flush captures concrete boundary pin types and
-      // the instance pins below pick them up.
-      this.#propagateRerouteTypes()
-      this.#flushActiveDefinition()
-      const leftDefId = this.#currentDefId
-      const frame = this.#diveStack.pop()!
-      this.#teardownDisplay()
-      this.selection.clear()
-      this.#displayGraph = frame.graph
-      this.#displayBus = frame.bus
-      this.#currentDefId = frame.defId
-      if (leftDefId !== null) this.#resyncInstancePins(leftDefId)
-      this.#rebuildDisplay()
-      this.selection.replaceWith(frame.selectionIds)
-      this.#viewport.setState(frame.viewport)
-    }
-    this.#updateBreadcrumb()
-    this.#events.emit('dive:changed', { depth: this.diveDepth, definitionId: this.#currentDefId !== null ? String(this.#currentDefId) : null })
-    this.#requestRender()
+    return this.#sub.diveOut(toDepth)
   }
-
-  /** Write the currently displayed definition's live graph back into its stored `TemplateDefinition`
-   *  (so serialization + a later dive see the edits). No-op at the root. */
   #flushActiveDefinition(): void {
-    if (this.#currentDefId === null) return
-    const def = this.#definitions.get(this.#currentDefId)
-    if (!def) return
-    def.nodes = Array.from(this.#displayGraph.nodes()) as Node[]
-    def.edges = Array.from(this.#displayGraph.edges()) as Edge[]
+    return this.#sub.flushActiveDefinition()
   }
-
-  /** Re-derive a definition's interface and update every live instance of it (on the displayed graph)
-   *  to match — preserving pin ids for boundary slots that still exist, and pruning edges that
-   *  referenced a now-removed instance pin. Run on dive-out, after the parent graph is restored. */
   #resyncInstancePins(defId: TemplateDefId): void {
-    const def = this.#definitions.get(defId)
-    if (!def) return
-    // The interface may have changed (added/renamed boundary nodes) — keep the palette schema current.
-    this.#registerTemplateSchema(defId)
-    const iface = templateInterface(def)
-    for (const node of Array.from(this.#displayGraph.nodes()) as Node[]) {
-      if (!isTemplateInstance(node) || node.state['definitionId'] !== defId) continue
-      const prevMap = (node.state['pinBoundary'] ?? {}) as Record<string, string>
-      const boundaryToPin = new Map<string, string>()
-      for (const [pinId, b] of Object.entries(prevMap)) boundaryToPin.set(b, pinId)
-      const pins: Pin[] = []
-      const pinBoundary: Record<string, string> = {}
-      const keptPinIds = new Set<string>()
-      for (const slot of iface) {
-        const id = (boundaryToPin.get(String(slot.boundary)) ?? String(createPinId())) as PinId
-        keptPinIds.add(String(id))
-        pins.push({ id, kind: 'data', direction: slot.direction, type: slot.type, multiple: slot.direction === 'out', ...(slot.label !== undefined ? { label: slot.label } : {}) })
-        pinBoundary[String(id)] = String(slot.boundary)
-      }
-      // Drop parent-graph edges that referenced an instance pin the interface no longer has.
-      for (const e of Array.from(this.#displayGraph.edges())) {
-        const stale = (e.from.node === node.id && !keptPinIds.has(String(e.from.pin))) || (e.to.node === node.id && !keptPinIds.has(String(e.to.pin)))
-        if (stale) this.#displayGraph._removeEdge(e.id)
-      }
-      node.pins = pins
-      node.state['pinBoundary'] = pinBoundary
-      // Pins changed (added/renamed/removed) → drop the stale size so the next view build refits the
-      // box to the new labels. diveOut's #rebuildDisplay re-ensures the view + size right after.
-      delete (node as { size?: unknown }).size
-    }
+    return this.#sub.resyncInstancePins(defId)
   }
-
-  /** Render (or remove) the dive breadcrumb in the overlay root: Root / DefTitle / … — each segment
-   *  pops to that depth. Hidden at the root document. */
   #updateBreadcrumb(): void {
-    if (this.diveDepth === 0 || this.#breadcrumbDisabled || this.#liveMode) {
-      this.#breadcrumbEl?.remove()
-      this.#breadcrumbEl = null
-      return
-    }
-    if (!this.#breadcrumbEl) {
-      const el = document.createElement('div')
-      el.setAttribute('data-xeno-breadcrumb', '')
-      Object.assign(el.style, {
-        position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '4px', alignItems: 'center',
-        pointerEvents: 'auto', font: '500 12px var(--xeno-font, system-ui, sans-serif)',
-        color: 'var(--xeno-text, #e8e8e8)', background: 'var(--xeno-panel, rgba(20,22,18,0.82))',
-        border: '1px solid var(--xeno-border, rgba(255,255,255,0.12))', borderRadius: 'var(--xeno-radius, 8px)',
-        padding: '4px 8px', backdropFilter: 'blur(8px)', zIndex: '20',
-      })
-      this.overlayRoot.appendChild(el)
-      this.#breadcrumbEl = el
-    }
-    // Trail of displayed definitions from root to current = saved frames' defIds + the current one.
-    const trail = [...this.#diveStack.map((f) => f.defId), this.#currentDefId]
-    this.#breadcrumbEl.replaceChildren()
-    trail.forEach((defId, i) => {
-      if (i > 0) {
-        const sep = document.createElement('span')
-        sep.textContent = '›'; sep.style.opacity = '0.5'
-        this.#breadcrumbEl!.appendChild(sep)
-      }
-      const label = defId === null ? 'Root' : (this.#definitions.get(defId)?.title ?? 'Template')
-      const isCurrent = i === trail.length - 1
-      const seg = document.createElement('button')
-      seg.textContent = label
-      Object.assign(seg.style, {
-        all: 'unset', cursor: isCurrent ? 'default' : 'pointer', padding: '0 2px',
-        opacity: isCurrent ? '1' : '0.75', fontWeight: isCurrent ? '700' : '500',
-      })
-      if (!isCurrent) seg.addEventListener('click', () => this.diveOut(i))
-      this.#breadcrumbEl!.appendChild(seg)
-    })
+    return this.#sub.updateBreadcrumb()
   }
-
-  /** Expand a collapsed macro: re-point each proxy edge from the macro pin back to the member pin and
-   *  reveal members, with a brief grow-in animation. Idempotent. */
   expandMacro(id: NodeId): void {
-    const m = this.graph.getNode(id)
-    if (!m || !isMacro(m) || !m.state['collapsed']) return
-    // Only one open macro per nesting line: collapse any expanded macro that isn't an ancestor of the
-    // one being opened (so opening a macro inside another keeps the chain, but opening a sibling closes
-    // the previously-open one). Collapse deepest-first to unwind cleanly.
-    const stale = [...this.graph.nodes()]
-      .filter((n) => isMacro(n) && !n.state['collapsed'] && n.id !== id && !this.#macroIsAncestor(n.id, id))
-      .sort((a, b) => this.#macroDepthOf(b.id) - this.#macroDepthOf(a.id))
-    for (const n of stale) this.#setMacroCollapsed(n.id, true)
-    // Flag BEFORE the model flip so the resulting sync (which materialises the member + frame views)
-    // primes them invisible — otherwise they paint one full frame before the grow-in resets them.
-    this.#expandingMacros.add(id)
-    this.#setMacroCollapsed(id, false)
-    this.#tweenViewportToMacroIfNeeded(id)
-    this.#animateMacroExpand(id)
+    return this.#sub.expandMacro(id)
   }
-
-  /** If the expanded macro's member bbox doesn't sit comfortably inside the current viewport,
-   *  animate the camera (pan + zoom) to fit it. Mirrors fitView() math but tweens through it
-   *  instead of snapping, so the unfold reads as a continuous gesture. No-op when already in view. */
   #tweenViewportToMacroIfNeeded(id: NodeId): void {
-    const macro = this.graph.getNode(id)
-    if (!macro || !isMacro(macro)) return
-    const memberIds = macroMembers(macro as Node)
-    if (memberIds.length === 0) return
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    let counted = 0
-    for (const mid of memberIds) {
-      const n = this.graph.getNode(mid)
-      if (!n) continue
-      const b = nodeBounds(n as Node, this.#theme.tokens)
-      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y)
-      maxX = Math.max(maxX, b.x + b.width); maxY = Math.max(maxY, b.y + b.height)
-      counted++
-    }
-    if (counted === 0) return
-    const bounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
-    const screen = { width: Math.max(1, this.#app.screen.width), height: Math.max(1, this.#app.screen.height) }
-    const cur = this.#viewport.state
-    const edgeMargin = 32
-    const tl = worldToScreen({ x: bounds.x, y: bounds.y }, cur)
-    const br = worldToScreen({ x: bounds.x + bounds.width, y: bounds.y + bounds.height }, cur)
-    const fitsCurrent =
-      tl.x >= edgeMargin && tl.y >= edgeMargin &&
-      br.x <= screen.width - edgeMargin && br.y <= screen.height - edgeMargin
-    if (fitsCurrent) return
-    const target = fitView(
-      bounds, screen,
-      { padding: 80, maxZoom: Math.max(cur.zoom, 1), minZoom: this.#zoomBounds[0] },
-    )
-    this.#tweenViewport(target, 260)
+    return this.#sub.tweenViewportToMacroIfNeeded(id)
   }
-
-  #viewportTweenRaf: number | null = null
   #tweenViewport(target: ViewportState, durationMs: number): void {
-    if (this.#viewportTweenRaf !== null) { cancelAnimationFrame(this.#viewportTweenRaf); this.#viewportTweenRaf = null }
-    const from = { ...this.#viewport.state }
-    const start = performance.now()
-    const tick = (): void => {
-      const raw = Math.min(1, (performance.now() - start) / durationMs)
-      const e = 1 - Math.pow(1 - raw, 3) // ease-out cubic — matches the macro grow-in
-      this.#viewport.setState({
-        x: from.x + (target.x - from.x) * e,
-        y: from.y + (target.y - from.y) * e,
-        zoom: from.zoom + (target.zoom - from.zoom) * e,
-      })
-      if (raw < 1) this.#viewportTweenRaf = requestAnimationFrame(tick)
-      else { this.#viewportTweenRaf = null; this.#viewport.setState(target) }
-    }
-    this.#viewportTweenRaf = requestAnimationFrame(tick)
+    return this.#sub.tweenViewport(target, durationMs)
   }
-  /** Re-collapse an expanded macro, animating the group shrinking back into the node first. */
   collapseMacro(id: NodeId): void {
-    const m = this.graph.getNode(id)
-    if (!m || !isMacro(m) || m.state['collapsed']) return
-    this.#animateMacroCollapse(id, () => this.#setMacroCollapsed(id, true))
+    return this.#sub.collapseMacro(id)
   }
-
-  /** Shrink-out: members + frame collapse toward the macro centre (mirror of the expand grow-in),
-   *  then `onDone` flips the model to collapsed. */
   #animateMacroCollapse(id: NodeId, onDone: () => void): void {
-    const macro = this.graph.getNode(id)
-    if (!macro) { onDone(); return }
-    const cx = macro.position.x + (macro.size?.x ?? 0) / 2
-    const cy = macro.position.y + (macro.size?.y ?? 0) / 2
-    const members = macroMembers(macro as Node).map((mid) => this.#views.get(mid)).filter((v): v is NodeView => !!v)
-    const frame = this.#macroFrames.get(id)
-    const targets: Container[] = [...members.map((v) => v.container), ...(frame ? [frame.container] : [])]
-    if (targets.length === 0) { onDone(); return }
-    const origin = new Map<Container, { x: number; y: number }>()
-    for (const t of targets) origin.set(t, { x: t.position.x, y: t.position.y })
-    const start = performance.now(), dur = 160
-    const tick = (): void => {
-      const raw = Math.min(1, (performance.now() - start) / dur)
-      const e = raw * raw // ease-in
-      for (const t of targets) {
-        // Mid-animation graph mutation (e.g. AI deleting nodes via MCP) can destroy the container.
-        // PIXI nulls its internal `scale` / `position` on destroy; skip rather than crash the tick.
-        if (!t.scale || !t.position) continue
-        const o = origin.get(t)!
-        t.alpha = 1 - e
-        t.scale.set(1 - 0.4 * e)
-        t.position.set(cx + (o.x - cx) * (1 - e), cy + (o.y - cy) * (1 - e))
-      }
-      this.#requestRender()
-      if (raw < 1) requestAnimationFrame(tick)
-      else { for (const t of targets) { const o = origin.get(t)!; t.alpha = 1; t.scale.set(1); t.position.set(o.x, o.y) } onDone() }
-    }
-    tick()
+    return this.#sub.animateMacroCollapse(id, onDone)
   }
-
-  /** Grow-in: after the model expands, fade + scale the revealed members and frame up from the macro
-   *  node's centre, so a double-click visibly "unfolds" the group rather than snapping. */
   #animateMacroExpand(id: NodeId): void {
-    const macro = this.graph.getNode(id)
-    if (!macro) return
-    const cx = macro.position.x + (macro.size?.x ?? 0) / 2
-    const cy = macro.position.y + (macro.size?.y ?? 0) / 2
-    // Defer one frame so #syncFromGraph has materialised the member views + the frame (primed invisible).
-    requestAnimationFrame(() => {
-      this.#expandingMacros.delete(id) // priming done its job; from here the animation owns alpha
-      const members = macroMembers(macro as Node).map((mid) => this.#views.get(mid)).filter((v): v is NodeView => !!v)
-      const frame = this.#macroFrames.get(id)
-      const targets: Container[] = [...members.map((v) => v.container), ...(frame ? [frame.container] : [])]
-      if (targets.length === 0) return
-      const origin = new Map<Container, { x: number; y: number }>()
-      for (const t of targets) origin.set(t, { x: t.position.x, y: t.position.y })
-      const start = performance.now(), dur = 200
-      const tick = (): void => {
-        const raw = Math.min(1, (performance.now() - start) / dur)
-        const e = 1 - Math.pow(1 - raw, 3) // ease-out cubic
-        for (const t of targets) {
-          const o = origin.get(t)!
-          const s = 0.6 + 0.4 * e
-          t.alpha = e
-          // lerp position from the macro centre toward its real spot, scaled in.
-          t.position.set(cx + (o.x - cx) * e, cy + (o.y - cy) * e)
-          t.scale.set(s)
-        }
-        this.#requestRender()
-        if (raw < 1) requestAnimationFrame(tick)
-        else for (const t of targets) { const o = origin.get(t)!; t.alpha = 1; t.scale.set(1); t.position.set(o.x, o.y) }
-      }
-      tick()
-    })
+    return this.#sub.animateMacroExpand(id)
   }
   toggleMacro(id: NodeId): void {
-    const m = this.graph.getNode(id)
-    if (!m || !isMacro(m)) return
-    if (m.state['collapsed']) this.expandMacro(id) // animated
-    else this.collapseMacro(id)
+    return this.#sub.toggleMacro(id)
   }
-
-  /** Materialise declarative collapsed macros loaded from JSON: derive proxy pins + rewire boundary
-   *  edges, deepest-nested first so an inner macro is already a collapsed node (with pins) before an
-   *  outer macro computes its own boundary. Operates on pure model state (called before views exist). */
   #materializeLoadedMacros(): void {
-    const macros = [...this.graph.nodes()].filter(
-      (n) => isMacro(n) && n.state['collapsed'] && (n.pins?.length ?? 0) === 0,
-    ) as Node[]
-    if (macros.length === 0) return
-    const parentOf = (nid: NodeId): Node | undefined => {
-      for (const n of this.graph.nodes()) if (isMacro(n) && macroMembers(n as Node).includes(nid)) return n as Node
-      return undefined
-    }
-    const depthOf = (id: NodeId): number => { let d = 0, p = parentOf(id); while (p) { d++; p = parentOf(p.id) } return d }
-    macros.sort((a, b) => depthOf(b.id) - depthOf(a.id)) // deepest first
-    for (const macro of macros) {
-      const members = macroMembers(macro)
-      if (members.length === 0) continue
-      const edges = [...this.graph.edges()] as Edge[]
-      // Same widget-pin lift as `createMacroFromSelection` — keep both paths consistent so a macro
-      // built via group-from-selection and one rebuilt here (template extraction etc.) have the
-      // same pin surface for the same members.
-      const incomingByPin = new Set<string>()
-      for (const e of edges) incomingByPin.add(String(e.to.pin))
-      const liftPins: { node: NodeId; pin: PinId }[] = []
-      for (const id of members) {
-        const n = this.graph.getNode(id) as Node | undefined
-        if (!n) continue
-        for (const lift of disconnectedWidgetBoundPins(n, (pid) => incomingByPin.has(String(pid)))) liftPins.push(lift)
-      }
-      const plan = planMacroCollapse(macro.id, members, edges, (n, p) => this.#pinInfo(n, p), { pin: createPinId, edge: createEdgeId }, { liftPins })
-      macro.pins = plan.pins
-      macro.state['proxyMap'] = plan.proxyMap as unknown
-      // Size was measured with the (then empty) pin list — recompute now that proxy pins exist, else
-      // the pins overflow a too-short node body.
-      delete (macro as { size?: unknown }).size
-      this.#ensureSize(macro, this.#renderOpts.get(macro.id) ?? {})
-      for (const eid of plan.disconnect) this.graph._removeEdge(eid)
-      for (const e of plan.connect) this.graph._addEdge(e)
-    }
+    return this.#sub.materializeLoadedMacros()
   }
-
   #pinInfo(node: NodeId, pin: PinId): { type: string; label?: string } {
-    const n = this.graph.getNode(node)
-    const p = n?.pins.find((pp) => String(pp.id) === String(pin))
-    return { type: String(p?.type ?? 'any'), ...(p?.label !== undefined ? { label: p.label } : {}) }
+    return this.#sub.pinInfo(node, pin)
   }
-
   #findEdge(from: { node: NodeId; pin: PinId }, to: { node: NodeId; pin: PinId }): Edge | undefined {
-    for (const e of this.graph.edges()) {
-      if (e.from.node === from.node && String(e.from.pin) === String(from.pin) &&
-          e.to.node === to.node && String(e.to.pin) === String(to.pin)) return e as Edge
-    }
-    return undefined
+    return this.#sub.findEdge(from, to)
   }
-
-  /** Toggle a macro between collapsed (edges on the macro proxy pins) and expanded (edges back on the
-   *  member pins). Pins are fixed for the macro's lifetime — we only re-point the boundary edges. */
   #setMacroCollapsed(id: NodeId, collapsed: boolean): void {
-    const macro = this.graph.getNode(id)
-    if (!macro || !isMacro(macro) || !!macro.state['collapsed'] === collapsed) return
-    const proxyMap = (macro.state['proxyMap'] ?? []) as MacroProxyRecord[]
-    this.commandBus.transaction(() => {
-      for (const r of proxyMap) {
-        const mem = { node: r.memberNode, pin: r.memberPin }
-        const macroEnd = { node: id, pin: r.macroPin }
-        const nextEnd = collapsed ? macroEnd : mem
-        const prevEnd = collapsed ? mem : macroEnd
-        // RESOLVE THE EXTERNAL ENDPOINT FROM THE CURRENT EDGE, NOT FROM THE PROXY-MAP SNAPSHOT.
-        // The snapshot `r.externalNode/Pin` was recorded at macro-creation time; if the external
-        // node was later wrapped into a template (or any other rewiring touched it), the snapshot
-        // is stale and findEdge against it returns null → we'd create a phantom edge to a node
-        // that no longer exists in the graph. Instead, look up the current edge by prevEnd alone.
-        let cur: Edge | undefined
-        for (const e of this.graph.edges()) {
-          const ee = e as Edge
-          if (r.direction === 'in') {
-            if (ee.to.node === prevEnd.node && String(ee.to.pin) === String(prevEnd.pin)) { cur = ee; break }
-          } else {
-            if (ee.from.node === prevEnd.node && String(ee.from.pin) === String(prevEnd.pin)) { cur = ee; break }
-          }
-        }
-        if (!cur) continue
-        const currentExt = r.direction === 'in' ? cur.from : cur.to
-        this.commandBus.apply(new DisconnectEdge(cur.id))
-        const next: Edge = r.direction === 'in'
-          ? { id: createEdgeId(), from: currentExt, to: nextEnd }
-          : { id: createEdgeId(), from: nextEnd, to: currentExt }
-        this.commandBus.apply(new ConnectPins(next))
-      }
-      this.commandBus.apply(new SetNodeState(id, { collapsed }))
-    })
+    return this.#sub.setMacroCollapsed(id, collapsed)
   }
-
-  /** Hide member views/edges of collapsed macros, and hide the macro node itself while EXPANDED (a
-   *  themed frame stands in for it). Called after each graph sync; cheap (touches only live views). */
   #applyMacroVisibility(): void {
-    const hidden = new Set<NodeId>()
-    const expandedMacros = new Set<NodeId>()
-    for (const n of this.graph.nodes()) {
-      if (!isMacro(n)) continue
-      if (n.state['collapsed']) for (const m of macroMembers(n as Node)) hidden.add(m)
-      else expandedMacros.add(n.id)
-    }
-    this.#hiddenMembers = hidden
-    for (const [nid, view] of this.#views) view.container.visible = !hidden.has(nid) && !expandedMacros.has(nid)
-    for (const [eid, rec] of this.#edgeRecords) {
-      const e = this.graph.getEdge(eid)
-      rec.graphics.visible = !(e !== undefined && (hidden.has(e.from.node) || hidden.has(e.to.node)))
-    }
-    this.#syncMacroFrames(expandedMacros)
-    this.#reparentMacros()
-    // Prime freshly-expanding macros invisible (members + frame) so #animateMacroExpand fades them in
-    // from nothing — runs in the sync microtask, i.e. before the first paint, so there's no flash.
-    for (const eid of this.#expandingMacros) {
-      const macro = this.graph.getNode(eid)
-      if (!macro) continue
-      for (const mid of macroMembers(macro as Node)) { const v = this.#views.get(mid); if (v) v.container.alpha = 0 }
-      const f = this.#macroFrames.get(eid); if (f) f.container.alpha = 0
-    }
+    return this.#sub.applyMacroVisibility()
   }
-
-  /** Keep macro z-order correct: an EXPANDED macro's frame + members reparent into #macroOverlayLayer
-   *  (above all ordinary nodes) so the whole group reads as one thing on top; a COLLAPSED macro's node
-   *  rises to the top of #nodesLayer. Nested macros stack by depth (deeper → on top). */
-  /** Member → owning macro index. Rebuilt lazily; invalidated whenever the graph mutates (add/
-   *  remove node, SetNodeState — covers `state.members` edits). Without this, every macro lookup
-   *  was O(N) → `#reparentMacros` ran O(M·N) per sync, which is what melts 37k-node paste. */
-  #macroParentIndex: Map<NodeId, NodeId> | null = null
-  #invalidateMacroIndex(): void { this.#macroParentIndex = null }
+  #invalidateMacroIndex(): void {
+    return this.#sub.invalidateMacroIndex()
+  }
   #rebuildMacroIndex(): Map<NodeId, NodeId> {
-    const idx = new Map<NodeId, NodeId>()
-    for (const n of this.graph.nodes()) {
-      if (!isMacro(n)) continue
-      for (const m of macroMembers(n as Node)) idx.set(m, n.id as NodeId)
-    }
-    this.#macroParentIndex = idx
-    return idx
+    return this.#sub.rebuildMacroIndex()
   }
-  #ensureMacroIndex(): Map<NodeId, NodeId> { return this.#macroParentIndex ?? this.#rebuildMacroIndex() }
-
-  /** The macro whose member list contains `nid` (its immediate container), or undefined. O(1). */
+  #ensureMacroIndex(): Map<NodeId, NodeId> {
+    return this.#sub.ensureMacroIndex()
+  }
   #macroParentOf(nid: NodeId): Node | undefined {
-    const idx = this.#ensureMacroIndex()
-    const pid = idx.get(nid)
-    return pid !== undefined ? (this.graph.getNode(pid) as Node | undefined) : undefined
+    return this.#sub.macroParentOf(nid)
   }
-  /** Nesting depth of a node (how many macros transitively contain it). O(depth). */
   #macroDepthOf(id: NodeId): number {
-    const idx = this.#ensureMacroIndex()
-    let d = 0, p: NodeId | undefined = idx.get(id)
-    while (p !== undefined) { d++; p = idx.get(p) }
-    return d
+    return this.#sub.macroDepthOf(id)
   }
-  /** Is `ancestor` a (transitive) container of `id`? O(depth). */
   #macroIsAncestor(ancestor: NodeId, id: NodeId): boolean {
-    const idx = this.#ensureMacroIndex()
-    let p: NodeId | undefined = idx.get(id)
-    while (p !== undefined) { if (p === ancestor) return true; p = idx.get(p) }
-    return false
+    return this.#sub.macroIsAncestor(ancestor, id)
   }
-  /** Deepest currently-expanded macro (the innermost open one) — what a click-outside collapses first. */
   #deepestExpandedMacro(): NodeId | null {
-    let best: NodeId | null = null, bestD = -1
-    for (const n of this.graph.nodes()) {
-      if (!isMacro(n) || n.state['collapsed']) continue
-      const d = this.#macroDepthOf(n.id)
-      if (d > bestD) { bestD = d; best = n.id }
-    }
-    return best
+    return this.#sub.deepestExpandedMacro()
   }
-
   #reparentMacros(): void {
-    const depthOf = (id: NodeId): number => this.#macroDepthOf(id)
-
-    const overlayMembers = new Map<NodeId, number>() // member id → owner macro depth
-    const overlayFrames: { id: NodeId; depth: number }[] = []
-    const collapsedMacros: { id: NodeId; depth: number }[] = []
-    for (const n of this.graph.nodes()) {
-      if (!isMacro(n)) continue
-      const depth = depthOf(n.id)
-      if (n.state['collapsed']) collapsedMacros.push({ id: n.id, depth })
-      else {
-        for (const mid of macroMembers(n as Node)) overlayMembers.set(mid, depth)
-        overlayFrames.push({ id: n.id, depth })
-      }
-    }
-    // Reparent node views: expanded-macro members → overlay, everything else → the node layer.
-    for (const [nid, view] of this.#views) {
-      const target = overlayMembers.has(nid) ? this.#macroOverlayLayer : this.#nodesLayer
-      if (view.container.parent !== target) target.addChild(view.container)
-    }
-    // Expanded frames → overlay too (collapsed/removed frames stay/are gone in #macroFramesLayer).
-    for (const f of overlayFrames) {
-      const fr = this.#macroFrames.get(f.id)
-      if (fr && fr.container.parent !== this.#macroOverlayLayer) this.#macroOverlayLayer.addChild(fr.container)
-    }
-    // Any edge incident to an overlay member → overlay (so its whole length, including the stub from
-    // the frame edge to the inlet pin, draws inside the expanded macro above the frame). Boundary
-    // edges (one end external) ride over the scene briefly — acceptable for a thin wire.
-    const overlayEdges: Container[] = []
-    for (const [eid, rec] of this.#edgeRecords) {
-      const e = this.graph.getEdge(eid)
-      const inside = !!e && (overlayMembers.has(e.from.node) || overlayMembers.has(e.to.node))
-      const target = inside ? this.#macroOverlayLayer : this.#edgesLayer
-      if (rec.graphics.parent !== target) target.addChild(rec.graphics)
-      if (inside) overlayEdges.push(rec.graphics)
-    }
-    // Order inside the overlay: frames (backgrounds) → member wires → member nodes; deeper on top.
-    const order: Container[] = []
-    overlayFrames.sort((a, b) => a.depth - b.depth)
-    for (const f of overlayFrames) { const fr = this.#macroFrames.get(f.id); if (fr) order.push(fr.container) }
-    order.push(...overlayEdges)
-    const members = [...overlayMembers].sort((a, b) => a[1] - b[1])
-    for (const [mid] of members) { const v = this.#views.get(mid); if (v) order.push(v.container) }
-    order.forEach((c, i) => this.#macroOverlayLayer.setChildIndex(c, i))
-    // Collapsed macro nodes rise above ordinary nodes (shallowest first → deepest on top).
-    collapsedMacros.sort((a, b) => a.depth - b.depth)
-    for (const m of collapsedMacros) {
-      const v = this.#views.get(m.id)
-      if (v?.container.visible && v.container.parent === this.#nodesLayer) {
-        this.#nodesLayer.setChildIndex(v.container, this.#nodesLayer.children.length - 1)
-      }
-    }
+    return this.#sub.reparentMacros()
   }
-
-  /** Reconcile expanded-macro frame views: a themed rectangle behind each expanded macro's members,
-   *  sized to their bounds. Double-click the header to collapse. */
-  /** World-space rect of an expanded macro's frame (members bounds + padding + header strip). */
   #macroFrameRect(id: NodeId): { x: number; y: number; width: number; height: number } | null {
-    const macro = this.graph.getNode(id)
-    if (!macro) return null
-    const members = macroMembers(macro as Node).map((m) => this.graph.getNode(m)).filter((n): n is Node => !!n)
-    if (members.length === 0) return null
-    const pad = 18, headerH = this.#theme.tokens.geometry.comment.headerHeight
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    for (const m of members) {
-      const b = nodeBounds(m, this.#theme.tokens)
-      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y)
-      maxX = Math.max(maxX, b.x + b.width); maxY = Math.max(maxY, b.y + b.height)
-    }
-    return { x: minX - pad, y: minY - pad - headerH, width: (maxX - minX) + pad * 2, height: (maxY - minY) + pad * 2 + headerH }
+    return this.#sub.macroFrameRect(id)
   }
-
   #syncMacroFrames(expandedMacros: ReadonlySet<NodeId>): void {
-    for (const id of expandedMacros) {
-      const rect = this.#macroFrameRect(id)
-      if (!rect) continue
-      let frame = this.#macroFrames.get(id)
-      if (!frame) {
-        frame = renderMacroFrame(this.#theme.tokens, this.#theme.commentHeaderStyle ?? 'gradient')
-        this.#macroFramesLayer.addChild(frame.container)
-        this.#wireMacroFrame(id, frame)
-        this.#macroFrames.set(id, frame)
-      }
-      frame.update(rect, this.#renderOpts.get(id)?.title ?? 'Macro')
-    }
-    for (const [id, frame] of [...this.#macroFrames]) {
-      if (!expandedMacros.has(id)) { frame.destroy(); this.#macroFrames.delete(id) }
-    }
+    return this.#sub.syncMacroFrames(expandedMacros)
   }
-
-  #macroFrameLastTap = 0
   #wireMacroFrame(id: NodeId, frame: MacroFrameView): void {
-    // Click in THIS frame's body, outside a deeper open child macro → collapse the child (one level
-    // per click). So clicking the parent group's empty body closes the sub-group nested inside it.
-    frame.body.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0 || !this.#interactive) return
-      const deepest = this.#deepestExpandedMacro()
-      if (deepest && deepest !== id && this.#macroIsAncestor(id, deepest)) {
-        this.collapseMacro(deepest)
-        e.stopPropagation()
-      }
-    })
-    frame.header.on('pointerover', () => { frame.setState('hover'); this.#requestRender() })
-    frame.header.on('pointerout', () => { frame.setState('default'); this.#requestRender() })
-    frame.header.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0 || !this.#interactive) return
-      e.stopPropagation()
-      const now = performance.now()
-      // Double-click the header to rename (collapse is via click-outside). Like a comment header.
-      if (now - this.#macroFrameLastTap < 320) { this.#macroFrameLastTap = 0; requestAnimationFrame(() => this.#editMacroTitle(id)); return }
-      this.#macroFrameLastTap = now
-    })
+    return this.#sub.wireMacroFrame(id, frame)
   }
-
-  /** Inline-rename an expanded macro via the same transparent overlay the comment header uses — the
-   *  live glyphs are the frame's WebGL title, so no jump. Commits to the macro's render title. */
   #editMacroTitle(id: NodeId): void {
-    const frame = this.#macroFrames.get(id)
-    const rect = this.#macroFrameRect(id)
-    if (!frame || !rect) return
-    const vp = this.#viewport.state
-    const t = this.#theme.tokens, ct = t.typography.comment
-    const headerH = t.geometry.comment.headerHeight
-    const current = this.#renderOpts.get(id)?.title ?? 'Macro'
-    this.#ensureWidgetOverlay().editText({
-      rect: { x: rect.x * vp.zoom + vp.x + 2 * vp.zoom, y: rect.y * vp.zoom + vp.y + 2 * vp.zoom, width: rect.width * vp.zoom - 4 * vp.zoom, height: headerH * vp.zoom - 4 * vp.zoom },
-      value: current,
-      style: {
-        background: 'transparent', text: 'transparent', border: 'transparent', borderWidth: 0, radius: 0,
-        paddingX: 8 * vp.zoom, paddingY: 2 * vp.zoom, fontSize: ct.size * vp.zoom,
-        fontFamily: t.typography.fontFamily, fontWeight: '700', placeholder: '', selection: 'transparent',
-      },
-      caretColor: ct.color, selectAll: false, autoGrow: true,
-      onInput: (text) => { this.#macroFrames.get(id)?.update(this.#macroFrameRect(id) ?? rect, text); this.#requestRender() },
-      onCommit: (text) => {
-        const r = this.#renderOpts.get(id) ?? {}; r.title = text; this.#renderOpts.set(id, r)
-        // Rebuild the collapsed node view so the renamed title shows when collapsed too.
-        const v = this.#views.get(id)
-        if (v) { v.container.destroy({ children: true }); this.#views.delete(id) }
-        const node = this.graph.getNode(id)
-        if (node) this.#ensureView(node as Node)
-        this.#applyMacroVisibility()
-        this.#requestRender()
-      },
-    })
+    return this.#sub.editMacroTitle(id)
   }
-
-  /** Inline-rename a node's title (header). For a `$templateInstance` this renames its definition
-   *  (propagates to all instances + palette); for a `$templateInput`/`$templateOutput` boundary it
-   *  also relabels the single interface pin so the rename flows to instance pins on dive-out; for any
-   *  other node it just sets the displayed title. */
   #editNodeTitle(id: NodeId): void {
-    const node = this.graph.getNode(id)
-    const view = this.#views.get(id)
-    if (!node || !view || !node.size) return
-    const vp = this.#viewport.state
-    const t = this.#theme.tokens
-    const headerH = t.geometry.node.headerHeight
-    const heading = t.typography.heading
-    // Exact title-glyph inset (mirrors node-renderer) so the DOM caret lands on the WebGL title — no
-    // jump on enter.
-    const chevron = t.geometry.header.chevronSize
-    const titleStartX = t.geometry.node.headerPadding + 8 + chevron / 2 - 4 + chevron / 2 + t.geometry.header.titleGap
-    const original = this.#renderOpts.get(id)?.title ?? node.type
-    let committed = false
-    // Comment-rename mechanic: the DOM field's TEXT is transparent — the visible glyphs are the LIVE
-    // WebGL title (updated per keystroke, un-ellipsised via fullTitle), so zero font/position jump;
-    // only the caret shows. autoGrow lets the field + caret run past the node.
-    this.#renderNodeTitleLive(id, original, true)
-    this.#ensureWidgetOverlay().editText({
-      rect: {
-        x: node.position.x * vp.zoom + vp.x + titleStartX * vp.zoom,
-        y: node.position.y * vp.zoom + vp.y + 2 * vp.zoom,
-        width: Math.max(40, node.size.x - titleStartX - 8) * vp.zoom,
-        height: (headerH - 4) * vp.zoom,
-      },
-      value: original,
-      style: {
-        background: 'transparent', text: 'transparent', border: 'transparent', borderWidth: 0, radius: 0,
-        paddingX: 0, paddingY: 0, fontSize: heading.size * vp.zoom,
-        fontFamily: t.typography.fontFamily, fontWeight: '700', placeholder: '', selection: 'transparent',
-      },
-      caretColor: heading.color, selectAll: false, autoGrow: true,
-      onInput: (text) => this.#renderNodeTitleLive(id, text, true),
-      onCommit: (text) => { committed = true; const v = text.trim(); if (v !== '') this.#commitNodeRename(id, v); else { this.#renderNodeTitleLive(id, original, false); this.#resizeNodeView(id) } },
-      onClose: () => { if (!committed) { this.#renderNodeTitleLive(id, original, false); this.#resizeNodeView(id) } },
-    })
+    return this.#sub.editNodeTitle(id)
   }
-
-  /** Set a node's displayed title (optionally un-ellipsised) and rebuild its view, no size recompute —
-   *  drives the live preview during inline rename. */
   #renderNodeTitleLive(id: NodeId, title: string, full: boolean): void {
-    const r = this.#renderOpts.get(id) ?? {}; r.title = title
-    if (full) r.fullTitle = true; else delete r.fullTitle
-    this.#renderOpts.set(id, r)
-    const node = this.graph.getNode(id), v = this.#views.get(id)
-    if (node && v) { v.container.destroy({ children: true }); this.#views.delete(id); this.#ensureView(node as Node) }
-    this.#requestRender()
+    return this.#sub.renderNodeTitleLive(id, title, full)
   }
-
-  /** Recompute a node's natural size from its current title/pins/widgets and rebuild its view —
-   *  call after a rename or an interface change so the box grows/shrinks to fit. */
   #resizeNodeView(id: NodeId): void {
-    const node = this.graph.getNode(id)
-    if (!node) return
-    delete (node as { size?: unknown }).size
-    this.#ensureSize(node as Node, this.#renderOpts.get(id) ?? {})
-    const v = this.#views.get(id)
-    if (v) { v.container.destroy({ children: true }); this.#views.delete(id) }
-    this.#ensureView(node as Node)
-    this.#requestRender()
+    return this.#sub.resizeNodeView(id)
   }
-
   #commitNodeRename(id: NodeId, text: string): void {
-    const node = this.graph.getNode(id)
-    if (!node) return
-    // Drop the edit-only fullTitle flag so the committed title ellipsises normally again.
-    const ro = this.#renderOpts.get(id); if (ro) delete ro.fullTitle
-    if (isTemplateInstance(node)) {
-      const defId = node.state['definitionId'] as TemplateDefId | undefined
-      if (defId !== undefined) this.renameTemplate(defId, text)
-      return
-    }
-    const r = this.#renderOpts.get(id) ?? {}; r.title = text; this.#renderOpts.set(id, r)
-    // A boundary node's title doubles as its interface pin's label.
-    if (isTemplateBoundary(node) && node.pins[0]) node.pins[0].label = text
-    this.#resizeNodeView(id)
+    return this.#sub.commitNodeRename(id, text)
   }
-
+  get definitions() { return this.#sub.definitions }
+  get diveDepth() { return this.#sub.diveDepth }
   #nodeIntersects(node: Node, rect: GeomRect): boolean {
     return rectIntersects(nodeBounds(node, this.#theme.tokens), rect)
   }
@@ -3901,7 +2821,7 @@ export class XenolithEditor {
     const seen = new Set<string>()
     for (const node of this.graph.nodes()) {
       for (const w of node.widgets ?? []) {
-        if (w.type !== 'custom') continue
+        if (w.type !== 'custom' || !widgetRendersInBody(w)) continue
         const ctrl = this.#widgetControllers.get(w.renderer)
         if (!ctrl || !isDomWidgetController(ctrl)) continue
         const key = `${String(node.id)}:${w.id}`
@@ -3918,6 +2838,7 @@ export class XenolithEditor {
         const cleanup = ctrl.mount(el, {
           value: this.#widgetDisplayValue(node as Node, w), node, width: 0, height: 0, ...this.#widgetThemeColors(w),
           setValue: (v) => this.setWidgetValue(node.id, w.id, v),
+          openSidebar: () => this.openSidebar(node.id),
         })
         const entry: { el: HTMLElement; controller: DomWidgetController; cleanup?: () => void; nodeId: NodeId; widgetId: string } =
           { el, controller: ctrl, nodeId: node.id, widgetId: w.id }
@@ -3953,7 +2874,6 @@ export class XenolithEditor {
       // position isn't committed until drop, but the container moves every frame.
       const left = (view.container.x + rect.x) * vp.zoom + vp.x
       const top = (view.container.y + rect.y) * vp.zoom + vp.y
-      const w = rect.width * vp.zoom, h = rect.height * vp.zoom
       const myZ = z.get(view.container) ?? 0
       const W = rect.width, H = rect.height
       // Clip the widget to the VISIBLE region = widget rect MINUS every node painted above it
@@ -4269,6 +3189,7 @@ export class XenolithEditor {
   /** Build the stable facade handed to a plugin's `install`. `graph`/`commandBus` are getters so a
    *  plugin always reads the currently displayed graph (root, or a dived template definition). */
   #pluginContext(): PluginContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const self = this
     return {
       registry: self.#registry,
@@ -4571,7 +3492,7 @@ export class XenolithEditor {
    *  (Claude Desktop / Cursor / any) can drive this editor. The server forwards each tool call
    *  here over the socket; handlers route to `insertNode`/`addEdge`/`fitView`/etc. (already
    *  undoable via the command bus). Returns a disconnect function. See `mcp.ts` for the protocol. */
-  #mcp: import('./mcp.js').McpClient | null = null
+  #mcp: McpClient | null = null
   async connectMCP(
     url: string,
     opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void } = {},
@@ -4579,7 +3500,7 @@ export class XenolithEditor {
     const { McpClient } = await import('./mcp.js')
     this.#mcp?.disconnect()
     const client = new McpClient(
-      this as unknown as import('./mcp.js').McpEditorSurface,
+      this as unknown as McpEditorSurface,
       opts.onStatus !== undefined ? { onStatus: opts.onStatus } : {},
     )
     await client.connect(url)
@@ -4597,6 +3518,55 @@ export class XenolithEditor {
     }
     if (!Number.isFinite(minX)) return null
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+  }
+
+  /** Run `fn` with the WHOLE graph materialized and visible in `#world`, then restore the live
+   *  (viewport-culled, LOD-appropriate) state. Used by `exportImage` so a render of `#world` captures
+   *  every node/edge at full detail regardless of culling, virtualization, LOD batches or the
+   *  pan/zoom freeze — any of which otherwise leaves `#world` holding only a slice of the graph.
+   *
+   *  Setup: drop the freeze (it hides live nodes behind baked sprites), force LOD back to 'full'
+   *  (sprite/flat replace real nodes with baked stand-ins or hide #nodesLayer), materialize a live
+   *  view for every node and every edge, then reapply macro visibility so collapsed-macro members
+   *  stay hidden and expanded-macro frames/overlay reparenting is correct.
+   *
+   *  Teardown (in `finally`, via the same reconciliation the live view uses): reapply macro
+   *  visibility, restore the prior LOD level (disposing the export-time views its swap removes), and
+   *  re-cull to the viewport so off-screen nodes lose their views again. No manual per-view bookkeeping.
+   *
+   *  NOTE: DOM-mounted custom widgets are HTML-overlay only and are NOT part of `#world`, so they
+   *  remain absent from any render done inside `fn` — see `exportImage`. */
+  #withFullGraphVisible<T>(fn: () => T): T {
+    // Freeze hides live nodes behind baked sprites captured for the CURRENT viewport — drop it first
+    // (also restores visible=true on every view and reapplies macro visibility).
+    if (this.#frozen) this.#endFreeze()
+    const prevLod = this.#lodLevel
+    if (prevLod !== 'full') this.#applyLODLevel('full')
+    // The graph model (not #views) is the source of truth for what exists; materialize every node so
+    // off-screen / virtualized nodes get a real container in #nodesLayer.
+    for (const n of this.graph.nodes()) this.#ensureView(n as Node)
+    // Edges follow live nodes (#cullEdges only materializes edges incident to a live view), so wire
+    // up every edge too. Guard against duplicates — #materializeEdge leaks an orphan Graphics if a
+    // record already exists.
+    for (const e of this.graph.edges()) {
+      if (!this.#edgeRecords.has(e.id)) this.#materializeEdge(e as Edge, this.#edgeOpts.get(e.id) ?? {})
+    }
+    // Correct visibility for macro state: collapsed members hidden, expanded macros framed. Idempotent
+    // (rebuilds frames + reparents from scratch), so it's also the restore call below.
+    this.#applyMacroVisibility()
+    try {
+      return fn()
+    } finally {
+      // Restore the live scene through the same reconciliation paths that build it normally — no
+      // hand-rolled per-view snapshot/restore to drift out of sync.
+      this.#applyMacroVisibility()
+      if (prevLod !== 'full') this.#applyLODLevel(prevLod)
+      // Re-cull to the viewport: virtualization disposes the off-screen views we just materialized
+      // (and rebuilds the right LOD batch if prevLod wasn't 'full'). A no-op when virtualization is
+      // inert (graph under the threshold keeps every view live anyway).
+      if (this.#virtualizeActive()) this.#cullToViewport()
+      this.#requestRender()
+    }
   }
 
   /** Render the WHOLE graph (independent of the current viewport) to a high-resolution image Blob.
@@ -4636,7 +3606,7 @@ export class XenolithEditor {
   /** Snapshot a single node's current view (with widget values, statuses, the lot) to a Blob.
    *  Renders the live container — NOT the bake-cache "blank" texture — so AI clients calling MCP
    *  `node_screenshot` see exactly what the user sees, not a default-state stand-in. */
-  async exportNodeImage(nodeId: NodeId, opts: { format?: 'png' | 'jpeg'; quality?: number; scale?: number; padding?: number } = {}): Promise<Blob> {
+  async exportNodeImage(nodeId: NodeId, opts: { format?: 'png' | 'jpeg'; quality?: number; scale?: number; padding?: number; background?: string | null } = {}): Promise<Blob> {
     const view = this.#views.get(nodeId)
     const node = this.graph.getNode(nodeId)
     if (!view || !node) throw new Error(`exportNodeImage: no live view for node '${nodeId}'`)
@@ -4649,7 +3619,8 @@ export class XenolithEditor {
     // Render the node's container at identity into rt, offset by padding so there's a small bleed.
     const savedPos = { x: view.container.position.x, y: view.container.position.y }
     view.container.position.set(padding, padding)
-    const clearColor = format === 'jpeg' ? this.#theme.tokens.color.surface.canvas : [0, 0, 0, 0]
+    // Opaque canvas colour by default (looks like the editor); `background: null` → transparent.
+    const clearColor = opts.background === null ? [0, 0, 0, 0] : (opts.background ?? this.#theme.tokens.color.surface.canvas)
     this.#app.renderer.render({ container: view.container, target: rt, clearColor: clearColor as never })
     view.container.position.set(savedPos.x, savedPos.y)
     this.#requestRender()
@@ -4662,37 +3633,106 @@ export class XenolithEditor {
     return blob
   }
 
-  async exportImage(opts: { format?: 'png' | 'jpeg'; quality?: number; padding?: number; scale?: number } = {}): Promise<Blob> {
+  /** Render the whole graph to an image Blob. The clear colour defaults to the theme's canvas
+   *  surface so exports look like the editor and never come out transparent (PNG) or empty — pass
+   *  `background: null` for a transparent PNG, or a colour string to override.
+   *
+   *  Renders EVERY node/edge at full detail regardless of the live viewport state: culling,
+   *  virtualization, LOD batches and the pan/zoom freeze all leave `#world` holding only a slice of
+   *  the graph (off-screen nodes have no view, low zoom swaps in flat/sprite batches, the freeze
+   *  hides live nodes behind baked sprites). Rendering `#world` as-is in any of those states yields a
+   *  blank or wrong-detail export, so the render runs inside `#withFullGraphVisible`, which
+   *  materializes every node/edge and un-hides the LOD/freeze layers for the duration of the render,
+   *  then restores the culled live state.
+   *
+   *  Caveat: DOM-mounted custom widgets (registered via `registerWidget` with an HTML controller) live
+   *  in an HTML overlay outside the WebGL scene graph, so they cannot appear in this render path —
+   *  only canvas/custom-draw widgets (drawn into the PIXI scene) are captured. */
+  async exportImage(opts: { format?: 'png' | 'jpeg'; quality?: number; padding?: number; scale?: number; background?: string | null } = {}): Promise<Blob> {
     const format = opts.format ?? 'png'
     const padding = opts.padding ?? 48
     const scale = opts.scale ?? 2
     const b = this.#graphBounds() ?? { x: 0, y: 0, w: 1, h: 1 }
     const width = Math.ceil(b.w + padding * 2)
     const height = Math.ceil(b.h + padding * 2)
-    const rt = RenderTexture.create({ width, height, resolution: scale })
 
-    // Render #world (grid included) at identity, offset so the graph's top-left lands at
-    // (padding, padding). The grid is a huge tiling sprite, so it fills the whole export. The
-    // viewport transform is saved and restored.
+    // Opaque canvas colour by default (looks like the editor); `background: null` → transparent.
+    const clearColor = opts.background === null ? [0, 0, 0, 0] : (opts.background ?? this.#theme.tokens.color.surface.canvas)
+
+    // The export target's pixel size is width × scale × height × scale. A wide graph at a high scale
+    // blows past the GPU's MAX_TEXTURE_SIZE (8192 on weak/headless contexts, up to 16384 elsewhere),
+    // and a RenderTexture over the limit renders as a silently empty (fully transparent) sheet — so
+    // the PNG comes out blank regardless of viewport state. Tile the render so every RenderTexture
+    // stays under the limit, then stitch the tiles into one 2D canvas.
+    const maxTex = this.#maxRenderTextureSize()
+    // Tile size in EXPORT pixels, with headroom so a tile never grazes the cap.
+    const tilePx = Math.max(64, Math.floor(maxTex * 0.5))
+    // Tile size in WORLD pixels (the render is at scale 1; `scale` only raises the texture resolution).
+    const tileW = Math.max(1, Math.floor(tilePx / scale))
+    const tileH = Math.max(1, Math.floor(tilePx / scale))
+
+    // Compose the final image on a plain 2D canvas — the tiles are drawn into it, then it's encoded.
+    // 2D canvases have no GPU texture cap, so arbitrarily large exports are fine here.
+    const canvas2d = document.createElement('canvas')
+    canvas2d.width = Math.ceil(width * scale)
+    canvas2d.height = Math.ceil(height * scale)
+    const ctx2d = canvas2d.getContext('2d')!
+    // For an opaque export, prime the whole canvas with the clear colour so seams between tiles
+    // (and any sub-pixel gaps) are the background, not transparent black. Transparent exports skip
+    // this so the alpha channel stays clean.
+    if (opts.background !== null) {
+      ctx2d.fillStyle = typeof clearColor === 'string' ? clearColor : this.#theme.tokens.color.surface.canvas as string
+      ctx2d.fillRect(0, 0, canvas2d.width, canvas2d.height)
+    }
+
+    // Save the live viewport transform; the tile renders move #world to aim each tile at its region.
     const savedPos = { x: this.#world.x, y: this.#world.y }
     const savedScale = { x: this.#world.scale.x, y: this.#world.scale.y }
     this.#world.scale.set(1)
-    this.#world.position.set(padding - b.x, padding - b.y)
-    const clearColor = format === 'jpeg' ? this.#theme.tokens.color.surface.canvas : [0, 0, 0, 0]
-    this.#app.renderer.render({ container: this.#world, target: rt, clearColor: clearColor as never })
+    // The whole-graph render must run with every node/edge visible (see #withFullGraphVisible); wrap
+    // the full tile loop so the materialization pays once, not per tile.
+    this.#withFullGraphVisible(() => {
+      for (let ty = 0; ty < height; ty += tileH) {
+        const th = Math.min(tileH, height - ty)
+        for (let tx = 0; tx < width; tx += tileW) {
+          const tw = Math.min(tileW, width - tx)
+          const rt = RenderTexture.create({ width: tw, height: th, resolution: scale })
+          // Place #world so the tile's top-left world corner (b.x - padding + tx, b.y - padding + ty)
+          // maps to the texture origin (0,0). Generalises the single-shot offset (padding - b.x).
+          this.#world.position.set((padding - b.x) - tx, (padding - b.y) - ty)
+          this.#app.renderer.render({ container: this.#world, target: rt, clearColor: clearColor as never })
+          const tileCanvas = this.#app.renderer.extract.canvas(rt) as HTMLCanvasElement
+          ctx2d.drawImage(tileCanvas, Math.round(tx * scale), Math.round(ty * scale), Math.ceil(tw * scale), Math.ceil(th * scale))
+          rt.destroy(true)
+        }
+      }
+    })
 
     // Restore the live view.
     this.#world.position.set(savedPos.x, savedPos.y)
     this.#world.scale.set(savedScale.x, savedScale.y)
     this.#requestRender()
 
-    const canvas = this.#app.renderer.extract.canvas(rt) as HTMLCanvasElement
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((b2) => resolve(b2), `image/${format}`, opts.quality ?? 0.92),
+      canvas2d.toBlob((b2) => resolve(b2), `image/${format}`, opts.quality ?? 0.92),
     )
-    rt.destroy(true)
     if (!blob) throw new Error('exportImage: canvas.toBlob returned null')
     return blob
+  }
+
+  /** Largest square RenderTexture edge (in texture pixels) the current renderer will accept. WebGL
+   *  reports it via `gl.MAX_TEXTURE_SIZE`; WebGPU / unavailable contexts fall back to a conservative
+   *  4096 (a safe floor across mobile and headless software rasterizers). Tiling in `exportImage`
+   *  keeps every tile under this so the GPU never silently drops an over-limit texture. */
+  #maxRenderTextureSize(): number {
+    const gl = (this.#app.renderer as unknown as { gl?: WebGL2RenderingContext }).gl
+    if (gl) {
+      try {
+        const v = gl.getParameter(gl.MAX_TEXTURE_SIZE)
+        if (typeof v === 'number' && v > 0) return v
+      } catch { /* swallow — renderer context not ready, use fallback */ }
+    }
+    return 4096
   }
 
   /** Replace the editor's contents with the contents of an `xenolith.v1` payload. Wipes the
@@ -4765,7 +3805,7 @@ export class XenolithEditor {
       for (const n of this.graph.nodes()) this.#ensureView(n as Node)
       for (const e of this.graph.edges()) if (!this.#edgeRecords.has(e.id)) this.#materializeEdge(e as Edge, this.#edgeOpts.get(e.id) ?? {})
     }
-    this.#syncComments()
+    this.#comments.sync()
     this.#applyMacroVisibility()
     // loadJSON bypasses the command bus, so the command:applied hook that normally mounts DOM
     // widgets after a mutation doesn't run for the initial set — every custom-widget node would
@@ -4821,8 +3861,7 @@ export class XenolithEditor {
     this.#spatialMaxW = 0
     this.#spatialMaxH = 0
     this.#edgesByNode.clear()
-    for (const v of this.#commentViews.values()) v.destroy()
-    this.#commentViews.clear()
+    this.#comments.dropViews()
     for (const f of this.#macroFrames.values()) f.destroy()
     this.#macroFrames.clear()
     this.#hiddenMembers.clear()
@@ -4839,7 +3878,7 @@ export class XenolithEditor {
     this.#rebuildEdgeIndex()
     for (const n of this.graph.nodes()) this.#ensureView(n as Node)
     for (const e of this.graph.edges()) if (!this.#edgeRecords.has(e.id)) this.#materializeEdge(e as Edge, this.#edgeOpts.get(e.id) ?? {})
-    this.#syncComments()
+    this.#comments.sync()
     this.#applyMacroVisibility()
     this.#propagateRerouteTypes()
     this.#scheduleMinimapSync()
@@ -4883,11 +3922,7 @@ export class XenolithEditor {
     // Top-level only: a collapsed macro is selected as the single wrapper node, NOT its hidden members
     // (otherwise copy/paste would clone the guts as loose nodes and the group falls apart).
     this.selection.replaceWith(Array.from(this.graph.nodes()).filter((n) => !this.#hiddenMembers.has(n.id)).map((n) => n.id))
-    this.#clearCommentSelection()
-    for (const c of this.graph.comments()) {
-      this.#selectedComments.add(c.id)
-      this.#commentViews.get(c.id)?.setVisualState('selected')
-    }
+    this.#comments.selectAll()
     this.#requestRender()
   }
 
@@ -4963,7 +3998,7 @@ export class XenolithEditor {
     // 37k nodes). Walk nodes ONCE, check against the selected-comment rects only when the node
     // isn't already in `ids` (Ctrl+A short-circuits everything).
     const selComments: Comment[] = []
-    for (const cid of this.#selectedComments) {
+    for (const cid of this.#comments.selectedIds()) {
       const c = this.graph.getComment(cid)
       if (!c) continue
       comments.push(c as Comment)
@@ -5121,7 +4156,7 @@ export class XenolithEditor {
       for (const edge of newEdges) this.commandBus.apply(new ConnectPins(edge))
     })
     this.selection.replaceWith(newNodes.map((n) => n.id))
-    if (newComments.length > 0) this.#selectComment(newComments[newComments.length - 1]!.id)
+    if (newComments.length > 0) this.#comments.selectExclusive(newComments[newComments.length - 1]!.id)
     return newNodes.map((n) => n.id)
   }
 
@@ -5484,11 +4519,10 @@ export class XenolithEditor {
     }
     // Comments + macro frames are theme-rendered too (geometry.comment, typography.comment, accent) —
     // rebuild with the new tokens, otherwise they keep the previous theme's look in the new theme.
-    for (const v of this.#commentViews.values()) v.destroy()
-    this.#commentViews.clear()
+    this.#comments.dropViews()
     for (const f of this.#macroFrames.values()) f.destroy()
     this.#macroFrames.clear()
-    this.#syncComments()
+    this.#comments.sync()
     this.#applyMacroVisibility() // re-hide collapsed members + rebuild expanded frames in the new theme
     this.#updateVisualStates()
     // Refresh DOM widget hosts' --xeno-* CSS vars (and their controllers) for the new theme.
@@ -5532,7 +4566,7 @@ export class XenolithEditor {
   }
 
   readonly #onKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape' && this.#dragState.kind === 'pin-drag') {
+    if (e.key === 'Escape' && this.#pointer.isPinDrag()) {
       this.#cancelPinDrag()
       return
     }
@@ -5567,10 +4601,10 @@ export class XenolithEditor {
       return
     }
     if (!mod && (e.key === 'Delete' || e.key === 'Backspace')) {
-      if (this.#selectedComments.size > 0) {
+      if (this.#comments.selectionSize() > 0) {
         e.preventDefault()
-        const ids = [...this.#selectedComments]
-        this.#clearCommentSelection()
+        const ids = this.#comments.selectedIds()
+        this.#comments.clearSelection()
         this.commandBus.transaction(() => { for (const id of ids) this.removeComment(id) })
         // Fall through to also delete any selected nodes; bail only if there are none.
       }
@@ -5610,7 +4644,7 @@ export class XenolithEditor {
     }
     if (mod && (e.key === 'c' || e.key === 'C')) {
       // A bare comment selection (no nodes) is still copyable — it carries its contents.
-      if (this.selection.size === 0 && this.#selectedComments.size === 0) return
+      if (this.selection.size === 0 && this.#comments.selectionSize() === 0) return
       e.preventDefault()
       this.copySelection()
       return
@@ -5811,6 +4845,24 @@ export class XenolithEditor {
     return true
   }
 
+  /** Options applied to every edge that does not set the same field itself. A later call merges.
+   *  Existing wires repaint immediately. Persisted per-edge overrides (via `setEdgeOptions`) win. */
+  setDefaultEdgeOptions(opts: Partial<RenderEdgeOptions>): void {
+    this.#defaultEdgeOptions = { ...this.#defaultEdgeOptions, ...opts }
+    for (const rec of this.#edgeRecords.values()) {
+      rec.lastFromX = rec.lastFromY = rec.lastToX = rec.lastToY = undefined
+      this.#redrawEdge(rec.edge.id)
+    }
+    this.#requestRender()
+  }
+
+  /** Effective render options for an edge: defaults underneath anything stored on that edge.
+   *  Undefined when the edge is not in the graph. */
+  getEdgeOptions(edgeId: EdgeId): RenderEdgeOptions | undefined {
+    if (!this.graph.getEdge(edgeId)) return undefined
+    return mergeEdgeOptions(this.#defaultEdgeOptions, this.#edgeOpts.get(edgeId) ?? {})
+  }
+
   /** Update an edge's render options (label / arrowhead marker / animated flow / wire colour).
    *  Merges over the existing options, repaints, and persists through serialization. */
   setEdgeOptions(edgeId: EdgeId, opts: Partial<RenderEdgeOptions>): void {
@@ -5904,7 +4956,7 @@ export class XenolithEditor {
     // selected in the same tick) — the selection change fired before its view existed, and
     // render-on-demand won't repaint on its own.
     this.#updateVisualStates()
-    this.#syncComments() // keep comment frames in sync on every mutation (incl. undo/redo)
+    this.#comments.sync() // keep comment frames in sync on every mutation (incl. undo/redo)
     this.#applyMacroVisibility() // hide members of collapsed macros (incl. undo/redo)
     this.#syncDomWidgets()
     this.#scheduleMinimapSync()
@@ -6058,684 +5110,11 @@ export class XenolithEditor {
     return out
   }
 
-  /** Set by #wireStageInteraction so #cancelInFlightInteraction can drop a marquee owned by the
-   *  closure. Null until wireStageInteraction runs. */
-  #cancelMarqueeRef: (() => void) | null = null
-
-  #wireStageInteraction(): void {
-    let marquee: MarqueeState = { kind: 'idle' }
-    const stage = this.#app.stage
-    this.#cancelMarqueeRef = () => {
-      if (marquee.kind === 'active') {
-        marquee.gfx.parent?.removeChild(marquee.gfx)
-        marquee.gfx.destroy()
-      }
-      marquee = { kind: 'idle' }
-      this.#marqueeHovered.clear()
-      this.#requestRender()
-    }
-
-    stage.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0) return
-      // Locked (non-interactive): no connecting, no marquee, no selection — only viewport pan (RMB)
-      // stays live, so you can drag anywhere without grabbing the graph.
-      if (!this.#interactive) return
-      this.#requestRender()
-      // A click that reaches the stage (empty canvas / node, not a comment header) drops comment
-      // selection — the comment's own header pointerdown stops propagation before this runs.
-      if (this.#selectedComments.size > 0) { this.#clearCommentSelection(); this.#requestRender() }
-      const pin = readPinHandle(e.target)
-      if (pin) {
-        // Alt+pin on a connected pin = "tear off" the edge and continue dragging the loose
-        // end. UE Blueprint convention. If the pin has no incident edges, fall through to a
-        // fresh pin-drag from this pin.
-        if (e.altKey) {
-          const detached = this.#detachEdgeFromPin(pin)
-          if (detached) {
-            this.#beginPinDrag(detached.other, e, detached.original)
-            e.stopPropagation()
-            return
-          }
-        }
-        this.#beginPinDrag(pin, e, null)
-        e.stopPropagation()
-        return
-      }
-      if (e.target !== stage) return
-      // Click-outside: a click on empty canvas while a macro is expanded collapses the innermost open
-      // one (the frame body captures clicks inside it, so reaching the stage means truly outside).
-      const openMacro = this.#deepestExpandedMacro()
-      if (openMacro) { this.collapseMacro(openMacro); return }
-      const startScreen = { x: e.global.x, y: e.global.y }
-      marquee = {
-        kind: 'pending',
-        startScreen,
-        startWorld: screenToWorld(startScreen, this.#viewport.state),
-        shift: e.shiftKey,
-      }
-    })
-
-    stage.on('pointermove', (e: FederatedPointerEvent) => {
-      const current = { x: e.global.x, y: e.global.y }
-      this.#lastPointerScreen = current
-      this.#lastPointerWorld = screenToWorld(current, this.#viewport.state)
-      if (this.#commentDrag) { this.#updateCommentDrag(current); return }
-      // Edge midpoint hover affordance — only while fully idle (no drag / marquee).
-      if (this.#dragState.kind === 'idle' && marquee.kind === 'idle') {
-        this.#updateEdgeMidpointHover(this.#lastPointerWorld)
-      } else if (this.#hoveredEdgeMid) {
-        this.#hoveredEdgeMid = null
-        this.#edgeHoverGfx.clear()
-      }
-      // Note: no blanket requestRender here. Bare cursor movement over the canvas changes
-      // nothing on screen — hover transitions repaint via the node pointerover/pointerout
-      // handlers. We only mark dirty inside the branches that actually mutate visuals (active
-      // drag, pin-drag ghost, marquee rect).
-
-      if (this.#dragState.kind === 'pin-drag') {
-        const target = readPinHandle(e.target)
-        this.#updatePinDrag(current, target)
-        this.#requestRender()
-        return
-      }
-
-      if (this.#dragState.kind === 'pending') {
-        const dx = current.x - this.#dragState.startScreen.x
-        const dy = current.y - this.#dragState.startScreen.y
-        if (Math.hypot(dx, dy) >= NODE_DRAG_THRESHOLD) {
-          this.#beginNodeDrag(this.#dragState.alt)
-        }
-      }
-      if (this.#dragState.kind === 'active') {
-        const zoom = this.#viewport.state.zoom
-        const worldDelta = {
-          x: (current.x - this.#dragState.startScreen.x) / zoom,
-          y: (current.y - this.#dragState.startScreen.y) / zoom,
-        }
-        // Snap during drag, not only at commit — gives the UE / Figma "node clicks into cells"
-        // feel. Hold Alt at any point during the drag to disable. The snap is anchored to the
-        // node under the cursor and the resulting delta applied uniformly, so the group's
-        // internal layout is preserved (per-node snapping caused off-grid nodes to drift apart).
-        const snap = e.altKey || this.#dragState.alt ? null : this.#snapSize
-        const anchorInitial = this.#dragState.initialPositions.get(this.#dragState.anchorId)
-        const snappedDelta = anchorInitial
-          ? computeGroupSnappedDelta(anchorInitial, worldDelta, snap)
-          : worldDelta
-        for (const [id, initial] of this.#dragState.initialPositions) {
-          const view = this.#views.get(id)
-          if (!view) continue
-          view.container.position.set(initial.x + snappedDelta.x, initial.y + snappedDelta.y)
-        }
-        for (const edgeId of this.#dragState.affectedEdges) this.#redrawEdge(edgeId)
-        this.#requestRender()
-        return
-      }
-
-      if (marquee.kind === 'idle') return
-      if (marquee.kind === 'pending') {
-        const dx = current.x - marquee.startScreen.x
-        const dy = current.y - marquee.startScreen.y
-        if (Math.hypot(dx, dy) < MARQUEE_DRAG_THRESHOLD) return
-        const gfx = new Graphics()
-        this.#world.addChild(gfx)
-        marquee = { ...marquee, kind: 'active', gfx }
-      }
-      if (marquee.kind === 'active') {
-        const currentWorld = screenToWorld(current, this.#viewport.state)
-        const rect = rectFromPoints(marquee.startWorld, currentWorld)
-        marquee.gfx.clear()
-          .rect(rect.x, rect.y, rect.width, rect.height)
-          .fill({ color: 'rgba(252, 180, 0, 0.08)' })
-          .stroke({ color: '#FCB400', width: 1 / this.#viewport.state.zoom, alpha: 0.8 })
-        this.#marqueeHovered.clear()
-        for (const node of this.graph.nodes()) {
-          if (this.#hiddenMembers.has(node.id)) continue // hidden members of a collapsed macro aren't selectable
-          if (rectIntersects(rect, nodeBounds(node, this.#theme.tokens))) {
-            this.#marqueeHovered.add(node.id)
-          }
-        }
-        this.#updateVisualStates()
-        this.#requestRender()
-      }
-    })
-
-    const endStage = (e: FederatedPointerEvent): void => {
-      this.#requestRender()
-      if (this.#commentDrag) {
-        this.#endCommentDrag({ x: e.global.x, y: e.global.y })
-        return
-      }
-      if (this.#dragState.kind === 'pin-drag') {
-        this.#endPinDrag(readPinHandle(e.target))
-        return
-      }
-      if (this.#dragState.kind !== 'idle') {
-        this.#endNodeDrag(e.altKey)
-        return
-      }
-      if (marquee.kind === 'idle') return
-      if (marquee.kind === 'pending') {
-        if (!marquee.shift) this.selection.clear()
-        marquee = { kind: 'idle' }
-        return
-      }
-      const currentWorld = screenToWorld({ x: e.global.x, y: e.global.y }, this.#viewport.state)
-      const rect = rectFromPoints(marquee.startWorld, currentWorld)
-      const ids: NodeId[] = []
-      for (const node of this.graph.nodes()) {
-        if (this.#hiddenMembers.has(node.id)) continue // hidden members of a collapsed macro aren't selectable
-        if (rectIntersects(rect, nodeBounds(node, this.#theme.tokens))) ids.push(node.id)
-      }
-      this.#marqueeHovered.clear()
-      if (marquee.shift) {
-        const merged = new Set([...this.selection.ids(), ...ids])
-        this.selection.replaceWith([...merged])
-      } else {
-        this.selection.replaceWith(ids)
-      }
-      marquee.gfx.parent?.removeChild(marquee.gfx)
-      marquee.gfx.destroy()
-      marquee = { kind: 'idle' }
-    }
-    stage.on('pointerup', endStage)
-    stage.on('pointerupoutside', endStage)
-  }
-
-  #wireNodeInteraction(id: NodeId, view: NodeView): void {
-    view.container.eventMode = 'static'
-    view.container.cursor = 'pointer'
-
-    view.container.on('pointerover', () => {
-      this.#hoveredId = id
-      this.#updateVisualStates()
-      this.#requestRender()
-    })
-    view.container.on('pointerout', () => {
-      if (this.#hoveredId === id) this.#hoveredId = null
-      this.#updateVisualStates()
-      this.#requestRender()
-    })
-    view.container.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (e.button !== 0) return
-      if (readPinHandle(e.target)) return
-      // Locked: nothing on the node responds — no widget edit, no select, no drag (pan stays live).
-      if (!this.#interactive) return
-      // Modal macro: while a macro is expanded, only its (transitive) members are interactive. A click
-      // on any node outside the open macro is a click-outside → collapse it and consume the event.
-      const openMacro = this.#deepestExpandedMacro()
-      if (openMacro && !this.#macroIsAncestor(openMacro, id)) {
-        this.collapseMacro(openMacro)
-        e.stopPropagation()
-        return
-      }
-      // Widget interaction pre-empts node drag: hit-test the pointer against this node's widgets.
-      if (view.widgetHit) {
-        const local = e.getLocalPosition(view.container)
-        const hit = view.widgetHit(local.x, local.y)
-        if (hit && this.#onWidgetPointerDown(id, view, hit, e)) {
-          e.stopPropagation()
-          return
-        }
-      }
-      // Raise the interacted node to the top of ITS layer (a macro member lives in the overlay layer,
-      // not #nodesLayer — using the wrong layer would throw and break the drag).
-      const layer = view.container.parent ?? this.#nodesLayer
-      layer.setChildIndex(view.container, layer.children.length - 1)
-      // Pre-click veto (H7) — plugin can cancel the click and prevent selection + drag init.
-      if (!firePreventable(this.#events, 'node:clicking', { nodeId: id })) return
-      if (!this.selection.contains(id)) {
-        this.selection.select(id, e.shiftKey ? 'toggle' : 'replace')
-      }
-      this.#events.emit('node:click', { nodeId: id })
-      this.#dragState = {
-        kind: 'pending',
-        nodeId: id,
-        startScreen: { x: e.global.x, y: e.global.y },
-        shift: e.shiftKey,
-        alt: e.altKey,
-      }
-      e.stopPropagation()
-    })
-  }
-
-  /** Handle a pointerdown that landed on a widget. Returns true if the gesture was consumed.
-   *  Toggle/button act immediately; slider/number begin a live drag committed on pointerup;
-   *  combo/text defer to the DOM overlay (wired in a later slice). */
-  #onWidgetPointerDown(nodeId: NodeId, view: NodeView, hit: WidgetHit, e: FederatedPointerEvent): boolean {
-    const node = this.graph.getNode(nodeId)
-    if (!node) return false
-    const { spec, rect } = hit
-    // Display-mode widgets (visibility:'always' bound to a wired IN-pin) show LIVE upstream
-    // values — editing makes no sense, the next live update would just overwrite the change.
-    // Swallow the pointer so it doesn't open the DOM overlay; selection / drag bubble normally.
-    if (this.#isDisplayModeWidget(node as Node, spec)) return false
-    switch (spec.type) {
-      case 'toggle':
-        this.setWidgetValue(nodeId, spec.id, !widgetValue(node, spec))
-        return true
-      case 'button':
-        this.#events.emit('widget:action', { nodeId, widgetId: spec.id, action: spec.action })
-        return true
-      case 'slider':
-      case 'number': {
-        this.#beginWidgetDrag(nodeId, view, spec, rect, e)
-        return true
-      }
-      case 'text':
-        // Defer past the current pointer gesture: opening (and focusing) a DOM field mid-pointerdown
-        // gets blurred immediately by the in-flight gesture, instantly committing + closing it.
-        setTimeout(() => this.#openWidgetTextEditor(nodeId, spec, rect), 0)
-        return true
-      case 'combo':
-        setTimeout(() => this.#openWidgetCombo(nodeId, spec, rect), 0)
-        return true
-      case 'color':
-        // Open synchronously, inside the user gesture — the OS colour picker only opens from a
-        // real gesture, and deferring also mis-anchored it to the window origin on first click.
-        this.#openWidgetColor(nodeId, spec, rect)
-        return true
-      case 'custom': {
-        // DOM-mounted custom widgets receive their own native pointer events; only canvas-draw ones
-        // forward through the editor.
-        const ctrl = this.#widgetControllers.get(spec.renderer)
-        if (ctrl && !isDomWidgetController(ctrl) && ctrl.onPointer) {
-          this.#beginCustomWidgetDrag(nodeId, view, spec, rect, ctrl, e)
-        }
-        return true
-      }
-      default:
-        return true
-    }
-  }
-
-  #ensureWidgetOverlay(): WidgetOverlay {
-    if (!this.#widgetOverlay) this.#widgetOverlay = new WidgetOverlay(this.#host, this.#theme.paletteStyle)
-    return this.#widgetOverlay
-  }
-
-  /** Screen-space rect for a node-local widget rect, accounting for the current viewport. */
-  #widgetScreenRect(nodeId: NodeId, rect: { x: number; y: number; width: number; height: number }): OverlayRect | null {
-    const node = this.graph.getNode(nodeId)
-    if (!node) return null
-    const vp = this.#viewport.state
-    return {
-      x: (node.position.x + rect.x) * vp.zoom + vp.x,
-      y: (node.position.y + rect.y) * vp.zoom + vp.y,
-      width: rect.width * vp.zoom,
-      height: rect.height * vp.zoom,
-    }
-  }
-
-  #openWidgetTextEditor(
-    nodeId: NodeId, spec: Extract<WidgetSpec, { type: 'text' | 'number' }>,
-    rect: { x: number; y: number; width: number; height: number },
-  ): void {
-    const screen = this.#widgetScreenRect(nodeId, rect)
-    const node = this.graph.getNode(nodeId)
-    if (!screen || !node) return
-    const zoom = this.#viewport.state.zoom
-    const r = resolveWidgetStyle(this.#theme.tokens, spec.style)
-    // Labelled text renders the label on a row above the field box — drop the DOM editor below it.
-    if (spec.type === 'text' && spec.label.length > 0) {
-      const labelH = this.#theme.tokens.geometry.widget.rowHeight * zoom
-      screen.y += labelH
-      screen.height -= labelH
-    }
-    this.#ensureWidgetOverlay().editText({
-      rect: screen,
-      value: String(widgetValue(node, spec) ?? ''),
-      multiline: spec.type === 'text' ? spec.multiline === true : false,
-      ...(spec.type === 'text' && spec.placeholder !== undefined ? { placeholder: spec.placeholder } : {}),
-      numeric: spec.type === 'number',
-      style: {
-        background:  r.bgFocused,
-        text:        r.text,
-        border:      r.borderFocused,
-        borderWidth: r.borderWidth * zoom,
-        radius:      r.radius * zoom,
-        paddingX:    r.paddingX * zoom,
-        paddingY:    r.paddingY * zoom,
-        fontSize:    this.#theme.tokens.typography.label.size * zoom,
-        fontFamily:  this.#theme.tokens.typography.fontFamily,
-        fontWeight:  String(this.#theme.tokens.typography.label.weight),
-        placeholder: r.placeholder,
-        selection:   r.selection,
-      },
-      onCommit: (value) => this.setWidgetValue(nodeId, spec.id, value),
-    })
-  }
-
-  #openWidgetCombo(
-    nodeId: NodeId, spec: Extract<WidgetSpec, { type: 'combo' }>,
-    rect: { x: number; y: number; width: number; height: number },
-  ): void {
-    const screen = this.#widgetScreenRect(nodeId, rect)
-    const node = this.graph.getNode(nodeId)
-    if (!screen || !node) return
-    this.#ensureWidgetOverlay().editCombo({
-      rect: screen,
-      options: comboOptions(spec),
-      value: widgetValue(node, spec),
-      fontSize: this.#theme.tokens.typography.label.size * this.#viewport.state.zoom,
-      onPick: (value) => this.setWidgetValue(nodeId, spec.id, value),
-    })
-  }
-
-  #openWidgetColor(
-    nodeId: NodeId, spec: Extract<WidgetSpec, { type: 'color' }>,
-    rect: { x: number; y: number; width: number; height: number },
-  ): void {
-    const screen = this.#widgetScreenRect(nodeId, rect)
-    const node = this.graph.getNode(nodeId)
-    if (!screen || !node) return
-    this.#ensureWidgetOverlay().editColor({
-      rect: screen,
-      value: String(widgetValue(node, spec)),
-      // Live preview while picking (no command); the final pick commits one undoable step.
-      onInput: (hex) => { this.#views.get(nodeId)?.updateWidget?.(spec.id, hex); this.#requestRender() },
-      onCommit: (hex) => this.setWidgetValue(nodeId, spec.id, hex),
-    })
-  }
-
-  /** Forward a drag on a custom widget to its controller's `onPointer` (widget-local coords). Live
-   *  preview via `updateWidget`; commit the final value once on pointerup (one undo step). */
-  #beginCustomWidgetDrag(
-    nodeId: NodeId, view: NodeView, spec: Extract<WidgetSpec, { type: 'custom' }>,
-    rect: { x: number; y: number; width: number; height: number },
-    ctrl: CanvasWidgetController, e: FederatedPointerEvent,
-  ): void {
-    const node = this.graph.getNode(nodeId)
-    if (!node) return
-    const stage = this.#app.stage
-    let cur = widgetValue(node, spec)
-    const send = (phase: 'down' | 'move' | 'up', gx: number, gy: number): void => {
-      const l = view.container.toLocal({ x: gx, y: gy })
-      const next = ctrl.onPointer!(phase, l.x - rect.x, l.y - rect.y, { value: cur, node, width: rect.width, height: rect.height, ...this.#widgetThemeColors(spec) })
-      if (next !== undefined) { cur = next; view.updateWidget?.(spec.id, cur); this.#requestRender() }
-    }
-    const onMove = (ev: FederatedPointerEvent): void => send('move', ev.global.x, ev.global.y)
-    const onUp = (ev: FederatedPointerEvent): void => {
-      stage.off('pointermove', onMove); stage.off('pointerup', onUp); stage.off('pointerupoutside', onUp)
-      send('up', ev.global.x, ev.global.y)
-      this.setWidgetValue(nodeId, spec.id, cur)
-    }
-    stage.on('pointermove', onMove); stage.on('pointerup', onUp); stage.on('pointerupoutside', onUp)
-    send('down', e.global.x, e.global.y)
-  }
-
-  #beginWidgetDrag(
-    nodeId: NodeId, view: NodeView, spec: WidgetSpec,
-    fullRect: { x: number; y: number; width: number; height: number },
-    e: FederatedPointerEvent,
-  ): void {
-    const rect = fullRect
-    if (spec.key === undefined) return
-    const stage = this.#app.stage
-    const valueAt = (globalX: number): number => {
-      const local = view.container.toLocal({ x: globalX, y: 0 })
-      if (spec.type === 'slider') {
-        const frac = Math.min(1, Math.max(0, (local.x - rect.x) / rect.width))
-        return spec.min + frac * (spec.max - spec.min)
-      }
-      // number: scrub — 1 step per `scrubPx` of horizontal travel from the press point.
-      const startNode = this.graph.getNode(nodeId)
-      const base = startNode ? Number(widgetValue(startNode, spec)) : 0
-      const step = spec.type === 'number' ? (spec.step ?? 1) : 1
-      const dx = local.x - startLocalX
-      return base + Math.round(dx / 4) * step
-    }
-    const startLocalX = view.container.toLocal({ x: e.global.x, y: 0 }).x
-    const startGlobalX = e.global.x
-    let moved = false
-    const onMove = (ev: FederatedPointerEvent): void => {
-      if (Math.abs(ev.global.x - startGlobalX) > 3) moved = true
-      const clamped = clampWidgetValue(spec, valueAt(ev.global.x))
-      view.updateWidget?.(spec.id, clamped)
-      this.#requestRender()
-    }
-    const onUp = (ev: FederatedPointerEvent): void => {
-      stage.off('pointermove', onMove)
-      stage.off('pointerup', onUp)
-      stage.off('pointerupoutside', onUp)
-      // A number click without dragging opens precise text entry; a slider/number drag commits.
-      if (!moved && spec.type === 'number') {
-        view.updateWidget?.(spec.id, widgetValue(this.graph.getNode(nodeId)!, spec))
-        this.#openWidgetTextEditor(nodeId, spec, fullRect)
-        return
-      }
-      this.setWidgetValue(nodeId, spec.id, valueAt(ev.global.x))
-    }
-    stage.on('pointermove', onMove)
-    stage.on('pointerup', onUp)
-    stage.on('pointerupoutside', onUp)
-  }
-
-  #beginNodeDrag(alt: boolean): void {
-    if (this.#dragState.kind !== 'pending') return
-    const initialPositions = new Map<NodeId, { x: number; y: number }>()
-    // Drag the entire selection if any; otherwise just the node that was pressed.
-    const anchorId = this.#dragState.nodeId
-    const ids = this.selection.size > 0 ? this.selection.ids() : [anchorId]
-    for (const id of ids) {
-      const node = this.graph.getNode(id)
-      if (node) initialPositions.set(id, { ...node.position })
-    }
-    // H6 — bring picked nodes to the front of #nodesLayer. Without this, dragging a node UNDER
-    // another (e.g. starting a drag from a node that overlaps a freshly-pasted one) keeps the
-    // dragged node visually beneath. Rete `simpleNodesOrder` — small UX polish, big "feels right"
-    // win. Excludes expanded macros (their frame manages its own z-order via #macroOverlayLayer).
-    for (const id of ids) {
-      const v = this.#views.get(id)
-      const n = this.graph.getNode(id)
-      if (v && n && !(isMacro(n) && n.state['collapsed'] === false)) {
-        if (v.container.parent === this.#nodesLayer) this.#nodesLayer.addChild(v.container) // re-add = move to top
-      }
-    }
-    const affectedEdges = this.#edgesAttachedTo(new Set(initialPositions.keys()))
-    this.#dragState = {
-      kind: 'active',
-      startScreen: this.#dragState.startScreen,
-      anchorId,
-      initialPositions,
-      affectedEdges,
-      alt,
-    }
-  }
-
-  /** Drop the (most recent) edge incident to `pin` and return a handle to the *other* endpoint
-   *  along with the original edge so the caller can restore it on cancel. */
-  #detachEdgeFromPin(pin: PinHandle): { other: PinHandle; original: Edge } | null {
-    const edgeId = this.#findIncidentEdgeId(pin.nodeId as NodeId, pin.pinId)
-    if (!edgeId) return null
-    const rec = this.#edgeRecords.get(edgeId)
-    if (!rec) return null
-    const original: Edge = { ...rec.edge, from: { ...rec.edge.from }, to: { ...rec.edge.to } }
-    const fromIsTorn = rec.edge.from.node === (pin.nodeId as NodeId) && String(rec.edge.from.pin) === pin.pinId
-    const otherEndRef = fromIsTorn ? rec.edge.to : rec.edge.from
-    const otherNode = this.graph.getNode(otherEndRef.node)
-    const otherPin: Pin | undefined = otherNode?.pins.find((p) => p.id === otherEndRef.pin)
-    if (!otherNode || !otherPin) return null
-    this.commandBus.apply(new DisconnectEdge(edgeId))
-    this.#disposeEdgeGraphics(edgeId)
-    return {
-      other: {
-        nodeId: String(otherNode.id),
-        pinId: String(otherPin.id),
-        direction: otherPin.direction,
-        kind: otherPin.kind,
-        type: String(otherPin.type),
-      },
-      original,
-    }
-  }
-
-  #beginPinDrag(source: PinHandle, e: FederatedPointerEvent, rewireOriginal: Edge | null): void {
-    if (this.#dragState.kind !== 'idle') return
-    const ghost = new Graphics()
-    ghost.eventMode = 'none'
-    this.#edgesLayer.addChild(ghost)
-    this.#dragState = { kind: 'pin-drag', source, ghost, hoveredTarget: null, rewireOriginal }
-    this.#updatePinDrag({ x: e.global.x, y: e.global.y }, null)
-  }
-
-  #updatePinDrag(screen: { x: number; y: number }, hoveredTarget: PinHandle | null): void {
-    if (this.#dragState.kind !== 'pin-drag') return
-    const { source, ghost } = this.#dragState
-    const sourceNode = this.graph.getNode(source.nodeId as NodeId)
-    if (!sourceNode) return
-    const sourcePos = this.#pinWorldPosition(sourceNode, source.pinId)
-    if (!sourcePos) return
-    const cursorWorld = screenToWorld(screen, this.#viewport.state)
-    const cursorEndpoint: PinLayout = {
-      id: 'ghost' as PinLayout['id'],
-      x: cursorWorld.x,
-      y: cursorWorld.y,
-      side: source.direction === 'out' ? 'left' : 'right',
-    }
-    const from = source.direction === 'out' ? sourcePos : cursorEndpoint
-    const to = source.direction === 'out' ? cursorEndpoint : sourcePos
-    this.#drawEdge(ghost, from, to, { sourceType: source.type, noMidpoint: true })
-
-    let validity: 'none' | 'valid' | 'invalid' = 'none'
-    if (hoveredTarget) {
-      const targetNode = this.graph.getNode(hoveredTarget.nodeId as NodeId)
-      const sourcePin = sourceNode.pins.find((p) => String(p.id) === source.pinId)
-      const targetPin = targetNode?.pins.find((p) => String(p.id) === hoveredTarget.pinId)
-      if (sourcePin && targetPin && targetNode) {
-        validity = this.#connectionAllowed(sourceNode, sourcePin, targetNode, targetPin) ? 'valid' : 'invalid'
-      } else {
-        validity = 'invalid'
-      }
-    }
-    ghost.alpha = validity === 'none' ? 0.55 : 1
-    ghost.tint = validity === 'invalid' ? 0xff5577 : 0xffffff
-
-    this.#dragState = { ...this.#dragState, hoveredTarget }
-  }
-
-  #endPinDrag(target: PinHandle | null): void {
-    if (this.#dragState.kind !== 'pin-drag') return
-    const { source, ghost, rewireOriginal } = this.#dragState
-    const sourceNode = this.graph.getNode(source.nodeId as NodeId)
-    const sourcePin = sourceNode?.pins.find((p) => String(p.id) === source.pinId)
-    let committed = false
-    if (target && sourceNode && sourcePin) {
-      const targetNode = this.graph.getNode(target.nodeId as NodeId)
-      const targetPin = targetNode?.pins.find((p) => String(p.id) === target.pinId)
-      if (
-        targetNode &&
-        targetPin &&
-        this.#connectionAllowed(sourceNode, sourcePin, targetNode, targetPin)
-      ) {
-        // Normalise edge orientation to (out → in) so the data model stays consistent regardless
-        // of which end the user dragged from.
-        const fromIsSource = sourcePin.direction === 'out'
-        const outNode = fromIsSource ? sourceNode : targetNode
-        const outPin: Pin = fromIsSource ? sourcePin : targetPin
-        const inNode = fromIsSource ? targetNode : sourceNode
-        const inPin: Pin = fromIsSource ? targetPin : sourcePin
-        const edge: Edge = {
-          id: createEdgeId(),
-          from: { node: outNode.id, pin: outPin.id as PinId },
-          to: { node: inNode.id, pin: inPin.id as PinId },
-        }
-        const opts: RenderEdgeOptions = { sourceType: String(outPin.type) }
-        // Cancellable hook — a plugin can veto a user-dragged connection by calling cancel().
-        // Same gate the public addEdge() runs through; without it, only programmatic edges would
-        // be vetoable and the interactive drop would silently sneak past.
-        if (firePreventable(this.#events, 'edge:connecting', { edge })) {
-          this.#edgeOpts.set(edge.id, opts)
-          this.commandBus.apply(new ConnectPins(edge))
-          committed = true
-        }
-      }
-    }
-    ghost.parent?.removeChild(ghost)
-    ghost.destroy()
-    this.#dragState = { kind: 'idle' }
-    // Rewire dropped in empty space (or on incompatible) → snap the original edge back. Same
-    // behaviour as Esc; matches UE Blueprint where releasing into the void cancels the reroute.
-    if (!committed && rewireOriginal) this.#restoreEdge(rewireOriginal)
-  }
-
-  /** Multi-touch gesture took over the canvas — drop any single-pointer drag without committing it.
-   *  Node drags revert visually to initial positions (no command pushed); pin drags use the existing
-   *  cancel path (ghost destroyed, rewired edge restored). Marquee state lives inside
-   *  #wireStageInteraction's closure and resets on the next pointerup. */
-  #cancelInFlightInteraction(): void {
-    this.#cancelMarqueeRef?.()
-    if (this.#dragState.kind === 'pin-drag') { this.#cancelPinDrag(); return }
-    if (this.#dragState.kind === 'pending')  { this.#dragState = { kind: 'idle' }; return }
-    if (this.#dragState.kind === 'active') {
-      for (const [id, initial] of this.#dragState.initialPositions) {
-        const view = this.#views.get(id)
-        if (view) view.container.position.set(initial.x, initial.y)
-      }
-      for (const edgeId of this.#dragState.affectedEdges) this.#redrawEdge(edgeId)
-      this.#dragState = { kind: 'idle' }
-      this.#requestRender()
-    }
-  }
-
-  #cancelPinDrag(): void {
-    if (this.#dragState.kind !== 'pin-drag') return
-    const { rewireOriginal } = this.#dragState
-    this.#dragState.ghost.parent?.removeChild(this.#dragState.ghost)
-    this.#dragState.ghost.destroy()
-    this.#dragState = { kind: 'idle' }
-    if (rewireOriginal) this.#restoreEdge(rewireOriginal)
-  }
-
-  /** Re-create an edge that was removed at the start of a rewire when the drag is cancelled or
-   *  dropped in empty space. Pushes a ConnectPins command so it lands in undo history. */
-  #restoreEdge(edge: Edge): void {
-    const fromNode = this.graph.getNode(edge.from.node)
-    if (!fromNode) return
-    const fromPin = fromNode.pins.find((p) => p.id === edge.from.pin)
-    if (!fromPin) return
-    const opts: RenderEdgeOptions = { sourceType: String(fromPin.type) }
-    this.#edgeOpts.set(edge.id, opts)
-    this.commandBus.apply(new ConnectPins(edge))
-  }
-
-  #endNodeDrag(altOnRelease: boolean): void {
-    if (this.#dragState.kind === 'pending') {
-      this.#dragState = { kind: 'idle' }
-      return
-    }
-    if (this.#dragState.kind !== 'active') return
-
-    const snap = altOnRelease || this.#dragState.alt ? null : this.#snapSize
-    const state = this.#dragState
-    const movedIds = [...state.initialPositions.keys()]
-    const affected = state.affectedEdges
-    const anchorInitial = state.initialPositions.get(state.anchorId)
-    const anchorView = this.#views.get(state.anchorId)
-    const rawDelta = anchorInitial && anchorView
-      ? {
-          x: anchorView.container.position.x - anchorInitial.x,
-          y: anchorView.container.position.y - anchorInitial.y,
-        }
-      : { x: 0, y: 0 }
-    const finalDelta = anchorInitial
-      ? computeGroupSnappedDelta(anchorInitial, rawDelta, snap)
-      : rawDelta
-
-    this.commandBus.transaction(() => {
-      for (const [id, initial] of state.initialPositions) {
-        const view = this.#views.get(id)
-        if (!view) continue
-        const target = { x: initial.x + finalDelta.x, y: initial.y + finalDelta.y }
-        view.container.position.set(target.x, target.y)
-        this.commandBus.apply(new MoveNode(id, target))
-      }
-    })
-
-    this.#dragState = { kind: 'idle' }
-    void movedIds
-    // Sync edges to the now-committed positions.
-    for (const edgeId of affected) this.#redrawEdge(edgeId)
-  }
+  #wireStageInteraction(): void { this.#pointer.wireStageInteraction() }
+  #wireNodeInteraction(id: NodeId, view: NodeView): void { this.#pointer.wireNodeInteraction(id, view) }
+  #ensureWidgetOverlay(): WidgetOverlay { return this.#pointer.ensureWidgetOverlay() }
+  #cancelInFlightInteraction(): void { this.#pointer.cancelInFlightInteraction() }
+  #cancelPinDrag(): void { this.#pointer.cancelPinDrag() }
 }
 
 // Keep an unused PIXI re-export bound so TS doesn't tree-shake the symbol away.
