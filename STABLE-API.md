@@ -29,7 +29,7 @@ otherwise. File an issue and we'll classify it.
 | Commands: `AddNode`, `RemoveNode`, `ConnectPins`, `DisconnectEdge`, `MoveNode`, `SetNodeState`, `SetNodePins`, `SetNodeWidgets` | The atomic mutation set. Other commands exist (macros, templates) — those are stable too but listed in their respective module sections below. |
 | `CommandBus` (read interface) | `apply`, `undo`, `redo`, `canUndo`, `canRedo`, `transaction`, `clearHistory`. |
 | Types: `Node`, `Edge`, `Pin`, `NodeId`, `EdgeId`, `PinId`, `NodeGlyph`, `Vec2`, `Unsubscribe` | |
-| Traversal: `topoOrder`, `reachableFrom`, `descendantsOf`, `ancestorsOf` | |
+| Traversal: `topoOrder`, `wouldCreateCycle`, `reachableFrom`, `evaluateGraph` | `evaluateGraph(graph, compute)` runs a host dataflow pass. It is not an execution engine. |
 | ID minters: `createNodeId`, `createEdgeId`, `createPinId`, `pinId`, `createCommentId` | |
 | `defaultWidgetValue`, `comboOptions`, `clampWidgetValue` | |
 | Template helpers: `isTemplateInstance`, `isTemplateBoundary`, `getTemplateBoundary` | |
@@ -55,7 +55,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.createTemplateFromSelection`, `editor.renameTemplate`, `editor.unpackTemplateInstance`, `editor.convertTemplateInstanceToMacro`, `editor.convertMacroToTemplate`, `editor.diveInto`, `editor.diveOut`, `editor.diveDepth`, `editor.definitions` | |
 | `editor.registerWidget(name, controller)`, `editor.setWidgetValue`, `editor.getWidgetValue`, `editor.setPinLiveValueProvider`, `editor.setNodeGlyph` | |
 | `editor.exportJSON()`, `editor.exportImage(opts)`, `editor.exportNodeImage(id, opts)` | |
-| `editor.setTheme(theme)`, `editor.theme`, `editor.tokens`, `editor.setCategoryPalette`, `editor.setEdgeOptions`, `editor.setEdgeAnimated` | |
+| `editor.setTheme(theme)`, `editor.theme`, `editor.tokens`, `editor.setCategoryPalette`, `editor.setDefaultEdgeOptions`, `editor.getEdgeOptions`, `editor.setEdgeOptions`, `editor.setEdgeAnimated` | `setDefaultEdgeOptions` fills fields a wire does not set itself. `getEdgeOptions` returns the merge. |
 | `editor.openPalette(screen?)`, `editor.closePalette`, `editor.isPaletteOpen`, `editor.insertNode`, `editor.insertRerouteOnEdge`, `editor.setPaletteSidebar` | |
 | `editor.openSidebar(nodeId)`, `editor.closeSidebar`, `editor.isSidebarOpen`, `editor.refreshSidebar` | |
 | `editor.setBreadcrumbVisible(v)` | |
@@ -125,8 +125,6 @@ Peer dep: `pixi.js@^8.6.0`.
 |---|---|
 | `@xenolithengine/graph-theme-xen` | `xenTheme` (default), `xenTokens`, `mergeTheme`. Fonts are declared on each theme (`theme.fonts: FontSpec[]`) and auto-loaded by the editor — Google Fonts CDN by default, opt-in self-host via `editor.fonts.selfHost({ 'Inter|400': '/url.woff2', ... })` or `XenolithEditor.init(host, { fontUrls: {...} })`. |
 | `@xenolithengine/graph-theme-liquid-glass` | `liquidGlassTheme`. |
-| `@xenolithengine/graph-theme-holographic` | `holographicTheme`. |
-| `@xenolithengine/graph-theme-synthwave` | `synthwaveTheme`. |
 
 ### Plugins
 
@@ -201,7 +199,7 @@ These surfaces exist publicly but may change shape before v1.0. Use them, but pi
 |---|---|
 | `@xenolithengine/graph-plugin-runtime` — `Runtime`, `attachRuntimeBridge`, `BUILTIN_PRIMITIVES` | Blueprint VM is in active development; backend swap (baked JS / JS codegen / AS-WASM) may rearrange exports. |
 | `@xenolithengine/graph-runtime-as` | AssemblyScript-WASM codegen runtime — entire package experimental. |
-| `@xenolithengine/graph-mcp-server` — tool catalog | The 24-tool surface is stable, but tool argument shapes may add fields under semver-minor. |
+| `@xenolithengine/graph-mcp-server` — tool catalog | The 25-tool surface (`TOOL_NAMES` in `packages/mcp-server/src/tools.ts`) is the catalog, but tool argument shapes may add fields under semver-minor. |
 | `editor.connectMCP(url)` | The WS bridge protocol may add frames; existing frames stay backward-compatible. |
 | `StepDebugger`, `StepExecutor`, `StepRecord`, `StepDebuggerStatus` | Step debugger primitive — used by showcases; the events array shape is still settling. |
 | Touch / mobile interactions (`intent:long-press*`, `intent:gesture-*`) | The 5 gesture events on `InteractionManager` are public but may grow new ones (3-finger, pinch with rotation). |

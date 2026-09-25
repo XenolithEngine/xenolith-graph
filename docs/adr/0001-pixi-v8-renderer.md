@@ -26,9 +26,10 @@ Use **PIXI v8** as the renderer backend. It is **a peer dependency** of `@xenoli
 ## Consequences
 
 - We accept PIXI's API surface as part of our development experience and tooling.
-- Renderer-specific code lives strictly inside `@xenolithengine/graph-render-pixi`. Core and editor layers never import PIXI types.
-- If a future user needs a non-PIXI build (e.g. Canvas2D-only for an embedded environment), they can write `@xenolithengine/graph-render-canvas` against the same renderer interface defined by the editor.
-- Bundle budget for `@xenolithengine/graph-render-pixi`: < 80 kB gzip excluding PIXI. PIXI itself is ~250 kB gzip and is the host's responsibility.
+- `@xenolithengine/graph-core` does not import PIXI.
+- `@xenolithengine/graph-editor` does. `XenolithEditor` (`packages/editor/src/index.ts`) constructs the PIXI `Application` and owns the scene containers, render textures, and bake cache. `PluginContext.app` is typed as PIXI `Application`. `theme-daylight` and `theme-liquid-glass` import PIXI in their node renderers. The sentence "the editor never imports PIXI" described the intended layering; it is not true of the code.
+- A non-PIXI renderer is not a drop-in. There is no renderer interface on the editor yet. Extracting that seam from `XenolithEditor` comes before any second backend.
+- Bundle budget for `@xenolithengine/graph-render-pixi`: < 80 kB gzip excluding PIXI. PIXI itself is a peer dependency. The full `pixi.js` entry is about 250 kB gzip; a bundler that imports named symbols from that entry still pulls most of the package because `lib/index.mjs` is marked `sideEffects`.
 
 ## Reconsider if
 

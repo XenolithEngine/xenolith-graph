@@ -4,13 +4,13 @@ This document describes the locked-in architecture for v0.x. Individual decision
 
 ## 1. Principles
 
-1. **Headless first.** The core graph model, types, and command bus run with zero dependencies and no awareness of DOM, Canvas, or PIXI. This makes the library testable without a browser and lets the rendering backend be replaced in v2.x without rewriting logic.
+1. **Headless first.** The core graph model, types, and command bus run with zero dependencies and no awareness of DOM, Canvas, or PIXI. This makes the core testable without a browser. Replacing the renderer still means extracting the PIXI scene out of `XenolithEditor` first — the editor imports PIXI today (ADR-0001).
 2. **WebGL by default.** PIXI v8 is the default renderer because the perf gap over Canvas2D on 500+ node graphs is the entire reason this library exists. (See ADR-0001.)
 3. **TypeScript-first, ESM-only.** No CommonJS build output. Targets ES2022. No legacy.
 4. **Framework-agnostic core + thin adapters.** React, Vue, Svelte get tiny wrappers around the same engine. No framework is privileged.
 5. **Blueprint semantics are first-class.** Typed pins, `exec` vs `data` kind, type-color system, K2-style search palette — these live in the core model, not in a theme.
 6. **No new dependencies in `@xenolithengine/graph-core`. Ever.** Render and adapter layers may add deps but each addition requires PR justification.
-7. **Perf budgets enforced in CI.** Without them, this library decays into "the next slow node editor."
+7. **Gzip budgets enforced in CI** via `pnpm size` and `.size-limit.json`. Frame-time targets in §11 are product targets. CI does not measure them.
 
 ## 2. Layered model
 
@@ -35,7 +35,7 @@ This document describes the locked-in architecture for v0.x. Individual decision
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Strict rule:** an upper layer may import from any layer below it. A lower layer may **never** import from a layer above it. CI enforces this with import-boundary rules.
+**Strict rule:** an upper layer may import from any layer below it. A lower layer may **never** import from a layer above it. This is a convention. CI does not run an import-boundary linter, and the editor currently imports PIXI directly rather than only through `graph-render-pixi`.
 
 ## 3. Package map
 
@@ -43,25 +43,36 @@ This document describes the locked-in architecture for v0.x. Individual decision
 |---|---|---|
 | `@xenolithengine/graph-core` | shipped | Headless graph model, types, command bus, events, plan-* helpers for macros/templates/reroutes. Zero deps. |
 | `@xenolithengine/graph-render-pixi` | shipped | PIXI v8 renderer (nodes, edges, comments, macros, widgets, glyphs, LOD sprite/flat). PIXI is a **peer** dependency. |
-| `@xenolithengine/graph-editor` | shipped | Composes renderer + interaction + commands + **plugin host**. Owns lifecycle, palette, minimap, overlays, dive-stack. Bundles undo, serialize, clipboard, palette, alignment guides — not separate plugins. |
+| `@xenolithengine/graph-editor` | shipped | Composes renderer + interaction + commands + **plugin host**. Owns lifecycle, palette, minimap, overlays, dive-stack. Bundles undo, serialize, clipboard, palette. Also owns the PIXI `Application` (see ADR-0001). Grid snap on drag; no alignment guides. |
 | `@xenolithengine/graph-theme-xen` | shipped | Default theme (Xen — original dark/gold design system). Tokens originate from Figma. |
+| `@xenolithengine/graph-theme-daylight` | shipped | Light theme. Own `renderNode` (protruding pin halos). |
 | `@xenolithengine/graph-theme-liquid-glass` | shipped | Optional shader-based theme: refraction + rim lighting via PIXI `Mesh`+`Shader` and a backdrop `RenderTexture`. |
 | `@xenolithengine/demo` | shipped | One `xenolith.v1` data graph + ComfyUI importer + topology-reactive runners. Consumed by every demo host. |
 | `@xenolithengine/graph-adapter-core` | shipped | Framework-agnostic editor wrapper used by the WC + framework adapters. |
 | `@xenolithengine/graph-wc` | shipped | Web-component adapter (universal). |
 | `@xenolithengine/graph-react` | shipped | React adapter: `<XenolithPanel>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithButton>`, reactive selector hooks, editor context. |
-| `@xenolithengine/graph-vue` / `@xenolithengine/graph-svelte` / `@xenolithengine/graph-solid` | planned | Thin adapters over `adapter-core` + `wc`. React parity is the contract. |
-| `@xenolithengine/graph-plugin-runtime` | in progress | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs into the editor through the plugin host using `setNodePins`, `setWidgetValue({ephemeral})`, `expandTemplateInstance`, `onTick`, `setEdgeAnimated`, `graphSnapshot`. Execution is **not** in the editor itself. |
+| `@xenolithengine/graph-vue` | shipped | Vue 3 adapter: component, composables, panels, `vueWidget`. |
+| `@xenolithengine/graph-svelte`, `@xenolithengine/graph-solid`, `@xenolithengine/graph-angular` | shipped, thin | Mount the editor and re-dispatch events. No panel or hook surface at React/Vue parity. |
+| `@xenolithengine/graph-plugin-autolayout` | shipped | Dagre and ELK. One undo step for the finished positions. |
+| `@xenolithengine/graph-mcp-server` | shipped | MCP server. 25 tools + 2 resources (`graph://current`, `schema://types`). |
+| `@xenolithengine/graph-plugin-runtime` | experimental | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs through the plugin host. Execution is **not** in the editor itself. API may still move. |
+| `@xenolithengine/graph-runtime-as` | experimental | AssemblyScript → WASM codegen for the runtime VM. |
 
 The earlier separate `plugin-search` / `plugin-undo` / `plugin-serialize` / `plugin-minimap` / `plugin-clipboard` / `plugin-alignment` packages were folded into `@xenolithengine/graph-editor` once it became clear they have no reuse outside it. The published plugin surface is now `editor.use(plugin)` for third-party extensions (see §8).
+
+`XenolithEditor` (`packages/editor/src/index.ts`) is still the public class and still owns the PIXI `Application`. Private `#` fields cannot move to another file, so the cohesive slices sit beside the class and receive a host object: `comments-controller.ts` (comment frames), `subgraph.ts` (macros, templates, dive), `pointer-controller.ts` (marquee, node drag, pin connect, widget gestures). Public methods stay on `XenolithEditor`.
 
 Apps under `apps/`:
 
 | App | Purpose |
 |---|---|
-| `playground` | Vite-based dev sandbox. Used during library development. |
-| `docs` | Documentation site (Astro or Docusaurus, decided in v0.4). |
-| `examples/llm-workflow` | Showcase clone of a LangFlow-style tool built on XenolithGraph. The launch artifact for v0.5. |
+| `playground` | Vite dev sandbox. |
+| `site` | Docs and landing (Astro Starlight). |
+| `demo-react` | React showcase, including an LLM-builder demo. |
+| `comfy-demo` | ComfyUI JSON import. |
+| `fairqueue-demo` | Domain simulation on the runtime VM. |
+| `baklava-parity` | Vue parity bench against Baklava. |
+| `wasm-demo` | AssemblyScript runtime demo. |
 
 ## 4. Core data model (sketch)
 
@@ -209,7 +220,7 @@ Gestures shipped:
 - keyboard: `Delete` · `⌘Z` / `⌘⇧Z` · `⌘C` / `⌘V` · `⌘D` (duplicate) · `⌘A` (select-all top-level) · `Tab` (palette)
 - right-click a node or edge → context menu (Rename, Convert to Group / Template, Unpack, Ungroup, etc., context-sensitive)
 
-Touch / mobile is a tracked v1.0 gap. The Pointer-Events infrastructure is in place; pinch-zoom + two-finger pan + long-press menu are the planned additions.
+Touch: pinch-zoom, two-finger pan, and long-press are implemented on `InteractionManager`. Virtual keyboard, finger marquee, and drawer polish are still open.
 
 ## 8. Plugin host
 
@@ -251,13 +262,13 @@ editor.use(plugin)            // mounts the plugin; disposer is called on editor
 
 ### Built-in plugins (folded into the editor)
 
-Undo/redo, JSON `xenolith.v1` serialize, copy/paste, K2-style Tab palette with fuzzy search, minimap, alignment guides, keyboard shortcuts, comment/macro/template authoring — all live in `@xenolithengine/graph-editor` because none of them have any meaning outside it. `editor.use()` exists for *new* surfaces the editor cannot anticipate.
+Undo/redo, JSON `xenolith.v1` serialize, copy/paste, K2-style Tab palette with fuzzy search, minimap, grid snap, keyboard shortcuts, comment/macro/template authoring — all live in `@xenolithengine/graph-editor` because none of them have any meaning outside it. There are no alignment guides. `editor.use()` exists for *new* surfaces the editor cannot anticipate.
 
-### Planned third-party consumers
+### Extensions
 
-- `@xenolithengine/graph-plugin-runtime` — Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs via `editor.use(runtime({...}))` and uses the runtime-delegation surface above.
-- `@xenolithengine/graph-layout-elk` — auto-layout (ELK/Dagre) plugin reading `graphSnapshot` and emitting batched move commands.
-- Collaboration: a `yjsAdapter(editor, ydoc)` plugin mapping commands ⇄ Y-ops with `Y.Text` for comment / textfield bodies and LWW for positions. Deferred (see §14).
+- `@xenolithengine/graph-plugin-runtime` — experimental Blueprint VM. Installs via `editor.use` and uses the runtime-delegation surface above.
+- `@xenolithengine/graph-plugin-autolayout` — shipped Dagre and ELK adapter. Reads a snapshot and emits batched move commands.
+- Collaboration: a `yjsAdapter(editor, ydoc)` plugin mapping commands ⇄ Y-ops with `Y.Text` for comment / textfield bodies and LWW for positions. Not started.
 
 ## 8.5. Subgraph patterns
 
@@ -326,25 +337,36 @@ JSON `xenolith.v1.json` with strict schema:
 
 The format is treated as **load-bearing infrastructure**. Breaking changes between major versions require a migration; minor versions never break.
 
-## 11. Performance budgets (CI-enforced)
+## 11. Performance
 
-These are not advisory:
+### Product targets
 
-| Metric | Budget |
+Not measured in CI. There is no frame-time job in `.github/workflows/ci.yml`.
+
+| Metric | Target |
 |---|---|
 | Frame time, 500 nodes / 1000 edges | 16.6 ms (60 fps) on M1 / Ryzen 5 |
 | Frame time, 40k+ nodes (virtualized) | ~4–7 ms |
 | Drag of 50 selected nodes | 0 GC pauses over 5 s |
 | Cold-start with 100 nodes | < 100 ms |
-| `@xenolithengine/graph-core` bundle | < 30 kB gzip |
-| `@xenolithengine/graph-render-pixi` bundle | < 80 kB gzip (PIXI excluded as peer) |
-| `@xenolithengine/graph-editor` bundle | < 50 kB gzip |
 
-Bench harness runs in CI on a fixed runner. A PR that regresses any budget either fixes it or is reverted.
+Large graphs are a shipped property of the mechanisms below. A 58k-node pass is recorded here; DOM editors fall over around a few hundred nodes. Do not describe these rows as CI gates.
+
+### Gzip ceilings (CI)
+
+`pnpm size` enforces `.size-limit.json`. A PR that blows one fails CI.
+
+| Package | Ceiling |
+|---|---|
+| `@xenolithengine/graph-core` | < 30 kB gzip |
+| `@xenolithengine/graph-render-pixi` | < 80 kB gzip (PIXI excluded as peer) |
+| `@xenolithengine/graph-editor` | < 120 kB gzip (PIXI excluded as peer) |
+
+The README badge reports the editor at 74.3 kB gzip. That is a published measurement, not the ceiling.
 
 ### Load-bearing perf mechanisms
 
-These are the *how* behind the budgets — touching any of them requires a before/after measurement on a large graph (the harness exposes one via `window.__xenoEditor` in playground builds).
+These are the *how* behind the product targets. Touching any of them needs a before/after look at a large graph. The playground exposes the editor as `window.__xenoEditor`. That hook is not a CI bench.
 
 - **Render-on-demand.** `renderer.render()` runs only when the scene actually changes. Static graphs idle at 0 fps cost. Animated edges, drags, viewport changes invalidate.
 - **Viewport virtualization + 3-tier LOD.** Nodes outside an overscanned viewport are not in the scene at all. Nodes inside the overscan but far from focus are baked to a single `Sprite` (sprite tier); even farther, drawn as a batched solid rect (flat tier). Hysteresis prevents churn at the threshold. Tested at 58k nodes; defaults tuned for ≥300 nodes. Configurable per theme (Liquid Glass tier sooner).
@@ -362,13 +384,14 @@ Rule: O(visible), not O(N).
 |---|---|---|
 | **v0.1** | Core + render-pixi + editor MVP. Pan/zoom, selection, drag. | shipped |
 | **v0.2** | Typed pins, Xen theme, Tab palette, undo, JSON serialize. | shipped |
-| **v0.3** | Comments, two reroute kinds + edge-midpoint menu, copy/paste, minimap, alignment guides. | shipped |
+| **v0.3** | Comments, two reroute kinds + edge-midpoint menu, copy/paste, minimap, grid snap. | shipped |
 | **v0.4** | React adapter (XenolithPanel/Controls/MiniMap/Button + hooks), Liquid Glass theme, docs site, landing page. | shipped |
 | **v0.5** | Widgets (number/slider/combo/text/toggle/color/button + canvas-draw + DOM-mount), Macros (collapse-groups), Live templates (definition + dive-in + convert), Plugin host (`editor.use` + `PluginContext`), glyphs, UE-Blueprint header layout, virtualization + LOD (58k tested). | shipped |
-| **v0.6** | `@xenolithengine/graph-plugin-runtime` (Blueprint VM); Vue/Svelte/Solid adapters; touch/mobile (pinch-zoom + long-press); accessibility (ARIA + keyboard nav); auto-layout plugin (ELK/Dagre). | in progress / planned |
-| **v1.0** | Public API freeze, `xenolith.v1` format freeze, all perf budgets green in CI, docs site complete. | planned |
+| **v0.6** | Runtime VM (experimental, shipped as a package). Vue adapter at panel parity. Thin Svelte / Solid / Angular mounts. Touch: pinch, two-finger pan, long-press. Auto-layout (Dagre + ELK). | shipped, with the gaps below |
+| **v0.6 gaps** | Canvas accessibility (ARIA + keyboard nav of nodes) is not done. Mobile polish beyond the gestures above is open. | open |
+| **v1.0** | Public API freeze, `xenolith.v1` format freeze. Gzip ceilings already run in CI. | planned |
 
-Optional / on-demand (not on the critical path): Yjs collab adapter (see [project_xeno_collab_plan](../memory/) — deferred), orthogonal edge routing, LLM-workflow showcase example.
+Not started: Yjs collab, orthogonal edge routing that avoids obstacles.
 
 ## 13. Conventions
 
