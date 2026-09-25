@@ -37,4 +37,4 @@ export const daylightTheme: XenolithTheme = {
 
 export { daylightTokens } from './tokens.js'
 
-export const VERSION = '0.7.0-beta.4'
+export const VERSION = '0.7.0-beta.5'

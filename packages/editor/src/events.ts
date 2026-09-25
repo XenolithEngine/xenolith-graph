@@ -1,14 +1,14 @@
-import {
+import type {
   EventEmitter,
-  type Command,
-  type CoreEvents,
-  type Edge,
-  type EdgeId,
-  type Graph,
-  type Node,
-  type NodeId,
-  type Unsubscribe,
-  type Vec2,
+  Command,
+  CoreEvents,
+  Edge,
+  EdgeId,
+  Graph,
+  Node,
+  NodeId,
+  Unsubscribe,
+  Vec2,
 } from '@xenolithengine/graph-core'
 
 /** The public event surface of the editor — observe these via `editor.on(name, handler)`.

@@ -2,7 +2,7 @@
 
 Open-source embeddable node-graph editor for the web with **a polished, opinionated node-editor design system as first-class** — not a theme layered on top of a generic flowchart library. The default theme is **Xen**, an original dark/gold design language defined in Figma.
 
-Working name: **XenolithGraph** (subject to change before v0.1).
+Working name: **XenolithGraph**. Current release: **v0.7.0-beta.5**.
 
 ---
 
@@ -26,7 +26,7 @@ Concrete rules:
 - **Bug fix ⇒ regression test first.** Reproduce the bug as a failing test, then fix.
 - **Refactor with zero test changes is the cleanest signal everything is fine.** If a refactor forces a test rewrite, the test was probably coupled to implementation, not behaviour — flag it in the PR.
 
-CI is configured to reject PRs where coverage drops or where any test was skipped/disabled without an issue link.
+CI (`.github/workflows/ci.yml`) runs the package build, unit tests, playground Playwright excluding `@visual`, and `pnpm size`. It does not measure coverage, and it does not fail when a test is skipped. Do not describe either of those gates as if they exist.
 
 When Claude works in this repo: **read this section before writing any code in `packages/` or `apps/`.** If a task seems to require implementation without a test, push back and ask. This is the single most important rule in the project.
 
@@ -50,7 +50,9 @@ Primary target users: AI/LLM workflow builders, audio/DSP graph editors, shader/
 - Not coupled to any external engine, file format, or product. The Xen design system is original; references to blueprint-style editors are influence, not reproduction.
 - Not React-only. React/Vue/Svelte get adapters; the core is framework-agnostic.
 
-## Architecture (planned)
+## Architecture
+
+Shipped at v0.7.0-beta.5. The live package map is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The table below is the original sketch: minimap, palette, undo, serialize, and clipboard live inside `@xenolithengine/graph-editor`, not as separate plugins. `@xenolithengine/graph-core` does not import PIXI. `@xenolithengine/graph-editor` does — `XenolithEditor` owns the PIXI scene. See ADR-0001.
 
 Layered, headless-first:
 
@@ -68,7 +70,7 @@ Layered, headless-first:
 
 The strict rule: a layer may know about layers below it, never above. The core has zero runtime dependencies and zero references to DOM, Canvas, or PIXI.
 
-### Planned packages (pnpm monorepo)
+### Packages (original sketch)
 
 | Package | Role |
 |---|---|
@@ -77,7 +79,7 @@ The strict rule: a layer may know about layers below it, never above. The core h
 | `@xenolithengine/graph-editor` | Wires core + renderer + interaction + plugins into a usable editor. |
 | `@xenolithengine/graph-react`, `@xenolithengine/graph-svelte`, `@xenolithengine/graph-vue` | Thin adapters. |
 | `@xenolithengine/graph-theme-xen` | Default theme (Xen — original design system from the Figma source). |
-| `@xenolithengine/graph-plugin-*` | Minimap, search palette, undo, serialize, clipboard, alignment. |
+| `@xenolithengine/graph-plugin-*` | Third-party extensions via `editor.use`. Auto-layout ships as `@xenolithengine/graph-plugin-autolayout`. |
 
 ### Tooling baseline
 
@@ -87,16 +89,23 @@ The strict rule: a layer may know about layers below it, never above. The core h
 - Changesets for versioning and releases.
 - MIT license.
 
-### Performance invariants (CI-enforced from day one)
+### Performance
 
-Without hard perf gates this becomes the next slow node library. Targets:
+Product targets. They are not a CI job: `.github/workflows/ci.yml` has no frame-time or GC gate.
 
 - 500 nodes / 1000 edges at 60fps on Apple Silicon / Ryzen 5.
 - 0 GC pauses during a 5-second drag.
 - Cold-start with 100 nodes under 100 ms.
-- `@xenolithengine/graph-core` bundle < 30 kB gzip; `@xenolithengine/graph-render-pixi` < 80 kB gzip (excluding PIXI as a peer).
 
-CI fails on regression.
+Large graphs are a shipped property of the renderer (viewport virtualization and LOD). `docs/ARCHITECTURE.md` records a 58k-node pass. DOM editors fall over around a few hundred nodes.
+
+CI does enforce the gzip ceilings in `.size-limit.json` via `pnpm size`:
+
+- `@xenolithengine/graph-core` < 30 kB gzip.
+- `@xenolithengine/graph-render-pixi` < 80 kB gzip, PIXI excluded.
+- `@xenolithengine/graph-editor` < 120 kB gzip, PIXI excluded.
+
+A PR that blows a size-limit ceiling fails CI.
 
 ## Core data model (sketch)
 
@@ -128,12 +137,7 @@ All mutations flow through a `CommandBus` (every change is an `apply/undo` pair)
 
 ## Roadmap
 
-- **v0.1** — core + render-pixi + editor MVP. Nodes, pins, edges, pan/zoom, selection, drag. No undo, no palette. Vite playground demo.
-- **v0.2** — typed pins, connection validation, Xen theme, Tab palette, undo, JSON serialization.
-- **v0.3** — comments, reroute nodes, copy/paste, minimap, search plugin.
-- **v0.4** — React / Vue / Svelte adapters, docs site, landing page.
-- **v0.5** — LLM-workflow showcase (a visibly better-looking LangFlow clone built on Xenolith). This is the launch artifact for Twitter / HN.
-- **v1.0** — stable API, frozen file format, CI-enforced perf budgets.
+v0.1 through the v0.7.0-beta.5 public beta are shipped: core, PIXI renderer, editor, themes (Xen, Daylight, Liquid Glass), React and Vue adapters, thin Svelte / Solid / Angular / web-component mounts, MCP, auto-layout. v1.0 is the API and `xenolith.v1` freeze. Detail lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §12 and the README.
 
 ## Conventions for contributors (and Claude)
 
@@ -141,10 +145,10 @@ All mutations flow through a `CommandBus` (every change is an `apply/undo` pair)
 - **No backwards-compat shims** until v1.0. Until then, breaking changes go in changesets with a clear migration note.
 - **No new dependencies in `@xenolithengine/graph-core` ever.** Headless core stays zero-dep. Render and adapter layers may add deps but each addition needs justification in the PR.
 - **Every public API change ships with a Vitest test.** Every interaction change ships with a Playwright test.
-- **Perf budgets are not advisory.** A PR that blows the budget either fixes it or gets reverted.
+- **Bundle-size budgets in `.size-limit.json` are not advisory.** A PR that blows one fails CI. Frame-time targets are product targets until a CI job exists.
 - **PIXI shaders / filters: read the docs and source, never guess.** Custom `GlProgram` / `GpuProgram` / `Shader` / `Filter` work must be verified against the actual PIXI v8 source (or live docs at https://pixijs.com/8.x/guides) before writing. GLSL preamble handling, uniform-block conventions, and version-directive prepending differ between APIs and have burned us already. Cheap validation: ship a 5-line dummy shader (`finalColor = vec4(1, 0, 0, 1)`) into the playground and confirm it compiles before scaling up.
 - **The Figma source is the canonical visual reference.** When in doubt about a visual choice, the Xen Figma file is the source of truth — not Claude's interpretation, not other editors. Reference assets live in `packages/theme-xen/reference/`. For interaction patterns Figma doesn't cover (palette behaviour, drag-from-pin to empty space, pin hover halo), established blueprint-style editors are useful inspiration, but the visual outcome must match Xen.
 
 ## Status
 
-Pre-v0.1. Architecture under discussion; no code committed yet. See conversation history with Claude (or future ADRs under `docs/adr/`) for design decisions in flight.
+v0.7.0-beta.5 public beta. The library is implemented. The public API in [`STABLE-API.md`](STABLE-API.md) is not frozen. Live architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Decisions: [`docs/adr/`](docs/adr/).
