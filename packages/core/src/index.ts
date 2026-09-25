@@ -1,4 +1,4 @@
-export const VERSION = '0.7.0-beta.4'
+export const VERSION = '0.7.0-beta.5'
 
 export { EventEmitter } from './event-emitter.js'
 export type { EventMap, Listener, Unsubscribe, ErrorListener } from './event-emitter.js'
@@ -16,6 +16,8 @@ export type { NodeId, EdgeId, PinId, CommentId, TypeId } from './ids.js'
 export { Graph } from './graph.js'
 export type { Node, Edge, Pin, Comment, Vec2, PinKind, PinDirection, NodeGlyph } from './graph.js'
 export { incomers, outgoers, connectedEdges, roots, leaves, topoOrder, wouldCreateCycle, reachableFrom } from './traversal.js'
+export { evaluateGraph } from './evaluate.js'
+export type { NodeCompute, EvaluateGraphResult } from './evaluate.js'
 
 export { CommandBus } from './command-bus.js'
 export type { Command, CommandContext, CommandBusOptions, CoreEvents } from './command-bus.js'
@@ -70,5 +72,5 @@ export type {
 export { flattenTemplateInstance, flattenAllTemplateInstances } from './template-flatten.js'
 export type { FlattenedTemplate, PinRef } from './template-flatten.js'
 
-export { defaultWidgetValue, widgetValue, clampWidgetValue, comboOptions, widgetVisibility, widgetBindKey, widgetIsVisible } from './widget.js'
+export { defaultWidgetValue, widgetValue, clampWidgetValue, comboOptions, widgetVisibility, widgetBindKey, widgetIsVisible, widgetRendersInBody } from './widget.js'
 export type { WidgetSpec, WidgetType, WidgetStyle, ComboOption, ComboOptionResolved } from './widget.js'

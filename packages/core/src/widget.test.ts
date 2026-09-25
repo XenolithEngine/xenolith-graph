@@ -7,6 +7,7 @@ import {
   widgetVisibility,
   widgetBindKey,
   widgetIsVisible,
+  widgetRendersInBody,
   type WidgetSpec,
 } from './widget.js'
 import type { Node } from './graph.js'
@@ -21,6 +22,14 @@ const slider = (o: Partial<Extract<WidgetSpec, { type: 'slider' }>> = {}): Widge
   ({ id: 'w', type: 'slider', label: 'S', key: 's', min: 0, max: 10, ...o })
 const combo = (values: Extract<WidgetSpec, { type: 'combo' }>['values']): WidgetSpec =>
   ({ id: 'w', type: 'combo', label: 'C', key: 'c', values })
+
+describe('widgetRendersInBody', () => {
+  it('draws in the node unless inNodeBody is explicitly false', () => {
+    expect(widgetRendersInBody(number())).toBe(true)
+    expect(widgetRendersInBody(number({ inNodeBody: true }))).toBe(true)
+    expect(widgetRendersInBody(number({ inNodeBody: false, showInSidebar: true }))).toBe(false)
+  })
+})
 
 describe('defaultWidgetValue', () => {
   it('number defaults to min, or 0 when no min', () => {

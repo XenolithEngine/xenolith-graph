@@ -1,5 +1,5 @@
 import type { Node, Pin, PinId, WidgetSpec } from '@xenolithengine/graph-core'
-import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolithengine/graph-core'
+import { widgetBindKey, widgetVisibility, widgetIsVisible, widgetRendersInBody } from '@xenolithengine/graph-core'
 
 export interface WidgetGeometry {
   rowHeight: number
@@ -13,7 +13,7 @@ export interface WidgetGeometry {
  *  they ride inside their pin row, not in a band. */
 function actionsRowHeight(node: Node, geo: WidgetGeometry | undefined): number {
   if (!geo || !node.widgets || node.widgets.length === 0) return 0
-  const buttons = node.widgets.filter((w) => w.type === 'button')
+  const buttons = node.widgets.filter((w) => w.type === 'button' && widgetRendersInBody(w))
   if (buttons.length === 0) return 0
   return geo.gap + buttons.length * geo.rowHeight + geo.gap * (buttons.length - 1)
 }
@@ -77,7 +77,7 @@ export function freeFloatingHeight(w: WidgetSpec, rowHeight: number): number {
  *  node with conditional widgets shrinks back to compact when all of them are hidden). */
 function freeWidgetsBandHeight(node: Node, geo: WidgetGeometry | undefined): number {
   if (!geo || !node.widgets || node.widgets.length === 0) return 0
-  const free = node.widgets.filter((w) => isFreeFloating(node, w) && widgetIsVisible(w, node))
+  const free = node.widgets.filter((w) => isFreeFloating(node, w) && widgetRendersInBody(w) && widgetIsVisible(w, node))
   if (free.length === 0) return 0
   let h = geo.gap
   for (let i = 0; i < free.length; i++) {
@@ -184,7 +184,7 @@ export function pinRowHeights(
       const bind = widgetBindKey(w)
       if (bind === undefined) continue // button — actions row
       if (!findPinByKey(node, bind)) continue // orphan
-      const visible = (widgetVisibility(w) === 'always' || !(isPinConnected?.(bind))) && widgetIsVisible(w, node)
+      const visible = widgetRendersInBody(w) && (widgetVisibility(w) === 'always' || !(isPinConnected?.(bind))) && widgetIsVisible(w, node)
       if (!visible) continue
       const rowIdx = pinRowIndexFor(node, bind)
       if (rowIdx === undefined) continue
@@ -342,6 +342,7 @@ function naturalWidth(
   let widgetNeed = 0
   if (tokens.widget && node.widgets) {
     for (const w of node.widgets) {
+      if (!widgetRendersInBody(w)) continue
       if (w.type === 'button') {
         const btnW = measure(w.label, tokens.typography.labelSize, tokens.typography.labelWeight)
         widgetNeed = Math.max(widgetNeed, sidePad + btnW + sidePad)

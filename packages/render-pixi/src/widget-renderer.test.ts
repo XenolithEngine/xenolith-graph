@@ -133,6 +133,23 @@ describe('computeWidgetRects — free-floating custom widgets (no matching pin)'
   })
 })
 
+describe('computeWidgetRects — sidebar-only widgets stay out of the node body', () => {
+  it('a pin-bound widget with inNodeBody:false has no rect', () => {
+    const pins = [inPin('name'), outPin('self')]
+    const n = node([
+      { id: 'w', type: 'text', label: '', key: 'name', showInSidebar: true, inNodeBody: false },
+    ], pins)
+    expect(computeWidgetRects(n, 200, GEO, { isPinConnected: () => false })).toEqual([])
+  })
+
+  it('a button with inNodeBody:false does not take an actions row', () => {
+    const n = node([
+      { id: 'go', type: 'button', label: 'Open', action: 'open', showInSidebar: true, inNodeBody: false },
+    ])
+    expect(computeWidgetRects(n, 200, GEO)).toEqual([])
+  })
+})
+
 describe('computeWidgetRects — actions row (button widgets)', () => {
   it('a single button stretches across the label columns under the pin block', () => {
     const pins = [inPin('name'), outPin('self')]

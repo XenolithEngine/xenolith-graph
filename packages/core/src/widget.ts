@@ -60,6 +60,9 @@ interface WidgetBase {
    *  inline on the node and in the sidebar — no separate component to author. Default: omit
    *  (widget appears only inline). */
   showInSidebar?: boolean
+  /** When `false`, the widget is not drawn in the node body (no row, no height). Pair with
+   *  `showInSidebar: true` for a sidebar-only field. Default: omitted, which still draws in the body. */
+  inNodeBody?: boolean
   /** Declarative conditional rendering keyed off OTHER widgets' values in the same node (n8n
    *  `displayOptions.show` parity). `show(state)` is evaluated against `node.state` after every
    *  `setWidgetValue` — return `false` to hide the widget (renderer skips layout, sidebar skips
@@ -184,6 +187,11 @@ export function widgetVisibility(spec: WidgetSpec): 'whenDisconnected' | 'always
 /** Resolve `displayOptions.show(state)` against a node — true (visible) unless the callback exists
  *  and explicitly returns false. Defensive: a throwing callback fails OPEN so a schema bug doesn't
  *  blank the node entirely. */
+/** False only when the schema sets `inNodeBody: false`. Sidebar rendering ignores this. */
+export function widgetRendersInBody(spec: WidgetSpec): boolean {
+  return spec.inNodeBody !== false
+}
+
 export function widgetIsVisible(spec: WidgetSpec, node: Node): boolean {
   const show = spec.displayOptions?.show
   if (!show) return true

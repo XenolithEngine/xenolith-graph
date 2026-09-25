@@ -6,9 +6,8 @@ import {
 } from '@xenolithengine/graph-render-pixi'
 import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
-// Daylight renderNode — built ground-up like the holographic theme, not as a wrap around the
-// base Xen renderer. This buys us full control over draw order which we need for the two
-// Daylight-specific affordances:
+// Daylight renderNode — drawn from scratch, not as a wrap around the base Xen renderer.
+// Full control over draw order is what the two Daylight-specific affordances need:
 //
 //   1. Pin halos that PROTRUDE from the body (~10 px disc of body-colour grey at each pin
 //      position). They draw AFTER the body (so they mask the body's curved corner where the pin

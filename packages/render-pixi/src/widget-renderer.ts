@@ -1,5 +1,5 @@
 import { BitmapText, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
-import { comboOptions, widgetValue, widgetVisibility, widgetBindKey, widgetIsVisible, type Node, type WidgetSpec, type WidgetStyle } from '@xenolithengine/graph-core'
+import { comboOptions, widgetValue, widgetVisibility, widgetBindKey, widgetIsVisible, widgetRendersInBody, type Node, type WidgetSpec, type WidgetStyle } from '@xenolithengine/graph-core'
 import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import { pinRowCount, pinRowHeights, pinBandHeight, pinRowCenterY, pinRowIndexFor, isFreeFloating, freeFloatingHeight } from './layout.js'
 
@@ -31,7 +31,7 @@ export interface CanvasWidgetController {
  *  (undoable). `update` fires on external value changes. Return a cleanup fn from `mount` or
  *  implement `unmount`. */
 export interface DomWidgetController {
-  mount(el: HTMLElement, c: CustomWidgetContext & { setValue: (v: unknown) => void }): void | (() => void)
+  mount(el: HTMLElement, c: CustomWidgetContext & { setValue: (v: unknown) => void; openSidebar: () => void }): void | (() => void)
   update?(c: CustomWidgetContext): void
   unmount?(): void
 }
@@ -195,6 +195,7 @@ export function computeWidgetRects(node: Node, width: number, tokens: WidgetLayo
   // row + field; multiline text grows to 3 rows. Without this a labelled `text` widget collapses
   // to one row and only the label paints — no visible input area (image #43 regression).
   for (const w of node.widgets) {
+    if (!widgetRendersInBody(w)) continue
     if (!isFreeFloating(node, w)) continue
     if (!widgetIsVisible(w, node)) continue
     const h = freeFloatingHeight(w, tokens.widget.rowHeight)
@@ -204,6 +205,7 @@ export function computeWidgetRects(node: Node, width: number, tokens: WidgetLayo
   // Pass 2 — buttons (actions row, beneath the free band).
   let actionsY = bandY
   for (const w of node.widgets) {
+    if (!widgetRendersInBody(w)) continue
     if (w.type !== 'button') continue
     if (!widgetIsVisible(w, node)) continue
     const h = tokens.widget.rowHeight
@@ -212,6 +214,7 @@ export function computeWidgetRects(node: Node, width: number, tokens: WidgetLayo
   }
   // Pass 3 — pin-bound widgets inline in their pin rows.
   for (const w of node.widgets) {
+    if (!widgetRendersInBody(w)) continue
     if (w.type === 'button' || isFreeFloating(node, w)) continue
     const bindKey = widgetBindKey(w)
     if (bindKey === undefined) continue

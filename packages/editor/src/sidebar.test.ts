@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { SidebarManager } from './sidebar.js'
 import type { Node, WidgetSpec } from '@xenolithengine/graph-core'
 
@@ -54,6 +54,15 @@ describe('SidebarManager (G4 — Baklava sidebar parity)', () => {
     const panel = h.root.querySelector('[data-xeno-sidebar]')
     expect(panel).not.toBeNull()
     expect(panel!.textContent).toContain('My Node')
+  })
+
+  it('still renders a showInSidebar widget that is hidden from the node body', () => {
+    const h = harness()
+    h.setNode(mkNode('n', 'N', [
+      { ...slider('a', 'amount', true), inNodeBody: false },
+    ]))
+    h.sb.open('n' as never)
+    expect(h.root.querySelectorAll('[data-xeno-sidebar-widget]').length).toBe(1)
   })
 
   it('renders ONE control row per widget flagged showInSidebar (others skipped)', () => {

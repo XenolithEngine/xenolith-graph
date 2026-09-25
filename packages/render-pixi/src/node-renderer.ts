@@ -19,7 +19,7 @@ import {
 } from 'pixi.js'
 import type { StateStyle } from '@xenolithengine/graph-theme-xen'
 import type { Node, Pin, TypeRegistry } from '@xenolithengine/graph-core'
-import { widgetBindKey, widgetVisibility, widgetIsVisible } from '@xenolithengine/graph-core'
+import { widgetBindKey, widgetVisibility, widgetIsVisible, widgetRendersInBody } from '@xenolithengine/graph-core'
 import { pinRowIndexFor } from './layout.js'
 import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 import { computeNodeLayout } from './layout.js'
@@ -583,6 +583,7 @@ export function renderNode(
   // hiding it just leaves a nameless row of dots.
   const rowsWithWidget = new Set<number>()
   for (const w of node.widgets ?? []) {
+    if (!widgetRendersInBody(w)) continue
     if (w.type === 'button') continue
     const bind = widgetBindKey(w)
     if (bind === undefined) continue

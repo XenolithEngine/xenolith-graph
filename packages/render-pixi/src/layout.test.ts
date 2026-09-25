@@ -255,6 +255,17 @@ describe('measureNodeSize — widgets (canon: every widget binds to a pin; butto
     expect(h1 - h0).toBe(18 - 11)
   })
 
+  it('a sidebar-only button does not grow the node', () => {
+    const pins = [labelledPin('in', 'name'), labelledPin('out', 'self')]
+    const bare: Node = { ...base, pins }
+    const sidebarOnly: Node = {
+      ...base, pins,
+      widgets: [{ id: 'go', type: 'button', label: 'Open', action: 'open', showInSidebar: true, inNodeBody: false }],
+    }
+    expect(measureNodeSize(sidebarOnly, 'X', WIDGET_TOKENS, fakeMeasure).y)
+      .toBe(measureNodeSize(bare, 'X', WIDGET_TOKENS, fakeMeasure).y)
+  })
+
   it('a button widget adds an actions row under the pin block', () => {
     const pins = [labelledPin('in', 'name'), labelledPin('out', 'self')]
     const withWidget: Node = {
