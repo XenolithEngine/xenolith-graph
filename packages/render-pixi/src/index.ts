@@ -1,4 +1,4 @@
-export const VERSION = '0.7.0-beta.4'
+export const VERSION = '0.7.0-beta.5'
 
 export { computeNodeLayout, measureNodeSize, findPinByKey, pinRowIndexFor, effectivePinRowHeight } from './layout.js'
 export type { LayoutTokens, NodeLayout, PinLayout, Rect, NodeSizeTokens, TextMeasurer } from './layout.js'
@@ -28,7 +28,7 @@ export { renderRerouteNode, rerouteSize, renderRerouteNodeBox, rerouteBoxSize, r
 export { renderWidgets, computeWidgetRects, resolveWidgetStyle, widgetCssVars, themeCssVars, isDomWidgetController } from './widget-renderer.js'
 export type { WidgetRect, WidgetHit, WidgetsView, WidgetLayoutTokens, ComputeWidgetRectsCtx, ResolvedWidgetStyle, CustomWidgetController, CanvasWidgetController, DomWidgetController, CustomWidgetContext } from './widget-renderer.js'
 
-export { renderEdge, drawEdge } from './edge-renderer.js'
+export { renderEdge, drawEdge, mergeEdgeOptions } from './edge-renderer.js'
 export type { RenderEdgeOptions, EdgePathStyle } from './edge-renderer.js'
 
 export {

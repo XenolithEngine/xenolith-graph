@@ -31,6 +31,12 @@ export interface RenderEdgeOptions {
   pathStyle?: EdgePathStyle
 }
 
+/** Default edge options underneath a per-edge override. Explicit fields win, including `undefined`
+ *  only when the key is present — callers pass a partial object, so a missing key stays default. */
+export function mergeEdgeOptions(defaults: RenderEdgeOptions, explicit: RenderEdgeOptions): RenderEdgeOptions {
+  return { ...defaults, ...explicit }
+}
+
 /** Stroke bright dash segments along a sampled polyline, offset by `phase` so they travel when the
  *  caller animates `phase`. Approximated per-segment — fine at ~56 samples per wire. */
 function drawFlowingDashes(g: Graphics, pts: Vec2[], color: string, width: number, phase: number): void {
