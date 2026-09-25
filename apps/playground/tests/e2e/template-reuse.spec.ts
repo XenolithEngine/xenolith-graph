@@ -132,7 +132,10 @@ test('instance node widens for a long pin label; a long title stays capped (elli
     return { before, wideForPin, afterLongTitle }
   }, E)
   expect(r.wideForPin).toBeGreaterThan(r.before)        // grew to fit the long pin label
-  expect(r.afterLongTitle).toBe(r.wideForPin)           // long title did not stretch it further
+  // Long title did not STRETCH the node. Not exact equality: the title cap rides on measured
+  // text width, and Firefox measures Inter a few px wider than Chromium, so the capped width
+  // can land a hair above the pin-driven width (observed 255 vs 249, pre-existing on both).
+  expect(r.afterLongTitle - r.wideForPin).toBeLessThanOrEqual(8)
 })
 
 test('instance + boundary pins keep their labels through a dive in/out (resync preserves labels)', async ({ page }) => {
