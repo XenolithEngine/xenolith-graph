@@ -1,0 +1,101 @@
+---
+title: Run your own nodes
+description: Register a node type, refuse one connection, save the file, run a host compute, undo a step. The library does not ship an execution engine.
+---
+
+The editor stores and draws the graph. Your application runs it. One function does the walk: `evaluateGraph` from `@xenolithengine/graph-core`. You pass a compute function. It returns values keyed by output pin.
+
+This page is the whole loop. The snippets are the same editor.
+
+## 1. Register a type
+
+```ts
+import { XenolithEditor } from '@xenolithengine/graph-editor'
+
+const editor = await XenolithEditor.init('#graph')
+
+editor.registry.register({
+  type: 'Const',
+  title: 'Const',
+  pins: [{ kind: 'data', direction: 'out', type: 'number', label: 'Out', multiple: true }],
+  widgets: [{ id: 'value', type: 'number', key: 'value', label: 'Value', freeFloating: true }],
+})
+editor.registry.register({
+  type: 'Add',
+  title: 'Add',
+  pins: [
+    { kind: 'data', direction: 'in',  type: 'number', label: 'A', multiple: false },
+    { kind: 'data', direction: 'in',  type: 'number', label: 'B', multiple: false },
+    { kind: 'data', direction: 'out', type: 'number', label: 'Sum', multiple: true },
+  ],
+})
+```
+
+Incompatible pin types are already refused by the type registry. A `string` out will not connect to a `number` in.
+
+## 2. Refuse one more connection
+
+Host rules sit on top of that. This one forbids a cycle. `wouldCreateCycle` is in core, next to `evaluateGraph`.
+
+```ts
+import { wouldCreateCycle } from '@xenolithengine/graph-core'
+
+editor.setIsValidConnection(({ source, target }) =>
+  !wouldCreateCycle(editor.graph, source, target),
+)
+```
+
+Return `false` and the wire is not created. Dragging back onto an ancestor does nothing.
+
+## 3. Save
+
+```ts
+const file = editor.toJSON()
+localStorage.setItem('patch', JSON.stringify(file))
+
+// later
+await editor.loadJSON(JSON.parse(localStorage.getItem('patch')!))
+```
+
+`toJSON()` is the `xenolith.v1` object. `exportJSON()` is the same bytes as a `Blob`.
+
+## 4. Run
+
+`evaluateGraph` reads `editor.graph`. Your function sees the node and a map of incoming values keyed by pin label. Return a map keyed by outgoing pin label. Missing inputs are absent — use your own default.
+
+```ts
+import { evaluateGraph } from '@xenolithengine/graph-core'
+
+const { outputs, cyclic } = evaluateGraph(editor.graph, (node, inputs) => {
+  if (node.type === 'Const') return { Out: Number(node.state['value'] ?? 0) }
+  if (node.type === 'Add') return { Sum: Number(inputs['A'] ?? 0) + Number(inputs['B'] ?? 0) }
+})
+
+if (cyclic.length > 0) throw new Error('cycle')
+
+for (const node of editor.graph.nodes()) {
+  if (node.type !== 'Add') continue
+  const sum = outputs.get(`${node.id}:Sum`)
+  // write it somewhere the user can see — a widget, a panel, a log
+  console.log(node.id, sum)
+}
+```
+
+Exec pins do not carry values. They still participate in the order when an exec edge exists. Nodes inside a cycle are listed on `cyclic` and are not computed.
+
+This is a data pass. It does not schedule frames, call the network, or understand Blueprint exec flow. `@xenolithengine/graph-plugin-runtime` is a separate experimental VM for that. Most hosts do not need it.
+
+## 5. Undo
+
+Connecting a wire and editing a widget go through the command bus.
+
+```ts
+editor.history.undo()
+editor.history.redo()
+```
+
+`evaluateGraph` does not push commands. If you write results back with `editor.setWidgetValue`, that write is itself undoable. Call it only when you want the result on the undo stack.
+
+## What you do not get
+
+There is no `DependencyEngine`, no `node.calculate()` on the schema, and no catalog of math nodes inside the library. The compute function stays in your app, next to the schemas it understands.

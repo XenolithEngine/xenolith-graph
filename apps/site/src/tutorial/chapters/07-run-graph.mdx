@@ -38,6 +38,10 @@ Eight nodes, seven edges, depth 4. Expected result: `((5 + 3) × 2) + 7 = 23`.
 - Edit any *Value* widget on a Const and press **Run** again — the result updates live.
 - Build your own. Spawn nodes from <kbd>Tab</kbd>, wire them up, run.
 
+## The library call
+
+The same walk is `evaluateGraph` from `@xenolithengine/graph-core`. The page [Run your own nodes](/guides/run/) is the short host loop: register a type, refuse one connection, save, run, undo. This chapter keeps the walk written out so **Step ×slow** can pause between nodes.
+
 ## The algorithm
 
 A runtime over a graph is three steps:

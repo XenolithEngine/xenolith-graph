@@ -19,6 +19,7 @@ const GUIDES: { slug: string; title: string }[] = [
   { slug: 'macros-templates',title: 'Macros & templates (grouping)' },
   { slug: 'theme',           title: 'Theming (Xen + Liquid Glass + tokens)' },
   { slug: 'save-export',     title: 'Save & export (JSON / PNG / JPG)' },
+  { slug: 'run',             title: 'Run your own nodes (evaluateGraph, refuse a connection, save, undo)' },
   { slug: 'events-commands', title: 'Events & commands' },
   { slug: 'icons',           title: 'Header icons (Feather set + register your own)' },
   { slug: 'plugins',         title: 'Plugins' },
@@ -71,7 +72,7 @@ function render(): string {
   lines.push('')
 
   lines.push('## Machine catalogs')
-  lines.push(`- [api/mcp-tools.json — MCP tool catalog (24 tools, the full definition)](${url('/api/mcp-tools.json')})`)
+  lines.push(`- [api/mcp-tools.json — MCP tool catalog (25 tools, the full definition)](${url('/api/mcp-tools.json')})`)
   lines.push(`- [api/openapi.json — same tools as OpenAPI 3.1 (LangChain / LlamaIndex / function-calling agents)](${url('/api/openapi.json')})`)
   lines.push(`- [api/graphs.jsonl — every example as JSON Lines (one-shot gallery index)](${url('/api/graphs.jsonl')})`)
   lines.push(`- [api/mcp-tools/<name>.md — per-tool deep card (one tool at a time, ~1 KB each)](${url('/api/mcp-tools/list_node_types.md')})`)
