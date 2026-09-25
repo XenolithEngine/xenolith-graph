@@ -25,12 +25,26 @@ const editor = await XenolithEditor.init('#app', {
 editor.registerWidget('curve', createCurveWidget())
 editor.registerWidget('xypad', createXYPadWidget())
 editor.registerWidget('preview', createPreviewWidget())
-for (const schema of demoSchemas) editor.registry.register(schema)
-editor.loadJSON(demoGraph)
-editor.fitView({ padding: 56, maxZoom: 1 })
 
-// Standard in-editor controls panel (zoom / fit / reset / undo-redo / save / lock), top-right corner.
-editor.setControls({ position: 'top-right', orientation: 'horizontal' })
+// -----------------------------------------------------------------------------------------------
+// ?demo=agent — the scripted MCP session: an "agent" builds a typed pipeline through the exact
+// tool surface the MCP server exposes, with a live transcript panel. Used by the agent-builds
+// e2e spec and the "Agents build. Humans debug." capture (scripts/record-mcp-demo.mjs).
+// -----------------------------------------------------------------------------------------------
+const isAgentDemo = new URLSearchParams(window.location.search).get('demo') === 'agent'
+if (isAgentDemo) {
+  const { agentSchemas, runAgentSession } = await import('./agent-session.js')
+  for (const schema of agentSchemas) editor.registry.register(schema)
+  editor.setControls({ position: 'top-right', orientation: 'horizontal' })
+  await runAgentSession(editor)
+} else {
+  for (const schema of demoSchemas) editor.registry.register(schema)
+  editor.loadJSON(demoGraph)
+  editor.fitView({ padding: 56, maxZoom: 1 })
+
+  // Standard in-editor controls panel (zoom / fit / reset / undo-redo / save / lock), top-right corner.
+  editor.setControls({ position: 'top-right', orientation: 'horizontal' })
+}
 
 // -----------------------------------------------------------------------------------------------
 // Theme switcher — proves runtime setTheme() works. Buttons in the top-left corner of the page.
