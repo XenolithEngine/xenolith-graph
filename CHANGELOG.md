@@ -8,6 +8,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Notes
+
+- `0.7.0-beta.4` was tagged in the repo but never reached npm (the publish token had expired; fixed for beta.5). The registry jumps beta.3 → beta.5 — nothing is missing, beta.5 includes the full beta.4 scope.
+
 ## [0.7.0-beta.5] — 2026-09-25
 
 Summary in [docs/release-notes/v0.7.0-beta.5.md](docs/release-notes/v0.7.0-beta.5.md).

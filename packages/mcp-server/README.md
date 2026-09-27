@@ -130,9 +130,22 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 {
   "mcpServers": {
     "xenolith": {
+      "command": "npx",
+      "args": ["-y", "@xenolithengine/graph-mcp-server", "--port", "7777", "--token", "devtoken"]
+    }
+  }
+}
+```
+
+Developing against a local checkout instead? Point the config at your build:
+
+```json
+{
+  "mcpServers": {
+    "xenolith": {
       "command": "node",
       "args": [
-        "/Users/vitaliyry/PET_PROJECTS/xenolith-graph/packages/mcp-server/dist/cli.js",
+        "/path/to/xenolith-graph/packages/mcp-server/dist/cli.js",
         "--port", "7777",
         "--token", "devtoken"
       ]
@@ -140,6 +153,8 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
   }
 }
 ```
+
+Also installable from the Smithery registry via [`smithery.yaml`](./smithery.yaml).
 
 Restart Claude Desktop. In a new chat you'll see a tools icon (🔧). Ask:
 

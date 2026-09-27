@@ -1,0 +1,25 @@
+# Smithery configuration: https://smithery.ai/docs/config#smitheryyaml
+# Installs the published CLI (bin: xenolith-mcp). The server is a stdio↔WebSocket bridge —
+# it relays tool calls to a browser editor that connected via editor.connectMCP(url), so it
+# needs no local config; --port/--token are optional (see README).
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      port:
+        type: number
+        default: 7777
+        description: WebSocket port the browser editor connects to
+      token:
+        type: string
+        default: ''
+        description: Optional auth token the editor must present
+  command: npx
+  args:
+    - '-y'
+    - '@xenolithengine/graph-mcp-server'
+    - '--port'
+    - '${port}'
+    - '--token'
+    - '${token}'
