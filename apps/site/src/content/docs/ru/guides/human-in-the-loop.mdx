@@ -1,0 +1,81 @@
+---
+title: 'Human-in-the-loop: агент предлагает'
+description: 'Пусть ИИ-агент ПРЕДЛАГАЕТ изменения графа, а человек их ОДОБРЯЕТ — очередь ревью на MCP-поверхности, один шаг undo на одобренный батч, полный аудит.'
+---
+
+Продуктная ставка — «агенты строят, люди отлаживают». Полный автопилот хорош для черновиков;
+для продакшена нужна граница доверия. Proposal-режим ([ADR
+0007](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0007-agent-proposal-mode.md))
+даёт её на существующей MCP-поверхности — без второго протокола.
+
+## Включение
+
+```ts
+const disconnect = await editor.connectMCP('ws://localhost:6410/ws?token=…', {
+  mode: 'propose',          // по умолчанию 'auto' — мутации применяются сразу
+  clientId: 'support-agent',
+})
+const queue = editor.mcpProposals!   // не-null после подключения propose-сессии
+```
+
+**Граница доверия, прямо:** граница связывает только сессии, которые её выбрали. Сессия `auto`
+на том же редакторе мутирует свободно — для жёсткой стены держите propose-режим единственным
+подключением.
+
+## Что видит агент
+
+Мутирующие вызовы перестают применяться. Каждый возвращает честную квитанцию:
+
+```json
+{ "proposed": true, "proposalId": 7, "provisionalNodeId": "01a0…", "queued": 3 }
+```
+
+…так что промпт агента может объяснить модели наличие очереди. Инструменты, чеканящие ноды
+(`add_node`, `instantiate_recipe`), выдают **провизорные id**, на которые агент может ссылаться
+в последующих предложениях (`connect_pins`, `set_widget_value`, …) — approval переведёт их в
+реальные. Read/view-инструменты (`get_graph`, `find_nodes`, …) работают LIVE по
+пред-approval-графу.
+
+## Очередь ревью
+
+```ts
+queue.entries()        // [{ id, ts, clientId, tool, summary, args }, …] старые первыми
+queue.onChange(size => renderBadge(size))
+
+queue.approve()        // ОДНА транзакция command bus: один undo-шаг, АТОМАРНО
+queue.reject()         // выбросить всё (или передать id)
+```
+
+Семантика (ADR 0007):
+
+- **Атомарные батчи.** Approve проигрывает очередь по порядку в одной транзакции. Любой сбой
+  откатывает ВЕСЬ батч — очередь сохраняется для повтора.
+- **Резолв на approval.** Предложения проигрываются по ТЕКУЩЕМУ графу: label'ы пинов и layout
+  резолвятся на момент одобрения, а не предложения. Протухшее предложение падает безопасно.
+- **Undo — на транзакцию.** Один Ctrl+Z откатывает последний одобренный батч (или последнее
+  человеческое действие) — правки агента и человека законно чередуются через сериализованную
+  шину. CRDT-магии нет; merge-семантика одновременного редактирования явно вне скопа.
+- **Аудит на approval.** Предложение ничего не меняет и не аудитирует; при применении батча
+  audit-кольцо записывает его с дельтами эффектов и `clientId` автора
+  ([audit log](/integrations/ai-agents/)).
+
+## Минимальный UI ревью
+
+```tsx
+function AgentInbox() {
+  const editor = useEditor()
+  const [size, setSize] = useState(0)
+  useEffect(() => editor?.mcpProposals?.onChange(setSize) ?? undefined, [editor])
+  if (!size) return null
+  return (
+    <XenolithPanel position="top-right">
+      <b>{size} предложений агента</b>
+      <XenolithButton onClick={() => editor!.mcpProposals!.approve()}>Одобрить всё</XenolithButton>
+      <XenolithButton onClick={() => editor!.mcpProposals!.reject()}>Отклонить</XenolithButton>
+    </XenolithPanel>
+  )
+}
+```
+
+Рендерь внутри `<XenolithGraph>`; API очереди синхронный, так что обычного state + хука
+`onChange` достаточно.

@@ -1,5 +1,5 @@
 import type { Edge, NodeId, PinId } from '@xenolithengine/graph-core'
-import { createEdgeId } from '@xenolithengine/graph-core'
+import { createEdgeId, createNodeId } from '@xenolithengine/graph-core'
 import { resolvePin } from './pin-resolve.js'
 import { layeredLayout, nextFreeSpot } from './layout-ops.js'
 import { BUILTIN_RECIPES, instantiateRecipe, type RecipeDef, type RecipeRegistry, createRecipeRegistry } from './recipes.js'
@@ -72,6 +72,9 @@ export interface McpEditorSurface {
    *  domain-specific recipes can pass their own registry through `buildHandlers` (or, on real
    *  editor instances, `editor.recipes`). */
   recipes?: RecipeRegistry
+  /** Optional: the editor's command bus — proposal approve() uses it to land the batch as ONE
+   *  undoable transaction. Absent on minimal test doubles (approve then applies unbatched). */
+  commandBus?: { transaction<R>(fn: () => R): R }
   graph: {
     nodes(): Iterable<NodeLike & { widgets?: Array<{ id: string; key?: string; type: string; label?: string }> }>
     edges(): Iterable<{ id: string; from: { node: NodeId; pin?: PinId }; to: { node: NodeId; pin?: PinId } }>
@@ -138,11 +141,102 @@ export class AuditLog {
   }
 }
 
+// ---- proposal mode (C-Bet1b) ---------------------------------------------------------------------
+//
+// 'propose' mode: mutating tool calls ENQUEUE instead of applying. The host reviews
+// (`editor.mcpProposals`) and either approves the batch — re-running every stored operation
+// against the CURRENT graph inside ONE command-bus transaction (one undo step; atomic — any
+// failure rolls the whole batch back and the queue survives for retry) — or rejects it.
+// Proposals are RE-RESOLVED at approval time (ADR 0007): pin labels and layout run against
+// the graph as it is THEN, not as it was when proposed. Default mode is 'auto' (mutations
+// apply immediately) — proposal mode is an opt-in trust boundary, and only a client connected
+// with mode 'propose' is bound by it.
+
+export interface ProposalEntry {
+  readonly id: number
+  readonly ts: number
+  readonly clientId: string
+  readonly tool: string
+  /** Human digest shown in the review queue (mirrors the audit summary format). */
+  readonly summary: string
+  /** Original tool arguments — replayed on approval. */
+  readonly args: unknown
+}
+
+export interface ProposalApproveResult {
+  applied: number
+}
+
+export class ProposalQueue {
+  #seq = 0
+  #entries: Array<ProposalEntry & { run: (idMap: Map<string, string>) => unknown }> = []
+  #listeners: Array<(size: number) => void> = []
+  #tx: { transaction<R>(fn: () => R): R } | null = null
+
+  /** Wire the editor's command bus so approve() lands as ONE undoable transaction. */
+  attach(bus: { transaction<R>(fn: () => R): R } | undefined): void { this.#tx = bus ?? null }
+
+  /** Current queue, oldest first. */
+  entries(): readonly ProposalEntry[] { return this.#entries.slice() }
+
+  get size(): number { return this.#entries.length }
+
+  /** Subscribe to size changes (enqueue / approve / reject). Returns an unsubscribe. */
+  onChange(cb: (size: number) => void): () => void {
+    this.#listeners.push(cb)
+    return () => { this.#listeners = this.#listeners.filter((l) => l !== cb) }
+  }
+
+  /** @internal — called by the proposal wrapper; not part of the host surface. `run` receives
+   *  the approval-time provisional→real node-id map so chained proposals resolve. */
+  _enqueue(entry: Omit<ProposalEntry, 'id' | 'ts'> & { run: (idMap: Map<string, string>) => unknown }): number {
+    const id = ++this.#seq
+    this.#entries.push({ ...entry, id, ts: Date.now() })
+    this.#notify()
+    return id
+  }
+
+  /** Approve the WHOLE batch: one transaction, one undo step. On failure the transaction
+   *  rolls back atomically and the entries STAY queued (retry after fixing the cause). */
+  approve(): ProposalApproveResult {
+    if (this.#entries.length === 0) return { applied: 0 }
+    const batch = this.#entries.slice()
+    // Provisional→real id translation: add_node proposals mint a provisional id at ENQUEUE time
+    // (returned to the agent so it can chain connect_pins etc.); at replay the real id lands in
+    // the map and later proposals' node references are rewritten through it.
+    const idMap = new Map<string, string>()
+    const apply = (): void => { for (const e of batch) e.run(idMap) }
+    if (this.#tx) this.#tx.transaction(apply)
+    else apply()
+    this.#entries = []
+    this.#notify()
+    return { applied: batch.length }
+  }
+
+  /** Discard everything (or the given ids). The graph is untouched. */
+  reject(ids?: readonly number[]): void {
+    if (ids === undefined) {
+      this.#entries = []
+    } else {
+      const drop = new Set(ids)
+      this.#entries = this.#entries.filter((e) => !drop.has(e.id))
+    }
+    this.#notify()
+  }
+
+  #notify(): void { for (const l of this.#listeners) l(this.#entries.length) }
+}
+
 export interface BuildHandlersOptions {
   /** Identity stamped on audit entries. Defaults to 'editor-connection'. */
   clientId?: string
   /** Inject a host-owned ring (shared across reconnects). A fresh one is created otherwise. */
   audit?: AuditLog
+  /** 'propose': mutating tools enqueue for human approval instead of applying (C-Bet1b).
+   *  Default 'auto' — mutations apply immediately (back-compat; opt-in trust boundary). */
+  mode?: 'auto' | 'propose'
+  /** Inject a host-owned proposal queue. A fresh one is created otherwise (propose mode). */
+  proposals?: ProposalQueue
 }
 
 /** Document-mutating tools — the audited set. View/read/stateless tools are excluded on purpose. */
@@ -161,7 +255,9 @@ export function buildHandlers(editor: McpEditorSurface, opts: BuildHandlersOptio
   const recipes: RecipeRegistry = editor.recipes ?? createRecipeRegistry(BUILTIN_RECIPES)
   const audit = opts.audit ?? new AuditLog()
   const clientId = opts.clientId ?? 'editor-connection'
-  return wrapWithAudit(audit, clientId, editor, {
+  const proposals = opts.proposals ?? new ProposalQueue()
+  proposals.attach(editor.commandBus)
+  return wrapWithProposals(proposals, clientId, opts.mode ?? 'auto', wrapWithAudit(audit, clientId, editor, {
     list_node_types: () => editor.registry.all().map((s) => ({
       type: s.type,
       title: s.title,
@@ -406,7 +502,74 @@ export function buildHandlers(editor: McpEditorSurface, opts: BuildHandlersOptio
       return { recipe: def.id, ids: result.ids, edges: result.edges, nodes: Object.keys(result.ids).length }
     },
     get_audit_log: () => audit.read(),
-  })
+  }))
+}
+
+/** Outermost wrapper (C-Bet1b): in propose mode, mutating calls enqueue a replay closure
+ *  (the AUDITED handler — so approval lands in the audit log with effect deltas) and return an
+ *  honest 'proposed' result to the agent instead of mutating. Auto mode passes straight
+ *  through — zero behavior change for existing sessions. */
+function wrapWithProposals(
+  proposals: ProposalQueue,
+  clientId: string,
+  mode: 'auto' | 'propose',
+  handlers: Record<string, ToolHandler>,
+): Record<string, ToolHandler> {
+  if (mode !== 'propose') return handlers
+  const out: Record<string, ToolHandler> = {}
+  for (const [name, handler] of Object.entries(handlers)) {
+    if (!AUDITED_TOOLS.has(name) || name === 'get_audit_log') { out[name] = handler; continue }
+    if (name === 'add_node' || name === 'instantiate_recipe') {
+      // Node-MINTING tools hand the agent a PROVISIONAL id it can reference in later proposals;
+      // approval translates provisional → real through the queue's id map.
+      out[name] = (args: unknown) => {
+        const provisionalId = String(createNodeId())
+        const proposalId = proposals._enqueue({
+          clientId, tool: name,
+          summary: `${name}(${digest(args)}) — proposed`,
+          args,
+          run: (idMap) => {
+            const result = handler(args) as { id?: unknown } | Promise<{ id?: unknown }>
+            const settle = (r: { id?: unknown }): { id?: unknown } => {
+              if (r && typeof r.id === 'string') idMap.set(provisionalId, r.id)
+              return r
+            }
+            return result instanceof Promise ? result.then(settle) : settle(result)
+          },
+        })
+        return { proposed: true, proposalId, provisionalNodeId: provisionalId, tool: name, queued: proposals.size }
+      }
+      continue
+    }
+    out[name] = (args: unknown) => {
+      const proposalId = proposals._enqueue({
+        clientId, tool: name,
+        summary: `${name}(${digest(args)}) — proposed`,
+        args,
+        run: (idMap) => handler(rewriteNodeRefs(args, idMap)),
+      })
+      return { proposed: true, proposalId, tool: name, queued: proposals.size }
+    }
+  }
+  return out
+}
+
+/** Rewrite node-id references in tool args through the provisional→real map (chained
+ *  proposals). Unknown ids pass through untouched. */
+function rewriteNodeRefs(args: unknown, idMap: Map<string, string>): unknown {
+  if (idMap.size === 0 || args === null || typeof args !== 'object') return args
+  const walk = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(walk)
+    if (v === null || typeof v !== 'object') return v
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      if ((k === 'node' || k === 'nodeId') && typeof val === 'string' && idMap.has(val)) out[k] = idMap.get(val)
+      else if (k === 'nodeIds' && Array.isArray(val)) out[k] = val.map((id) => (typeof id === 'string' && idMap.has(id) ? idMap.get(id) : id))
+      else out[k] = walk(val)
+    }
+    return out
+  }
+  return walk(args)
 }
 
 /** Wrap every AUDITED tool so its call appends one audit entry (ok or error) with effect
@@ -516,10 +679,12 @@ export class McpClient {
    *  claim any id until the server grows an auth story (see the audit security notes). */
   readonly clientId: string
 
-  constructor(editor: McpEditorSurface, opts: McpClientOptions & { clientId?: string; audit?: AuditLog } = {}) {
+  constructor(editor: McpEditorSurface, opts: McpClientOptions & { clientId?: string; audit?: AuditLog; mode?: 'auto' | 'propose'; proposals?: ProposalQueue } = {}) {
     const hOpts: BuildHandlersOptions = {}
     if (opts.clientId !== undefined) hOpts.clientId = opts.clientId
     if (opts.audit !== undefined) hOpts.audit = opts.audit
+    if (opts.mode !== undefined) hOpts.mode = opts.mode
+    if (opts.proposals !== undefined) hOpts.proposals = opts.proposals
     this.#handlers = buildHandlers(editor, hOpts)
     this.#status = opts.onStatus
     this.clientId = opts.clientId ?? 'editor-connection'

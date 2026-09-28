@@ -157,6 +157,7 @@ export default defineConfig({
           items: [
             { slug: 'llms' },
             { slug: 'integrations/ai-agents' },
+            { slug: 'guides/human-in-the-loop' },
           ],
         },
       ],

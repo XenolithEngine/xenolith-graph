@@ -65,6 +65,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.setInteractive(v)`, `editor.interactive`, `editor.setLiveMode(v)`, `editor.liveMode` | |
 | `editor.setIsValidConnection(predicate)` | |
 | `editor.connectMCP(url, { clientId? })`, `editor.mcpAudit` | MCP client with optional audit identity; `mcpAudit` is the bounded agent-mutation ring (C-Bet1a) — entries carry graph data, clientId is transport-provided NOT authenticated. Exposed to MCP clients as `get_audit_log` / `audit://recent`. |
+| `editor.connectMCP(url, { clientId?, mode? })`, `editor.mcpProposals` | Proposal mode (C-Bet1b / ADR 0007): `mode: 'propose'` makes mutating MCP tools enqueue for human approval; `mcpProposals` is the review queue (`entries`/`approve`/`reject`/`onChange`) — approve lands ONE atomic undoable transaction with provisional→real id translation; audit records at approval. Guide: Human-in-the-loop agent editing. |
 | **Namespaces:** | |
 | `editor.view.{pan, zoomAt, resetView, fitView, setViewport, state, screenToWorld, worldToScreen, lastPointerWorld}` | Viewport. |
 | `editor.autoLayout({direction, spacing, fit})` | Layered DAG layout — the same layout the MCP `auto_layout` tool uses, now public for hosts. |

@@ -164,6 +164,11 @@ export {
   reduceGraphChanges, snapshotGraph,
   type GraphChanges, type NodeChange, type EdgeChange, type GraphMirror,
 } from './controlled.js'
+export { ProposalQueue, AuditLog, buildHandlers } from './mcp.js'
+export type {
+  ProposalEntry, ProposalApproveResult, AuditEntry, AuditEffectDelta,
+  ToolHandler, McpEditorSurface, BuildHandlersOptions,
+} from './mcp.js'
 export type {
   ReactFlowGraph,
   ReactFlowNode,
@@ -3544,20 +3549,24 @@ export class XenolithEditor {
    *  undoable via the command bus). Returns a disconnect function. See `mcp.ts` for the protocol. */
   #mcp: McpClient | null = null
   #mcpAudit: import('./mcp.js').AuditLog | null = null
+  #mcpProposals: import('./mcp.js').ProposalQueue | null = null
   async connectMCP(
     url: string,
-    opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void; clientId?: string } = {},
+    opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void; clientId?: string; mode?: 'auto' | 'propose' } = {},
   ): Promise<() => void> {
-    const { McpClient, AuditLog } = await import('./mcp.js')
+    const { McpClient, AuditLog, ProposalQueue } = await import('./mcp.js')
     this.#mcp?.disconnect()
     // One ring per EDITITOR, shared across reconnects — hosts read it via `editor.mcpAudit`
     // (and MCP clients via the get_audit_log tool / audit://recent resource).
     this.#mcpAudit ??= new AuditLog()
+    if (opts.mode === 'propose') this.#mcpProposals ??= new ProposalQueue()
     const client = new McpClient(
       this as unknown as McpEditorSurface,
       {
         ...(opts.onStatus !== undefined ? { onStatus: opts.onStatus } : {}),
         ...(opts.clientId !== undefined ? { clientId: opts.clientId } : {}),
+        ...(opts.mode !== undefined ? { mode: opts.mode } : {}),
+        ...(this.#mcpProposals !== null ? { proposals: this.#mcpProposals } : {}),
         audit: this.#mcpAudit!,
       },
     )
@@ -3570,6 +3579,11 @@ export class XenolithEditor {
    *  One instance per editor, shared across reconnects. Entries contain graph data; the
    *  clientId field is transport-provided, NOT authenticated. */
   get mcpAudit(): import('./mcp.js').AuditLog | null { return this.#mcpAudit ?? null }
+
+  /** The agent-proposal review queue (C-Bet1b) — non-null once an MCP session connected with
+   *  mode 'propose'. Hosts render it, approve() lands the batch as ONE undoable transaction,
+   *  reject() discards. See ADR 0007 for the re-resolution semantics. */
+  get mcpProposals(): import('./mcp.js').ProposalQueue | null { return this.#mcpProposals ?? null }
 
   /** World-space bounding box of all nodes, or null when the graph is empty. */
   #graphBounds(): { x: number; y: number; w: number; h: number } | null {

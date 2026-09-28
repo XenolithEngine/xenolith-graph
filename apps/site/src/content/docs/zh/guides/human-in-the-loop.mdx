@@ -1,0 +1,75 @@
+---
+title: 人机协同的代理编辑
+description: '让 AI 代理"提议"图变更、由人"批准"—— 建立在 MCP 表面上的审阅队列，每个批准批次一个撤销步，完整审计轨迹。'
+---
+
+产品赌注是"代理构建，人类调试"。全自动变更适合草稿；生产环境需要信任边界。提议模式（[ADR
+0007](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0007-agent-proposal-mode.md)）在现有
+MCP 表面上提供这一边界 —— 没有第二套协议。
+
+## 开启
+
+```ts
+const disconnect = await editor.connectMCP('ws://localhost:6410/ws?token=…', {
+  mode: 'propose',          // 默认 'auto' —— 变更立即应用
+  clientId: 'support-agent',
+})
+const queue = editor.mcpProposals!   // propose 会话连接后非空
+```
+
+**信任边界，直说：** 边界只约束选择加入的会话。同一编辑器上的 `auto` 会话仍可自由变更 ——
+需要硬墙就让 propose 模式成为唯一连接。
+
+## 代理看到什么
+
+变更类调用不再应用。每个调用返回诚实的回执：
+
+```json
+{ "proposed": true, "proposalId": 7, "provisionalNodeId": "01a0…", "queued": 3 }
+```
+
+……代理提示词可以据此向模型解释队列的存在。铸造节点的工具（`add_node`、
+`instantiate_recipe`）发放**临时 id**，代理可在后续提议中引用（`connect_pins`、
+`set_widget_value` 等）—— 批准时翻译成真实 id。读取/查看类工具（`get_graph`、
+`find_nodes` 等）仍对批准前的图 LIVE 执行。
+
+## 审阅队列
+
+```ts
+queue.entries()        // [{ id, ts, clientId, tool, summary, args }, …] 先进先出
+queue.onChange(size => renderBadge(size))
+
+queue.approve()        // 一个 command bus 事务：一个撤销步，原子
+queue.reject()         // 全部丢弃（或传入 id）
+```
+
+语义要点（ADR 0007）：
+
+- **原子批次。** approve 按序在一个事务内重放队列。任何失败都会回滚整个批次 —— 队列
+  保留以便重试。
+- **批准时重新解析。** 提议按"当前"图重放：引脚 label 与布局在批准时刻解析，而非提议
+  时刻。过期的提议会安全失败。
+- **撤销按事务。** 一次 Ctrl+Z 撤销最近一个已批准批次（或最近一次人工操作）—— 代理与人
+  的编辑通过串行化总线合法交错。没有 CRDT 魔法；并发编辑的合并语义明确不在范围内。
+- **审计落在批准时。** 提议不改变任何东西、也不写审计；批次应用时 audit 环记录它，带
+  效果增量与提议者的 `clientId`（[audit log](/integrations/ai-agents/)）。
+
+## 最小审阅 UI
+
+```tsx
+function AgentInbox() {
+  const editor = useEditor()
+  const [size, setSize] = useState(0)
+  useEffect(() => editor?.mcpProposals?.onChange(setSize) ?? undefined, [editor])
+  if (!size) return null
+  return (
+    <XenolithPanel position="top-right">
+      <b>{size} 条代理提议</b>
+      <XenolithButton onClick={() => editor!.mcpProposals!.approve()}>全部批准</XenolithButton>
+      <XenolithButton onClick={() => editor!.mcpProposals!.reject()}>拒绝</XenolithButton>
+    </XenolithPanel>
+  )
+}
+```
+
+放在 `<XenolithGraph>` 内渲染；队列 API 是同步的，普通 state + `onChange` 钩子就够了。
