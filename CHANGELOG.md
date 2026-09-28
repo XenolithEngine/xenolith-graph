@@ -8,6 +8,11 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Fixed
+
+- `@xenolithengine/graph-wc` crashed server bundles at import (`HTMLElement is not defined` — the element class extended `HTMLElement` at module scope). The base is now lazily guarded; the package (and every other `@xenolithengine/*` entrypoint) imports cleanly in bare-node/SSR environments, enforced by a node-purity test suite.
+- `editor.isDestroyed` was listed in STABLE-API but had drifted out of the code — public getter restored.
+
 ### Added
 
 - **React Flow importer** — `importFromReactFlow(json, opts?)` (pure, zero deps) and `editor.importReactFlow(json, opts?)`: bring a React Flow (xyflow) `toObject()` graph into `xenolith.v1`. Pins synthesize from edge handles (typed via `inferType` or `schemas[]`), RF edge types map onto `pathStyle`, and the returned `ImportReport` accounts for every dropped field, unknown endpoint and structural mismatch — nothing is lost silently. Guide: [Migrate from React Flow](https://graph.xenolith.studio/guides/migrate-react-flow/).

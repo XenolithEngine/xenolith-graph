@@ -73,6 +73,24 @@ const Editor = dynamic(() => import('../components/Editor').then((m) => m.Editor
 export default function EditorPage() { return <Editor /> }
 ```
 
+## Guarantees (tested, not just documented)
+
+**Every package imports cleanly in a non-DOM environment.** `@xenolithengine/graph-core`,
+`graph-adapter-core`, `graph-react`, `graph-editor` (including the full PIXI import graph) and
+`graph-wc` all evaluate without touching `window`/`document`/`HTMLElement` at module scope —
+locked by the node-purity suite in `@xenolithengine/graph-test-utils`. Practically: you may
+import editor *symbols* in server code (`serializeXenolithGraph`, `importFromReactFlow`,
+`diffGraphs`, types) as long as you never **construct** an editor there. `graph-wc`'s
+`register()` no-ops without `customElements`, so importing it on the server is safe too (its
+element base class is lazily guarded since 2026-09-28 — it used to crash server bundles).
+
+**React StrictMode is safe.** The adapter serializes mount/destroy through a single async
+chain, so the dev-mode double-invoke (`mount → cleanup → mount`) boots exactly ONE editor,
+destroys it fully on unmount, survives unmount-during-boot, and leaks no canvases — each of
+those is an executed test (`renderXenolithToDOM(props, { strictMode: true })` from
+[`graph-test-utils`](/guides/testing/) exercises the same path in your own suite). Production
+builds are unaffected; StrictMode double-invocation is dev-only.
+
 ## Why no SSR mode
 
 A "headless" SSR mode would mean pre-rendering the graph as static SVG on the server. That's a different product. `@xenolithengine/graph-render-pixi` is the only renderer we ship; it requires a `<canvas>` + GPU. If you need a server-rendered preview, use `editor.exportImage()` on the client and upload the resulting PNG — that's a one-shot static render, not interactivity.

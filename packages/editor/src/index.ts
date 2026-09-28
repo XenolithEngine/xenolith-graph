@@ -4622,6 +4622,10 @@ export class XenolithEditor {
     this.#app.destroy(true, { children: true })
   }
 
+  /** True once {@link destroy} ran. Documented in STABLE-API — restored 2026-09-28 (E4):
+   *  the accessor had drifted out of the code while the contract kept listing it. */
+  get isDestroyed(): boolean { return this.#destroyed }
+
   readonly #onKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape' && this.#pointer.isPinDrag()) {
       this.#cancelPinDrag()

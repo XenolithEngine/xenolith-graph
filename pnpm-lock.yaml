@@ -747,12 +747,18 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.3(@types/react@19.2.15)
+      '@xenolithengine/graph-adapter-core':
+        specifier: workspace:*
+        version: link:../adapter-core
       '@xenolithengine/graph-editor':
         specifier: workspace:*
         version: link:../editor
       '@xenolithengine/graph-react':
         specifier: workspace:*
         version: link:../react
+      '@xenolithengine/graph-wc':
+        specifier: workspace:*
+        version: link:../wc
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1

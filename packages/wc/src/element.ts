@@ -2,11 +2,19 @@ import { createEditorBinding, type EditorBinding, type XenolithProps } from '@xe
 import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import { readAttributes, FORWARDED_EVENTS } from './attrs.js'
 
+// SSR guard: `class … extends HTMLElement` evaluates the base at MODULE scope, which throws
+// `HTMLElement is not defined` in non-DOM environments (Next.js server bundle, bare node).
+// Fall back to a plain base there — `register()` already no-ops without `customElements`, so
+// the class is only ever DEFINED against a real DOM. Keeps the package import-safe for SSR.
+const ElementBase: typeof HTMLElement = typeof HTMLElement === 'undefined'
+  ? (class {} as unknown as typeof HTMLElement)
+  : HTMLElement
+
 /** `<xenolith-graph>` — the universal adapter. Declarative attributes (`minimap`, `fit-on-load`,
  *  `disable-grid`) and JS properties (`theme`, `graph`) feed the editor; every public editor event
  *  is re-emitted off the element as a same-named CustomEvent. Works in any framework that speaks
- *  DOM (Angular, Vue, Svelte, Solid, Lit, Astro, vanilla). */
-export class XenolithGraphElement extends HTMLElement {
+ *  DOM (Angular, Vue, Svelte, Lit, Astro, vanilla). */
+export class XenolithGraphElement extends ElementBase {
   static get observedAttributes(): string[] { return ['minimap', 'fit-on-load', 'disable-grid'] }
 
   #binding: EditorBinding | null = null
