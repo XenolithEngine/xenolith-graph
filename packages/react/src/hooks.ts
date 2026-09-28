@@ -133,6 +133,15 @@ export function useEditorEvent<E extends keyof EditorEvents>(
 
 const UNDO_REDO_EVENTS = ['history:changed'] as const
 
+// Module-level like the other store hooks — a hook created inside `useUndoRedo`'s body would be
+// a fresh closure per render: invisible to the rules-of-hooks lint and unable to share the
+// identity-stable snapshot cache the other hooks rely on.
+const useUndoRedoState: () => { canUndo: boolean; canRedo: boolean } = makeEditorStoreHook(
+  UNDO_REDO_EVENTS,
+  (e) => ({ canUndo: e.history.canUndo, canRedo: e.history.canRedo }),
+  { canUndo: false, canRedo: false },
+)
+
 /**
  * `{ canUndo, canRedo, undo, redo }` — live undo/redo state + stable callable handles. Use for
  * toolbars: `<button disabled={!canUndo} onClick={undo}>Undo</button>`. Re-renders whenever the
@@ -140,11 +149,7 @@ const UNDO_REDO_EVENTS = ['history:changed'] as const
  */
 export function useUndoRedo(): { canUndo: boolean; canRedo: boolean; undo: () => boolean; redo: () => boolean } {
   const editor = useXenolithEditor()
-  const state = makeEditorStoreHook<{ canUndo: boolean; canRedo: boolean }>(
-    UNDO_REDO_EVENTS,
-    (e) => ({ canUndo: e.history.canUndo, canRedo: e.history.canRedo }),
-    { canUndo: false, canRedo: false },
-  )()
+  const state = useUndoRedoState()
   return {
     canUndo: state.canUndo,
     canRedo: state.canRedo,
