@@ -9,13 +9,15 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   reporter: process.env.CI ? 'github' : 'line',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5199',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  // 5199 + strictPort: 5173 is Vite's default and gets stolen by sibling projects on this
+  // machine (xenolith-apk-editor), which `reuseExistingServer` then happily tests against.
   webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:5173',
+    command: 'pnpm exec vite --port 5199 --strictPort',
+    url: 'http://localhost:5199',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
     stdout: 'pipe',

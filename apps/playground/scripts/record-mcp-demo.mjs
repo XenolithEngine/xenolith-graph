@@ -12,8 +12,8 @@ import { chromium } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 
 const PAGE_URL = process.argv.includes('--propose')
-  ? 'http://localhost:5173/?demo=agent&mode=propose'
-  : 'http://localhost:5173/?demo=agent'
+  ? 'http://localhost:5199/?demo=agent&mode=propose'
+  : 'http://localhost:5199/?demo=agent'
 const OUT_DIR = new URL('../.recordings/', import.meta.url).pathname
 mkdirSync(OUT_DIR, { recursive: true })
 

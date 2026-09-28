@@ -60,6 +60,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.exportJSON()`, `editor.exportImage(opts)`, `editor.exportNodeImage(id, opts)` | |
 | `editor.setTheme(theme)`, `editor.theme`, `editor.tokens`, `editor.setCategoryPalette`, `editor.setDefaultEdgeOptions`, `editor.getEdgeOptions`, `editor.setEdgeOptions`, `editor.setEdgeAnimated` | `setDefaultEdgeOptions` fills fields a wire does not set itself. `getEdgeOptions` returns the merge. |
 | `editor.openPalette(screen?)`, `editor.closePalette`, `editor.isPaletteOpen`, `editor.insertNode`, `editor.insertRerouteOnEdge`, `editor.setPaletteSidebar` | |
+| `editor.findNodes(q)`, `editor.focusNode(id)`, `editor.openSearch()`, `editor.closeSearch`, `editor.isSearchOpen` | Ctrl+F search over EXISTING nodes (H1): `findNodes` shares semantics with the MCP `find_nodes` tool; the search box folds type matches into title matches; picking a result selects + centers (`focusNode`). Types `FindNodesQuery` / `FoundNode`. |
 | `editor.openSidebar(nodeId)`, `editor.closeSidebar`, `editor.isSidebarOpen`, `editor.refreshSidebar` | |
 | `editor.setBreadcrumbVisible(v)` | |
 | `editor.setInteractive(v)`, `editor.interactive`, `editor.setLiveMode(v)`, `editor.liveMode` | |

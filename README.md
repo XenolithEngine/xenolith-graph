@@ -3,7 +3,7 @@
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
-[![Tests](https://img.shields.io/badge/tests-1259%20unit%20%C2%B7%20112%20e2e-39d98a?style=flat-square)](#tests)
+[![Tests](https://img.shields.io/badge/tests-1271%20unit%20%C2%B7%20114%20e2e-39d98a?style=flat-square)](#tests)
 [![Bundle: core](https://img.shields.io/badge/@xenolithengine%2Fgraph--core-8.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: render-pixi](https://img.shields.io/badge/@xenolithengine%2Fgraph--render--pixi-17.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-74.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
@@ -215,8 +215,8 @@ Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). ADRs: [`docs/adr/`
 
 `pnpm test` runs the full suite.
 
-- **1259 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
-- **112 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
+- **1271 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
+- **114 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
 - Visual snapshot tests for the renderer (PIXI render → PNG → image-diff)
 - `pnpm size` enforces per-package bundle budgets in CI
 

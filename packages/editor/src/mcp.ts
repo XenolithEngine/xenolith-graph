@@ -1,6 +1,7 @@
 import type { Edge, NodeId, PinId } from '@xenolithengine/graph-core'
 import { createEdgeId, createNodeId } from '@xenolithengine/graph-core'
 import { resolvePin } from './pin-resolve.js'
+import { findNodesIn } from './find-nodes.js'
 import { layeredLayout, nextFreeSpot } from './layout-ops.js'
 import { BUILTIN_RECIPES, instantiateRecipe, type RecipeDef, type RecipeRegistry, createRecipeRegistry } from './recipes.js'
 
@@ -435,18 +436,10 @@ export function buildHandlers(editor: McpEditorSurface, opts: BuildHandlersOptio
     },
     find_nodes: (args) => {
       const a = (args ?? {}) as { type?: string; category?: string; titleContains?: string }
-      const needle = a.titleContains?.toLowerCase()
-      const schemaCategoryByType = new Map<string, string | undefined>()
-      for (const s of editor.registry.all()) schemaCategoryByType.set(s.type, s.category)
-      const hits: Array<{ id: string; type: string; title: string | null; category: string | null }> = []
-      for (const n of editor.graph.nodes()) {
-        if (a.type && n.type !== a.type) continue
-        const cat = schemaCategoryByType.get(n.type)
-        if (a.category && cat !== a.category) continue
-        const title = ((n.state ?? {}) as { title?: string }).title
-        if (needle && !((title ?? '').toLowerCase().includes(needle))) continue
-        hits.push({ id: String(n.id), type: n.type, title: title ?? null, category: cat ?? null })
-      }
+      const hits = findNodesIn(
+        { registry: editor.registry, nodes: editor.graph.nodes() as Iterable<{ id: unknown; type: string; state?: Record<string, unknown> }> },
+        a,
+      )
       return { count: hits.length, nodes: hits }
     },
     describe_node: (args) => {

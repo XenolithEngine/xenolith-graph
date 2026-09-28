@@ -132,6 +132,8 @@ import { PaletteSidebar, type PaletteSidebarOpts } from './palette-sidebar.js'
 import { computeRerouteBridges } from './reroute-bridge.js'
 import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
 import { InsertPalette } from './palette.js'
+import { SearchPalette } from './search-palette.js'
+import { findNodesIn, type FindNodesQuery, type FoundNode } from './find-nodes.js'
 import { pruneOrphanInlineReroutes } from './clipboard-prune.js'
 import { EdgeContextMenu, type EdgeMenuItem } from './edge-menu.js'
 import { ContextMenuRegistry } from './context-menu.js'
@@ -192,6 +194,7 @@ export { NodeRegistry } from '@xenolithengine/graph-core'
 export type { NodeSchema, PinSchema, NodeSearchResult, WidgetSpec, WidgetStyle, WidgetType, Node, Edge, NodeId, EdgeId, PinId } from '@xenolithengine/graph-core'
 export type { CustomWidgetController, CanvasWidgetController, DomWidgetController, CustomWidgetContext, ViewportState } from '@xenolithengine/graph-render-pixi'
 export type { MinimapPosition } from './minimap.js'
+export type { FindNodesQuery, FoundNode } from './find-nodes.js'
 export type { ControlsOptions, ControlsPosition } from './controls.js'
 export type { EditorEvents, PreventablePayload } from './events.js'
 export { CommandRegistry, Commands } from './commands-registry.js'
@@ -665,6 +668,8 @@ export class XenolithEditor {
    *  the host registry — currently just the Reroute node. */
   readonly #builtins = new NodeRegistry()
   #palette: InsertPalette | null = null
+  /** Ctrl+F search over EXISTING graph nodes (H1) — built lazily on first open. */
+  #search: SearchPalette | null = null
   /** When the palette was opened via an edge's "Add Node" menu: the edge to splice into plus its
    *  endpoint types (so the palette filters to compatible nodes). Consumed by `#insertFromPalette`. */
   #pendingEdgeSplice: { edgeId: EdgeId; srcType: string; dstType: string } | null = null
@@ -3309,6 +3314,44 @@ export class XenolithEditor {
   closePalette(): void { this.#pendingEdgeSplice = null; this.#palette?.close() }
   get isPaletteOpen(): boolean { return this.#palette?.isOpen ?? false }
 
+  /** Query EXISTING graph nodes by title substring / type / category — the same semantics the
+   *  MCP `find_nodes` tool exposes (shared module). The insert palette searches TYPES to spawn;
+   *  this finds what is already on the canvas. */
+  findNodes(q: FindNodesQuery): FoundNode[] {
+    return findNodesIn({ registry: this.#registry, nodes: this.graphNodes() }, q)
+  }
+
+  /** Select a node and center the viewport on it (keeps the current zoom). Returns false for
+   *  an unknown id. */
+  focusNode(id: NodeId): boolean {
+    const node = this.graph.getNode(id)
+    if (!node) return false
+    this.setSelection([id])
+    const size = node.size ?? { x: this.#theme.tokens.geometry.node.minWidth, y: 40 }
+    const cx = node.position.x + size.x / 2
+    const cy = node.position.y + size.y / 2
+    const z = this.#viewport.state.zoom
+    this.setViewport({
+      x: this.#host.clientWidth / 2 - cx * z,
+      y: this.#host.clientHeight / 2 - cy * z,
+      zoom: z,
+    })
+    return true
+  }
+
+  /** Open the Ctrl+F search box over existing graph nodes (H1). Picking a result selects the
+   *  node and centers the viewport on it. */
+  openSearch(): void {
+    this.#search ??= new SearchPalette({
+      overlayRoot: this.overlayRoot,
+      find: (q) => this.findNodes(q),
+      onPick: (id) => { this.focusNode(id as NodeId) },
+    })
+    this.#search.open()
+  }
+  closeSearch(): void { this.#search?.close() }
+  get isSearchOpen(): boolean { return this.#search?.isOpen ?? false }
+
   /** Palette search across both the host registry and the built-in schemas. Host types win on a
    *  type collision; results stay sorted by descending fuzzy score. */
   #searchSchemas(query: string): ReturnType<NodeRegistry['search']> {
@@ -4714,6 +4757,7 @@ export class XenolithEditor {
     ;(this.#app.canvas as HTMLCanvasElement | undefined)?.removeEventListener('dragover',    this.#onDragOver)
     ;(this.#app.canvas as HTMLCanvasElement | undefined)?.removeEventListener('drop',        this.#onDrop)
     this.#palette?.destroy()
+    this.#search?.dispose()
     this.#interaction?.detach()
     if (this.#freezeTimer) clearTimeout(this.#freezeTimer)
     for (const rec of this.#domWidgets.values()) { rec.cleanup?.(); rec.controller.unmount?.(); rec.el.remove() }
@@ -4765,6 +4809,12 @@ export class XenolithEditor {
       e.preventDefault()
       if (this.isPaletteOpen) this.closePalette()
       else this.openPalette()
+      return
+    }
+    if (mod && (e.key === 'f' || e.key === 'F')) {
+      e.preventDefault()
+      if (this.isSearchOpen) this.closeSearch()
+      else this.openSearch()
       return
     }
     if (!mod && (e.key === 'Delete' || e.key === 'Backspace')) {
