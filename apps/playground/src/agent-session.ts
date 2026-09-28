@@ -11,13 +11,15 @@ import type { Edge, Node, NodeId, Pin, PinId, NodeSchema } from '@xenolithengine
 import { createEdgeId } from '@xenolithengine/graph-core'
 import { StepDebugger } from '@xenolithengine/graph-editor'
 
-/** Feather icon inner-SVG for the five glyphs beyond the built-in set (MIT, feathericons.com). */
+/** Feather icon inner-SVG for the five glyphs beyond the built-in set (MIT, feathericons.com).
+ *  PATHS ONLY — the glyph renderer rasterizes path/rect/line primitives; <polygon>/<polyline>
+ *  render as filled artifacts (the Smooth-filter bug). */
 const CUSTOM_ICONS: Record<string, string> = {
-  activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-  filter: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+  activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  filter: '<path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>',
   bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
-  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8"/><circle cx="12" cy="12" r="3"/>',
-  monitor: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>',
+  monitor: '<path d="M22 17V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"/><path d="M8 21h8"/><path d="M12 17v4"/>',
 }
 
 const pin = (direction: 'in' | 'out', label: string) =>
@@ -231,8 +233,10 @@ export async function runAgentSession(editor: XenolithEditor, opts: { delayMs?: 
   const layout = ui.step('auto_layout', 'direction=LR, spacing=110')
   await wait(500)
   const laid = editor.autoLayout({ direction: 'LR', spacing: 110, fit: false })
-  editor.fitView({ padding: 96 })
-  editor.view.pan(190, 0) // shift right so the source column clears the transcript panel
+  // Fit with enough slack, then shift right for the 360px transcript panel: padding 220 + pan 180
+  // → ~400px left margin (panel + gap), ~40px right margin — fully visible, nothing clipped.
+  editor.fitView({ padding: 220 })
+  editor.view.pan(180, 0)
   layout.ok(`moved ${laid.moved} nodes`)
 
   const palette = ui.step('set_category_palette', '7 categories')
@@ -293,9 +297,9 @@ export async function runAgentSession(editor: XenolithEditor, opts: { delayMs?: 
   else verify.err(`alert='${run.alert}' count=${run.count}`)
   ui.sub(`dashboard report: ${JSON.stringify(outputsOf('Dashboard').get(labelToPinId(byType(editor, 'Dashboard'), 'report')) ?? null)}`)
 
-  const fit = ui.step('fit_view', 'padding=96')
-  editor.fitView({ padding: 96 })
-  editor.view.pan(190, 0) // same shift as after auto_layout — keep the pipeline clear of the panel
+  const fit = ui.step('fit_view', 'padding=220')
+  editor.fitView({ padding: 220 })
+  editor.view.pan(180, 0) // same geometry as after auto_layout — clear of the panel, not clipped
   fit.ok('')
   ui.summary(`${nodeCount()} nodes · ${edgeCount()} edges · ${run.history.length} executed`)
   ui.done()
