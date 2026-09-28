@@ -52,4 +52,16 @@ describe('createMcpServer smoke (tools/list + resources/list)', () => {
     expect(version?.name).toBe('xenolith-graph')
     expect(version?.version).toBe('0.7.0-beta.5')
   })
+
+  it('advertises audit://recent in resources/list (C-Bet1a)', async () => {
+    const { resources } = await client.listResources()
+    const audit = resources.find((r) => r.uri === 'audit://recent')
+    expect(audit).toBeDefined()
+    expect(audit!.description.length).toBeGreaterThan(10)
+  })
+
+  it('catalogs the get_audit_log tool (C-Bet1a)', async () => {
+    const { tools } = await client.listTools()
+    expect(tools.some((t) => t.name === 'get_audit_log')).toBe(true)
+  })
 })

@@ -64,7 +64,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.setBreadcrumbVisible(v)` | |
 | `editor.setInteractive(v)`, `editor.interactive`, `editor.setLiveMode(v)`, `editor.liveMode` | |
 | `editor.setIsValidConnection(predicate)` | |
-| `editor.connectMCP(url)` | |
+| `editor.connectMCP(url, { clientId? })`, `editor.mcpAudit` | MCP client with optional audit identity; `mcpAudit` is the bounded agent-mutation ring (C-Bet1a) — entries carry graph data, clientId is transport-provided NOT authenticated. Exposed to MCP clients as `get_audit_log` / `audit://recent`. |
 | **Namespaces:** | |
 | `editor.view.{pan, zoomAt, resetView, fitView, setViewport, state, screenToWorld, worldToScreen, lastPointerWorld}` | Viewport. |
 | `editor.autoLayout({direction, spacing, fit})` | Layered DAG layout — the same layout the MCP `auto_layout` tool uses, now public for hosts. |

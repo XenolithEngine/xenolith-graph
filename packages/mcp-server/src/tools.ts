@@ -23,6 +23,11 @@ export const TOOLS = {
     description: 'Return the current graph as xenolith.v1 JSON (nodes, edges, comments). Read-only snapshot.',
     schema: z.object({}).strict(),
   },
+  get_audit_log: {
+    name: 'get_audit_log',
+    description: 'Return the agent-mutation audit log (bounded ring): one entry per mutating tool call — client, tool, arg digest, effect deltas (nodes/edges ±), ok/error, monotonic seq, plus evictions. Read-only.',
+    schema: z.object({}).strict(),
+  },
   add_node: {
     name: 'add_node',
     description: 'Insert a node of the given type. Coordinates are OPTIONAL: if omitted the editor drops it just to the right of the existing graph (or at the origin if empty). Prefer adding all nodes without coordinates, then calling auto_layout once to tidy the whole picture — the LLM has no idea about node sizes/spacing, so manual coords almost always overlap.',

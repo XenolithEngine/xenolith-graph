@@ -3543,20 +3543,33 @@ export class XenolithEditor {
    *  here over the socket; handlers route to `insertNode`/`addEdge`/`fitView`/etc. (already
    *  undoable via the command bus). Returns a disconnect function. See `mcp.ts` for the protocol. */
   #mcp: McpClient | null = null
+  #mcpAudit: import('./mcp.js').AuditLog | null = null
   async connectMCP(
     url: string,
-    opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void } = {},
+    opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void; clientId?: string } = {},
   ): Promise<() => void> {
-    const { McpClient } = await import('./mcp.js')
+    const { McpClient, AuditLog } = await import('./mcp.js')
     this.#mcp?.disconnect()
+    // One ring per EDITITOR, shared across reconnects — hosts read it via `editor.mcpAudit`
+    // (and MCP clients via the get_audit_log tool / audit://recent resource).
+    this.#mcpAudit ??= new AuditLog()
     const client = new McpClient(
       this as unknown as McpEditorSurface,
-      opts.onStatus !== undefined ? { onStatus: opts.onStatus } : {},
+      {
+        ...(opts.onStatus !== undefined ? { onStatus: opts.onStatus } : {}),
+        ...(opts.clientId !== undefined ? { clientId: opts.clientId } : {}),
+        audit: this.#mcpAudit!,
+      },
     )
     await client.connect(url)
     this.#mcp = client
     return () => { client.disconnect(); this.#mcp = null }
   }
+
+  /** The agent-mutation audit ring (C-Bet1a) — populated while an MCP session is connected.
+   *  One instance per editor, shared across reconnects. Entries contain graph data; the
+   *  clientId field is transport-provided, NOT authenticated. */
+  get mcpAudit(): import('./mcp.js').AuditLog | null { return this.#mcpAudit ?? null }
 
   /** World-space bounding box of all nodes, or null when the graph is empty. */
   #graphBounds(): { x: number; y: number; w: number; h: number } | null {

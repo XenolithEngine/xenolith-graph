@@ -5,7 +5,7 @@ import { TOOLS } from '../tools.js'
 describe('MCP resources', () => {
   it('exposes graph://current and schema://types in the minimum set', () => {
     const uris = RESOURCES.map((r) => r.uri).sort()
-    expect(uris).toEqual(['graph://current', 'schema://types'])
+    expect(uris).toEqual(['audit://recent', 'graph://current', 'schema://types'])
   })
 
   it('every resource forwards to a remote tool that actually exists', () => {

@@ -29,6 +29,26 @@ You have four options for letting an AI drive the editor:
 | [/api/graphs.jsonl](/api/graphs.jsonl) | All 30 examples as one JSON-per-line index |
 | [`/examples/<id>/llms.md`](../../examples/diagram/llms.md) | Plain-text mirror of any example page |
 
+## Audit log — what the agent did, when, with what effect
+
+Every **document-mutating** tool call (add/remove nodes, wires, macros, themes, recipes, …)
+appends one entry to a bounded in-memory ring (500 by default, evictions counted in `dropped`):
+client id, tool name, argument digest, effect deltas (nodes/edges added/removed), ok/error,
+monotonic sequence number, timestamp. Read-only tools are never audited — they cannot change
+the graph.
+
+Read it three ways:
+
+- **MCP resource** `audit://recent` — attach it to the agent's context to review prior sessions.
+- **MCP tool** `get_audit_log` — same payload, on demand.
+- **Host API** `editor.mcpAudit.read()` — render your own review UI (this is the foundation the
+  upcoming "agent proposes — human approves" pattern builds on).
+
+Two honest security notes: entries **contain graph data** (types, positions, argument digests) —
+treat the log as sensitive as the graph itself; and `clientId` is **transport-provided
+identity, not authentication** — any client can claim any id. The ring lives in memory only:
+reloading the page clears it.
+
 ## FAQ for adopters
 
 ### "I want to let users build graphs by chatting with AI. What do I install?"

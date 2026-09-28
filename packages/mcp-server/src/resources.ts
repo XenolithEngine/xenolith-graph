@@ -26,6 +26,13 @@ export const RESOURCES: ReadonlyArray<ResourceDef> = [
     remoteTool: 'get_graph',
   },
   {
+    uri: 'audit://recent',
+    name: 'Agent mutation audit log',
+    description: 'The bounded ring of agent mutations (one entry per mutating tool call: client, tool, arg digest, effect deltas, ok/error). Attach to review what the agent did to this graph.',
+    mimeType: 'application/json',
+    remoteTool: 'get_audit_log',
+  },
+  {
     uri: 'schema://types',
     name: 'Node type schemas',
     description: 'Every registered node type with its pins (label/direction/data type) and widgets. Attach this so the AI knows the available types before designing a graph — saves a list_node_types call per session.',

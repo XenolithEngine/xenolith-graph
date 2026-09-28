@@ -82,9 +82,86 @@ export interface McpEditorSurface {
 
 export type ToolHandler = (args: unknown) => unknown | Promise<unknown>
 
-export function buildHandlers(editor: McpEditorSurface): Record<string, ToolHandler> {
+// ---- audit log (C-Bet1a) -----------------------------------------------------------------------
+//
+// Every DOCUMENT-MUTATING tool call appends one entry — success or failure. Read/view tools
+// (get_graph, list_*, find_*, describe_*, fit_view, select_*, screenshots) are NOT audited:
+// they cannot change the graph. SECURITY NOTES, stated plainly: (a) entries contain graph
+// data (node types, positions, digests of the arguments the agent sent) — treat the log as
+// sensitive as the graph itself; (b) `clientId` is transport-provided identity, NOT
+// authentication — any client can claim any id until the server grows an auth story.
+
+export interface AuditEffectDelta { added: number; removed: number }
+
+export interface AuditEntry {
+  /** Monotonic across the ring's lifetime (survives evictions). */
+  seq: number
+  /** Epoch ms. */
+  ts: number
+  /** Transport-provided client label (NOT authenticated — see the note above). */
+  clientId: string
+  tool: string
+  ok: boolean
+  /** Human digest: tool + truncated args + outcome. Contract: ≤ ~160 chars. */
+  summary: string
+  nodes?: AuditEffectDelta
+  edges?: AuditEffectDelta
+}
+
+export interface AuditLogOptions {
+  /** Ring capacity. Default 500 — enough for a long agent session, bounded for memory. */
+  capacity?: number
+}
+
+/** Bounded ring of agent-mutation records. Hosts may inject one instance and share it across
+ *  MCP reconnects/clients; `editor.connectMCP` keeps one per editor (`editor.mcpAudit`). */
+export class AuditLog {
+  readonly capacity: number
+  #entries: AuditEntry[] = []
+  #dropped = 0
+  #seq = 0
+
+  constructor(capacity = 500) { this.capacity = capacity }
+
+  append(entry: Omit<AuditEntry, 'seq' | 'ts'>): AuditEntry {
+    const full: AuditEntry = { ...entry, seq: ++this.#seq, ts: Date.now() }
+    this.#entries.push(full)
+    if (this.#entries.length > this.capacity) {
+      this.#dropped += this.#entries.length - this.capacity
+      this.#entries.splice(0, this.#entries.length - this.capacity)
+    }
+    return full
+  }
+
+  read(): { entries: readonly AuditEntry[]; dropped: number; capacity: number } {
+    return { entries: this.#entries.slice(), dropped: this.#dropped, capacity: this.capacity }
+  }
+}
+
+export interface BuildHandlersOptions {
+  /** Identity stamped on audit entries. Defaults to 'editor-connection'. */
+  clientId?: string
+  /** Inject a host-owned ring (shared across reconnects). A fresh one is created otherwise. */
+  audit?: AuditLog
+}
+
+/** Document-mutating tools — the audited set. View/read/stateless tools are excluded on purpose. */
+const AUDITED_TOOLS = new Set([
+  'add_node', 'connect_pins', 'set_widget_value', 'remove_node', 'disconnect_edge',
+  'create_macro', 'expand_macro', 'collapse_macro', 'auto_layout', 'set_category_palette',
+  'set_theme', 'register_node_schema', 'dive_into_template', 'dive_out', 'instantiate_recipe',
+])
+
+const digest = (args: unknown): string => {
+  const json = JSON.stringify(args ?? {}) ?? ''
+  return json.length > 120 ? json.slice(0, 117) + '…' : json
+}
+
+export function buildHandlers(editor: McpEditorSurface, opts: BuildHandlersOptions = {}): Record<string, ToolHandler> {
   const recipes: RecipeRegistry = editor.recipes ?? createRecipeRegistry(BUILTIN_RECIPES)
-  return {
+  const audit = opts.audit ?? new AuditLog()
+  const clientId = opts.clientId ?? 'editor-connection'
+  return wrapWithAudit(audit, clientId, editor, {
     list_node_types: () => editor.registry.all().map((s) => ({
       type: s.type,
       title: s.title,
@@ -328,7 +405,63 @@ export function buildHandlers(editor: McpEditorSurface): Record<string, ToolHand
       const result = instantiateRecipe(editor as never, def, origin)
       return { recipe: def.id, ids: result.ids, edges: result.edges, nodes: Object.keys(result.ids).length }
     },
+    get_audit_log: () => audit.read(),
+  })
+}
+
+/** Wrap every AUDITED tool so its call appends one audit entry (ok or error) with effect
+ *  deltas measured from graph counts. Read/view tools pass through untouched. */
+function wrapWithAudit(
+  audit: AuditLog,
+  clientId: string,
+  editor: McpEditorSurface,
+  handlers: Record<string, ToolHandler>,
+): Record<string, ToolHandler> {
+  const countOf = (it: Iterable<unknown>): number => { let n = 0; for (const _ of it) n++; return n }
+  const delta = (before: number, after: number): AuditEffectDelta =>
+    ({ added: Math.max(0, after - before), removed: Math.max(0, before - after) })
+  const out: Record<string, ToolHandler> = {}
+  for (const [name, handler] of Object.entries(handlers)) {
+    if (!AUDITED_TOOLS.has(name)) { out[name] = handler; continue }
+    // Promise-aware but NOT unconditionally async: synchronous handlers keep their synchronous
+    // throw semantics (callers and tests rely on them); async handlers chain through.
+    out[name] = (args: unknown) => {
+      const beforeNodes = countOf(editor.graph.nodes())
+      const beforeEdges = countOf(editor.graph.edges())
+      const recordOk = (): void => {
+        const nodes = delta(beforeNodes, countOf(editor.graph.nodes()))
+        const edges = delta(beforeEdges, countOf(editor.graph.edges()))
+        audit.append({
+          clientId, tool: name, ok: true,
+          summary: `${name}(${digest(args)}) ok`,
+          ...(nodes.added + nodes.removed > 0 ? { nodes } : {}),
+          ...(edges.added + edges.removed > 0 ? { edges } : {}),
+        })
+      }
+      const recordErr = (err: unknown): void => {
+        audit.append({
+          clientId, tool: name, ok: false,
+          summary: `${name}(${digest(args)}) error: ${(err as Error).message}`.slice(0, 160),
+        })
+      }
+      let result: unknown
+      try {
+        result = handler(args)
+      } catch (err) {
+        recordErr(err)
+        throw err
+      }
+      if (result instanceof Promise) {
+        return result.then(
+          (r) => { recordOk(); return r },
+          (e) => { recordErr(e); throw e },
+        )
+      }
+      recordOk()
+      return result
+    }
   }
+  return out
 }
 
 async function blobToDataUri(blob: Blob): Promise<string> {
@@ -379,10 +512,17 @@ export class McpClient {
   #socket: McpSocketLike | null = null
   #handlers: Record<string, ToolHandler>
   #status: McpClientOptions['onStatus']
+  /** Transport-provided identity for audit entries. NOT authentication — any client can
+   *  claim any id until the server grows an auth story (see the audit security notes). */
+  readonly clientId: string
 
-  constructor(editor: McpEditorSurface, opts: McpClientOptions = {}) {
-    this.#handlers = buildHandlers(editor)
+  constructor(editor: McpEditorSurface, opts: McpClientOptions & { clientId?: string; audit?: AuditLog } = {}) {
+    const hOpts: BuildHandlersOptions = {}
+    if (opts.clientId !== undefined) hOpts.clientId = opts.clientId
+    if (opts.audit !== undefined) hOpts.audit = opts.audit
+    this.#handlers = buildHandlers(editor, hOpts)
     this.#status = opts.onStatus
+    this.clientId = opts.clientId ?? 'editor-connection'
   }
 
   connect(url: string, opts: McpClientOptions = {}): Promise<void> {
@@ -393,7 +533,7 @@ export class McpClient {
       this.#socket = ws
       this.#status?.('connecting')
       ws.onopen = () => {
-        ws.send(JSON.stringify({ kind: 'hello', editorVersion: '0.7.0-beta.5' }))
+        ws.send(JSON.stringify({ kind: 'hello', editorVersion: '0.7.0-beta.5', clientId: this.clientId }))
         this.#status?.('open')
         resolve()
       }
