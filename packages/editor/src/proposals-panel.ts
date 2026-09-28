@@ -94,8 +94,15 @@ export class ProposalsPanel {
     if (size > 0 && !this.#badge) this.#ensureBadge()
     if (this.#badge) {
       const show = size > 0 && !this.#open
-      if (show) this.#badge.removeAttribute('data-hidden')
-      else this.#badge.setAttribute('data-hidden', '')
+      // data-hidden is the test/e2e hook; display:none is what actually hides it — the badge
+      // styles don't key off the attribute, so the attribute alone leaves a ghost pill visible.
+      if (show) {
+        this.#badge.removeAttribute('data-hidden')
+        this.#badge.style.display = ''
+      } else {
+        this.#badge.setAttribute('data-hidden', '')
+        this.#badge.style.display = 'none'
+      }
       const label = this.#badge.querySelector('[data-xeno-proposals-badge-count]')
       if (label) label.textContent = String(size)
     }

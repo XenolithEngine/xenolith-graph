@@ -108,9 +108,12 @@ describe('ProposalsPanel (F1 — review UI for the C-Bet1b queue)', () => {
     expect(badge).not.toBeNull()
     expect(badge.textContent).toContain('1')
     expect(badge.getAttribute('data-hidden')).toBe(null)
+    expect(badge.style.display).not.toBe('none')
     click(badge)
     expect(h.panel.isOpen()).toBe(true)
-    expect(h.root.querySelector('[data-xeno-proposals-badge]')!.getAttribute('data-hidden')).toBe('')
+    const after = h.root.querySelector('[data-xeno-proposals-badge]') as HTMLElement
+    expect(after.getAttribute('data-hidden')).toBe('')
+    expect(after.style.display).toBe('none')
   })
 
   it('the badge hides while the queue is empty and never blocks the panel', () => {
@@ -119,6 +122,7 @@ describe('ProposalsPanel (F1 — review UI for the C-Bet1b queue)', () => {
     h.queue.reject([id])
     const badge = h.root.querySelector('[data-xeno-proposals-badge]') as HTMLElement
     expect(badge?.getAttribute('data-hidden')).toBe('')
+    expect(badge?.style.display).toBe('none')
   })
 
   it('close() hides the panel and the badge returns when entries remain', () => {
