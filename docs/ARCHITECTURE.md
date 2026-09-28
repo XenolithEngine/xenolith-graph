@@ -54,7 +54,7 @@ This document describes the locked-in architecture for v0.x. Individual decision
 | `@xenolithengine/graph-vue` | shipped | Vue 3 adapter: component, composables, panels, `vueWidget`. |
 | `@xenolithengine/graph-svelte`, `@xenolithengine/graph-solid`, `@xenolithengine/graph-angular` | shipped, thin | Mount the editor and re-dispatch events. No panel or hook surface at React/Vue parity. |
 | `@xenolithengine/graph-plugin-autolayout` | shipped | Dagre and ELK. One undo step for the finished positions. |
-| `@xenolithengine/graph-mcp-server` | shipped | MCP server. 25 tools + 2 resources (`graph://current`, `schema://types`). |
+| `@xenolithengine/graph-mcp-server` | shipped | MCP server. 26 tools + 3 resources (`graph://current`, `schema://types`, `audit://recent`). |
 | `@xenolithengine/graph-plugin-runtime` | experimental | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs through the plugin host. Execution is **not** in the editor itself. API may still move. |
 | `@xenolithengine/graph-runtime-as` | experimental | AssemblyScript → WASM codegen for the runtime VM. |
 

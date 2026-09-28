@@ -3,12 +3,12 @@
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
-[![Tests](https://img.shields.io/badge/tests-1012%20unit%20%C2%B7%20142%20e2e-39d98a?style=flat-square)](#tests)
+[![Tests](https://img.shields.io/badge/tests-1259%20unit%20%C2%B7%20112%20e2e-39d98a?style=flat-square)](#tests)
 [![Bundle: core](https://img.shields.io/badge/@xenolithengine%2Fgraph--core-8.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: render-pixi](https://img.shields.io/badge/@xenolithengine%2Fgraph--render--pixi-17.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-74.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: react](https://img.shields.io/badge/@xenolithengine%2Fgraph--react-2.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![MCP Server](https://img.shields.io/badge/MCP-25%20tools%20%C2%B7%202%20resources-a855f7?style=flat-square)](packages/mcp-server/TESTING.md)
+[![MCP Server](https://img.shields.io/badge/MCP-26%20tools%20%C2%B7%203%20resources-a855f7?style=flat-square)](packages/mcp-server/TESTING.md)
 [![Discussions](https://img.shields.io/badge/community-Discussions-181717?style=flat-square&logo=github)](https://github.com/XenolithEngine/xenolith-graph/discussions)
 
 An embeddable, drop-in node-graph editor for the web with a polished design system inside the package — typed Blueprint pins, live templates, macros, in-node widgets, a plugin host — and a swappable theme architecture that replaces the renderer's material entirely, not just its palette.
@@ -146,7 +146,7 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 
 - **Core** — `@xenolithengine/graph-core` headless model, command bus, typed pins, type registry with conversions, `evaluateGraph` for a host data pass
 - **Renderer** — `@xenolithengine/graph-render-pixi` WebGL editor, viewport virtualization + LOD past 300 nodes
-- **Editor** — `@xenolithengine/graph-editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 24 typed events (4 preventable), context-menu plugin API
+- **Editor** — `@xenolithengine/graph-editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 25 typed events (7 preventable), context-menu plugin API
 - **Adapters** — React (`@xenolithengine/graph-react`) and Vue 3 (`@xenolithengine/graph-vue`) with full hook / composable parity, panel components, and `reactWidget` / `vueWidget` wrappers. Thin starter adapters for Svelte, Solid, Angular, and Web Components (`@xenolithengine/graph-wc`). Idiomatic hooks for those four are not scheduled
 - **Themes** — Xen (default, original design system) + Daylight (light-mode) + Liquid Glass (refraction-based glass), runtime `setTheme()` swap
 - **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` ports)
@@ -155,7 +155,7 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 - **Save / export** — versioned `xenolith.v1` JSON with `migrate` hooks, ComfyUI workflow importer, full-graph PNG / JPEG export
 - **Palette** — Tab fuzzy search, palette sidebar (drag-and-drop spawn), edge-midpoint insert
 - **Initial touch / mobile** — pinch zoom, two-finger pan, long-press context menu, drawer chrome on narrow viewports, ⛶ pseudo-fullscreen
-- **AI / MCP** — `@xenolithengine/graph-mcp-server` (25 tools + 2 resources) + WebSocket bridge, `/llms.txt` + `/api/openapi.json` for AI agents
+- **AI / MCP** — `@xenolithengine/graph-mcp-server` (26 tools + 3 resources) + WebSocket bridge, `/llms.txt` + `/api/openapi.json` for AI agents
 - **Auto-layout** — Dagre + ELK adapters, one-call animated re-layout
 - **Step debugger** — `StepDebugger` core primitive (powers debugger / time-travel / heatmap / graph-diff showcases)
 
@@ -195,7 +195,7 @@ These were listed here before. They are not the plan until someone is actually b
 | `@xenolithengine/graph-adapter-core`, `@xenolithengine/graph-wc` | Framework-agnostic editor wrapper + universal web component. |
 | `@xenolithengine/graph-react` | React adapter (`<XenolithPanel>` / `<XenolithControls>` / `<XenolithMiniMap>` / `<XenolithButton>`, reactive selector hooks). |
 | `@xenolithengine/graph-test-utils` | jsdom test kit for hosts — `mockPixi()` / `renderEditorToDOM()` boot the real WebGL editor headlessly; `/react` and `/fake` subpaths for adapter tests and logic-level tests. |
-| `@xenolithengine/graph-mcp-server` | MCP server (stdio MCP ↔ WS bridge → browser editor via `editor.connectMCP(url)`). 25 tools + 2 resources, token-auth, read-only mode. |
+| `@xenolithengine/graph-mcp-server` | MCP server (stdio MCP ↔ WS bridge → browser editor via `editor.connectMCP(url)`). 26 tools + 3 resources, token-auth, read-only mode. |
 | `@xenolithengine/graph-plugin-runtime` *(in progress)* | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs via `editor.use()`. |
 
 ## Develop
@@ -215,8 +215,8 @@ Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). ADRs: [`docs/adr/`
 
 `pnpm test` runs the full suite.
 
-- **1035 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
-- **142 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
+- **1259 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
+- **112 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
 - Visual snapshot tests for the renderer (PIXI render → PNG → image-diff)
 - `pnpm size` enforces per-package bundle budgets in CI
 

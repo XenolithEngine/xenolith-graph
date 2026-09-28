@@ -32,20 +32,69 @@ Read-only context the MCP client can **attach** to its prompt without spending a
 |---|---|
 | `graph://current` | The live graph as `xenolith.v1` JSON. Attach this to ask the AI to summarise / refactor / explain the current state. |
 | `schema://types` | Every registered node type with pin & widget specs. Attach this so the AI doesn't have to call `list_node_types` every session — saves a roundtrip and 10× tokens against large registries (Comfy 60k+ types). |
+| `audit://recent` | The bounded ring of agent mutations — one entry per mutating tool call: client id, tool, argument digest, effect deltas (nodes/edges ±), ok/error, monotonic seq, timestamp. Attach to review what the agent did. |
 
 Resources route to the same WS bridge as tools; if no editor is connected they return an error blob instead of failing the MCP request.
 
 ## Tools exposed
 
+26 tools. Every mutation routes through the editor's CommandBus, so undo/redo and events fire normally.
+
+**Read / inspect** (not audited — cannot change the graph):
+
 | Tool | What it does |
 |---|---|
-| `list_node_types` | Lists every registered node type (so the LLM picks a real name). |
+| `list_node_types` | Lists every registered node type with pins + widgets (so the LLM picks a real name). |
 | `get_graph` | Returns the current graph as `xenolith.v1` JSON. |
-| `add_node` | Inserts a node by type at `(x, y)`. Returns its id. |
-| `connect_pins` | Connects two pins by node-id + pin-id. Returns edge id. |
-| `fit_view` | Fits the whole graph into the viewport. |
+| `find_nodes` | Search nodes by `type` / `category` / `titleContains`. |
+| `describe_node` | One node in full: pins, widgets, values, incident edges. |
+| `get_audit_log` | Reads the agent-mutation audit ring (same data as `audit://recent`). |
+| `list_recipes` | Lists built-in + host recipes (pre-assembled subgraphs). |
 
-All mutations route through the editor's CommandBus, so undo/redo and events fire normally.
+**Mutate the document** (audited; enqueued in propose mode):
+
+| Tool | What it does |
+|---|---|
+| `add_node` | Inserts a node by type at `(x, y)` (or the next free spot). Returns its id. |
+| `connect_pins` | Connects two pins. Pin refs: id → label (case-insensitive) → numeric index → `'in'`/`'out'`. |
+| `remove_node` / `disconnect_edge` | Delete a node / a wire (vetoable via the editor's preventable events). |
+| `set_widget_value` | Writes an in-node widget value (undoable). Widget refs resolve id → key → label. |
+| `create_macro` / `expand_macro` / `collapse_macro` | Group nodes into a collapsed macro, expand, collapse. |
+| `instantiate_recipe` | Spawns a whole pre-assembled subgraph in one call; returns the id map. |
+| `register_node_schema` | Registers a NEW node type (typed pins + widgets) so the agent can design, not just assemble. Re-registering an existing type is an error with guidance. |
+| `auto_layout` | Layered DAG layout (`LR`/`TB`), then fits the view. |
+
+**View / chrome** (state changes, not graph data):
+
+| Tool | What it does |
+|---|---|
+| `fit_view` | Fits the whole graph into the viewport. |
+| `select_nodes` / `clear_selection` | Drive the editor selection. |
+| `dive_into_template` / `dive_out` | Navigate into/out of template definitions. |
+| `set_category_palette` / `set_theme` | Recolour categories / swap the editor theme. |
+| `screenshot` / `node_screenshot` | PNG/JPEG of the whole graph or one node — the agent can LOOK at what it built. |
+
+## Proposal mode — "agent proposes, human approves" (ADR 0007)
+
+```js
+await editor.connectMCP('ws://127.0.0.1:7777?token=devtoken', { mode: 'propose' })
+```
+
+In propose mode every **mutating** tool call ENQUEUES instead of applying — the tool returns
+`{ proposed: true, proposalId, provisionalNodeId?, queued }` so the agent knows its edit is
+pending. Read tools stay live against the pre-approval graph. The built-in review UI (a badge +
+panel in the editor) lets a human **Approve all** — the batch replays inside ONE command-bus
+transaction (atomic: any failure rolls the whole batch back and the queue survives for retry;
+one undo step) — or reject. Provisional node ids returned by `add_node` /
+`instantiate_recipe` chain through later proposals in the same batch; approval re-resolves
+everything against the CURRENT graph.
+
+Honest limits, stated plainly:
+
+- The boundary binds only sessions that opted in — an `auto` session on the same editor mutates freely. Run propose-mode as the only connection for a hard wall.
+- Edge ids are NOT translated at approval (chained `disconnect_edge` by a proposed edge id needs a re-fetch via `find_nodes` after approval).
+- `clientId` is transport-provided identity, NOT authentication.
+- Audit entries land at APPROVAL (proposing changes nothing, so it audits nothing).
 
 ---
 

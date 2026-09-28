@@ -96,7 +96,7 @@ but are deprecated and will be removed in v1.0.
 |---|---|
 | `createEditorBinding(target, props)` | Primitive every framework adapter builds on. |
 | `EditorBinding`: `editor`, `on`, `setProps`, `destroy` | |
-| `EDITOR_EVENT_NAMES` const | 24 entries — drives every adapter's event-prop derivation. Compile-time exhaustiveness checked against `EditorEvents`. |
+| `EDITOR_EVENT_NAMES` const | 25 entries — drives every adapter's event-prop derivation. Compile-time exhaustiveness checked against `EditorEvents`. |
 | `XenolithProps`, `applyProps`, `EditorLike` | |
 
 ### `@xenolithengine/graph-render-pixi`
@@ -142,7 +142,7 @@ Peer dep: `pixi.js@^8.6.0`.
 
 ## Events (`editor.on(name, …)`)
 
-All 24 events — every one available in every framework adapter (the `EDITOR_EVENT_NAMES`
+All 25 events — every one available in every framework adapter (the `EDITOR_EVENT_NAMES`
 list is exhaustiveness-checked against this set at build time):
 
 | Event | Payload | Preventable |
@@ -206,7 +206,7 @@ These surfaces exist publicly but may change shape before v1.0. Use them, but pi
 |---|---|
 | `@xenolithengine/graph-plugin-runtime` — `Runtime`, `attachRuntimeBridge`, `BUILTIN_PRIMITIVES` | Blueprint VM is in active development; backend swap (baked JS / JS codegen / AS-WASM) may rearrange exports. |
 | `@xenolithengine/graph-runtime-as` | AssemblyScript-WASM codegen runtime — entire package experimental. |
-| `@xenolithengine/graph-mcp-server` — tool catalog | The 25-tool surface (`TOOL_NAMES` in `packages/mcp-server/src/tools.ts`) is the catalog, but tool argument shapes may add fields under semver-minor. |
+| `@xenolithengine/graph-mcp-server` — tool catalog | The 26-tool surface (`TOOL_NAMES` in `packages/mcp-server/src/tools.ts`) is the catalog, but tool argument shapes may add fields under semver-minor. |
 | `editor.connectMCP(url)` | The WS bridge protocol may add frames; existing frames stay backward-compatible. |
 | `StepDebugger`, `StepExecutor`, `StepRecord`, `StepDebuggerStatus` | Step debugger primitive — used by showcases; the events array shape is still settling. |
 | Touch / mobile interactions (`intent:long-press*`, `intent:gesture-*`) | The 5 gesture events on `InteractionManager` are public but may grow new ones (3-finger, pinch with rotation). |

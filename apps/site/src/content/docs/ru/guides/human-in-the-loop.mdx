@@ -59,7 +59,34 @@ queue.reject()         // выбросить всё (или передать id)
   audit-кольцо записывает его с дельтами эффектов и `clientId` автора
   ([audit log](/integrations/ai-agents/)).
 
-## Минимальный UI ревью
+## Встроенная панель ревью
+
+Свой UI писать не обязательно: с первого propose-подключения редактор показывает **бейдж**,
+пока предложения ждут, а клик по нему открывает встроенную панель ревью — каждое ожидающее
+действие с инструментом, digest аргументов, предсказанным эффектом и идентичностью клиента
+(помечена как transport-provided, не аутентифицирована), плюс **Approve all** / **Reject all**
+и выбрасывание отдельных записей. Approve all идёт через `queue.approve()` — весь батч
+становится одним атомарным undo-шагом.
+
+```ts
+editor.chrome.showProposals()          // открыть панель (false, если propose-сессии не было)
+editor.chrome.hideProposals()
+editor.chrome.isProposalsVisible       // boolean
+```
+
+Декларативные обёртки — монтирование → открытие, размонтирование → скрытие (своей DOM не
+рендерят):
+
+```tsx
+<XenolithGraph …>
+  <XenolithProposalQueue />            {/* из @xenolithengine/graph-react */}
+</XenolithGraph>
+```
+
+Хостам с полностью кастомным UI достаточно просто не открывать встроенную панель и работать с
+`editor.mcpProposals` напрямую (ниже).
+
+## Минимальный свой UI ревью
 
 ```tsx
 function AgentInbox() {

@@ -56,10 +56,10 @@ The README on GitHub (`https://github.com/XenolithEngine/xenolith-graph`) is the
 
 ## MCP server (if you can speak MCP)
 
-This project ships its own MCP server: `@xenolithengine/graph-mcp-server`. It exposes **25 tools** and **2 resources**:
+This project ships its own MCP server: `@xenolithengine/graph-mcp-server`. It exposes **26 tools** and **3 resources**:
 
 **Tools (mutations + queries):**
-- `list_node_types`, `get_graph`, `describe_node`, `find_nodes`
+- `list_node_types`, `get_graph`, `describe_node`, `find_nodes`, `get_audit_log`
 - `add_node`, `connect_pins`, `disconnect_edge`, `remove_node`, `set_widget_value`
 - `create_macro`, `expand_macro`, `collapse_macro`
 - `register_node_schema`, `set_category_palette`, `set_theme`
@@ -71,6 +71,13 @@ This project ships its own MCP server: `@xenolithengine/graph-mcp-server`. It ex
 **Resources (read-only context):**
 - `graph://current` — the live graph as `xenolith.v1` JSON
 - `schema://types` — every registered node type with pins/widgets
+- `audit://recent` — the agent-mutation audit ring (who changed what, effect deltas)
+
+**Proposal mode (ADR 0007):** a host may connect you with `mode: 'propose'` — your mutating
+calls then ENQUEUE instead of applying and return `{ proposed: true, proposalId,
+provisionalNodeId?, queued }`. Chain later calls through the `provisionalNodeId`; a human
+approves the batch (or rejects it). Read tools stay live. If you get `proposed: true` back,
+do NOT assume the change happened — wait for approval (the host decides when).
 
 **Recipes (named subgraph templates):**
 - `linear-float`, `branching-pipeline`, `enrich-and-rank`, `fan-out-audit`

@@ -10,10 +10,13 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ### Fixed
 
+- **Docs truth pass (F3)** — MCP README rewrote its tool table to reality (26 tools in three categories, 3 resources incl. `audit://recent`, a proposal-mode section with the honest limits); stale counts corrected everywhere: 26 tools · 3 resources (was 25/2), 25 events / 7 preventable (was 24/4), `EDITOR_EVENT_NAMES` 25 (was 24). README test counts regenerated from the actual suites via the new `scripts/update-test-counts.mjs` (1259 unit · 112 e2e — the badge had drifted to 1012/142). Human-in-the-loop guide (EN/RU/ZH) documents the built-in review panel + `<XenolithProposalQueue>`; `/agents.md` explains proposal receipts to agents.
 - `@xenolithengine/graph-wc` crashed server bundles at import (`HTMLElement is not defined` — the element class extended `HTMLElement` at module scope). The base is now lazily guarded; the package (and every other `@xenolithengine/*` entrypoint) imports cleanly in bare-node/SSR environments, enforced by a node-purity test suite.
 - `editor.isDestroyed` was listed in STABLE-API but had drifted out of the code — public getter restored.
 
 ### Added
+
+- **Propose-mode demo (F2)** — `?demo=agent&mode=propose`: the scripted agent session now runs its whole build through the REAL proposal pipeline (`buildHandlers(mode:'propose')`, hand-wired queue+panel — the embedded-handlers pattern), the transcript marks steps `queued #N`, and a scripted human clicks the actual badge → panel → Approve all. Three e2e tests pin the contract: badge counts 33 while pending; approval lands 14 nodes / 17 edges; ONE undo reverts the ENTIRE batch. Capture committed as `docs/screenshots/agent-propose.gif`; README tells the "Agents propose. Humans approve." story. `record-mcp-demo.mjs --propose` records it.
 
 - **Proposal review panel (F1)** — the built-in face of `editor.mcpProposals`: a floating badge surfaces while an agent's proposals wait (`[data-xeno-proposals-badge]`), clicking opens the review panel (`[data-xeno-proposals-panel]`) listing each pending op (tool, args digest, predicted effect, client identity — labelled transport-provided/not-authenticated in the DOM). Approve all routes through `queue.approve()` (ONE undoable transaction); per-entry ✕ and Reject all discard. The queue emptying from any path closes the panel. Public API: `editor.chrome.showProposals()` / `hideProposals()` / `isProposalsVisible`, plus declarative `<XenolithProposalQueue>` components in React and Vue (mount → open, unmount → hide; render no DOM of their own — the panel is core, themed via `--xeno-*`). Auto-created on the first `connectMCP(..., { mode: 'propose' })`; hosts with custom UI simply never open it.
 

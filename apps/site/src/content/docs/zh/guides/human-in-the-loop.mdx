@@ -54,7 +54,30 @@ queue.reject()         // 全部丢弃（或传入 id）
 - **审计落在批准时。** 提议不改变任何东西、也不写审计；批次应用时 audit 环记录它，带
   效果增量与提议者的 `clientId`（[audit log](/integrations/ai-agents/)）。
 
-## 最小审阅 UI
+## 内置审阅面板
+
+你不必自己写 UI：从第一次 propose 连接起，编辑器会在有等待中的提议时显示**角标**，
+点击即打开内置审阅面板 —— 每个待审操作显示工具、参数摘要、预期效果与客户端身份
+（标注为 transport-provided、未认证），并提供 **Approve all** / **Reject all** 与单条
+丢弃。Approve all 走 `queue.approve()` —— 整个批次是一个原子 undo 步。
+
+```ts
+editor.chrome.showProposals()          // 打开面板（从未有过 propose 会话时返回 false）
+editor.chrome.hideProposals()
+editor.chrome.isProposalsVisible       // boolean
+```
+
+声明式包装组件 —— 挂载即打开，卸载即隐藏（自身不渲染任何 DOM）：
+
+```tsx
+<XenolithGraph …>
+  <XenolithProposalQueue />            {/* 来自 @xenolithengine/graph-react */}
+</XenolithGraph>
+```
+
+想要完全自定义审阅 UI 的宿主只需不打开内置面板，直接使用 `editor.mcpProposals`（见下）。
+
+## 最小自定义审阅 UI
 
 ```tsx
 function AgentInbox() {

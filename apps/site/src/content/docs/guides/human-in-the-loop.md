@@ -45,6 +45,37 @@ queue.approve()        // ONE command-bus transaction: one undo step, ATOMIC
 queue.reject()         // discard everything (or pass ids)
 ```
 
+## The built-in review panel
+
+You don't have to build any UI: from the first propose-mode connection the editor shows a
+**badge** while proposals wait, and clicking it opens the built-in review panel — each pending
+op with its tool, args digest, predicted effect, and client identity (labelled
+transport-provided, not authenticated), plus **Approve all** / **Reject all** and per-entry
+discard. Approve all routes through `queue.approve()` — the whole batch is one atomic undo step.
+
+```ts
+editor.chrome.showProposals()          // open the panel (false if no propose session ever connected)
+editor.chrome.hideProposals()
+editor.chrome.isProposalsVisible       // boolean
+```
+
+Declarative wrappers — mount → open, unmount → hide (they render no DOM of their own):
+
+```tsx
+<XenolithGraph …>
+  <XenolithProposalQueue />            {/* from @xenolithengine/graph-react */}
+</XenolithGraph>
+```
+
+```vue
+<XenolithGraph …>
+  <XenolithProposalQueue />            <!-- from @xenolithengine/graph-vue -->
+</XenolithGraph>
+```
+
+Hosts that want a fully custom review UI simply never open the built-in panel and use
+`editor.mcpProposals` directly (below).
+
 Semantics worth knowing (ADR 0007):
 
 - **Atomic batches.** Approve replays the queue in order inside one transaction. Any failure
@@ -58,7 +89,7 @@ Semantics worth knowing (ADR 0007):
   applies, the audit ring records it with effect deltas and the proposing `clientId`
   ([audit log](/integrations/ai-agents/)).
 
-## A minimal review UI
+## A minimal custom review UI
 
 ```tsx
 function AgentInbox() {
