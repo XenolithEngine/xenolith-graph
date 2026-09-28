@@ -18,6 +18,7 @@ export {
 } from './components.js'
 export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useEditorEvent, useUndoRedo, useNodesState } from './hooks.js'
 export { reactWidget, type WidgetProps } from './react-widget.js'
+export { XenolithProposalQueue } from './proposal-queue.js'
 
 export interface XenolithGraphProps extends XenolithProps, EventCallbacks {
   className?: string

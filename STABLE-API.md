@@ -72,6 +72,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.history.{undo, redo, canUndo, canRedo, clear}` | Undo/redo + history. |
 | `editor.clipboard.{copy, paste, duplicate, selectAll, deleteSelection}` | Clipboard ops. |
 | `editor.chrome.{setControls, setMinimapVisible, setMinimapPosition, setStatsVisible, toggleStats, showOverlay, hideOverlay, withOverlay, enterFullscreen, exitFullscreen, toggleFullscreen, isFullscreen, overlayRoot, setBreadcrumbVisible}` | UI chrome. |
+| `editor.chrome.{showProposals, hideProposals, isProposalsVisible}` | Proposal review panel (F1): the built-in face of `editor.mcpProposals` — a badge while entries wait, a panel with Approve all / Reject all / per-entry reject. `showProposals()` returns false when no propose-mode session ever connected. React/Vue: `<XenolithProposalQueue>` declarative wrappers. |
 | **Registries:** | |
 | `editor.registry` — `NodeRegistry` | Register / unregister node types. |
 | `editor.types` — `TypeRegistry` | Pin types + conversions. |
@@ -117,8 +118,8 @@ Peer dep: `pixi.js@^8.6.0`.
 
 | Package | Exports |
 |---|---|
-| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith`; `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
-| `@xenolithengine/graph-vue` | `<XenolithGraph>` (with `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`; in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`. |
+| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith`; `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
+| `@xenolithengine/graph-vue` | `<XenolithGraph>` (with `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`; in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`. |
 | `@xenolithengine/graph-svelte` | `xenolith` action, `createXenolithGraph`, `XenolithActionReturn`, `svelteEventName`. |
 | `@xenolithengine/graph-solid` | `xenolith` directive, `createXenolithGraph`. |
 | `@xenolithengine/graph-angular` | `XenolithGraphComponent`, standalone. |

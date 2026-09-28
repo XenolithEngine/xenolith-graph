@@ -154,3 +154,21 @@ export const XenolithMiniMap = defineComponent({
     return () => null
   },
 })
+
+/**
+ * `<XenolithProposalQueue />` — declarative wrapper over the core agent-proposal review panel
+ * (F1 / ADR 0007). Mounted → `editor.chrome.showProposals()`; unmounted → hidden. Renders no DOM
+ * of its own (the panel + badge live in the editor's overlayRoot, shared across frameworks).
+ * No propose-mode MCP session ever connected → a silent no-op. Custom review UIs use
+ * `editor.mcpProposals` directly and never mount this.
+ */
+export const XenolithProposalQueue = defineComponent({
+  name: 'XenolithProposalQueue',
+  setup(): () => VNode | null {
+    useEditorReady((e) => {
+      e.chrome.showProposals()
+      return () => e.chrome.hideProposals()
+    })
+    return () => null
+  },
+})

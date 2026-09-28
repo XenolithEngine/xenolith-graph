@@ -13,7 +13,8 @@ import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 export { vueWidget, type WidgetProps } from './widget.js'
 export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo } from './hooks.js'
 export {
-  XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap, type PanelPosition,
+  XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap, XenolithProposalQueue,
+  type PanelPosition,
 } from './components.js'
 
 /** `node:click` → `nodeClick` (emit name); bind in templates as `@node-click`. */

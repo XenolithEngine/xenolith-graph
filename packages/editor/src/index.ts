@@ -169,6 +169,8 @@ export type {
   ProposalEntry, ProposalApproveResult, AuditEntry, AuditEffectDelta,
   ToolHandler, McpEditorSurface, BuildHandlersOptions,
 } from './mcp.js'
+export { ProposalsPanel } from './proposals-panel.js'
+export type { ProposalsPanelOpts } from './proposals-panel.js'
 export type {
   ReactFlowGraph,
   ReactFlowNode,
@@ -502,6 +504,9 @@ export class XenolithEditor {
     readonly isFullscreen: boolean
     readonly overlayRoot: HTMLElement
     setBreadcrumbVisible: (visible: boolean) => void
+    showProposals: () => boolean
+    hideProposals: () => void
+    readonly isProposalsVisible: boolean
   }>
   get chrome() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
@@ -521,6 +526,9 @@ export class XenolithEditor {
       get isFullscreen(): boolean { return self.isFullscreen() },
       get overlayRoot(): HTMLElement { return self.overlayRoot },
       setBreadcrumbVisible: (visible: boolean) => self.setBreadcrumbVisible(visible),
+      showProposals: () => self.showProposals(),
+      hideProposals: () => self.hideProposals(),
+      get isProposalsVisible(): boolean { return self.isProposalsVisible() },
     })
   }
   readonly #app: Application
@@ -3550,16 +3558,23 @@ export class XenolithEditor {
   #mcp: McpClient | null = null
   #mcpAudit: import('./mcp.js').AuditLog | null = null
   #mcpProposals: import('./mcp.js').ProposalQueue | null = null
+  #proposalsPanel: import('./proposals-panel.js').ProposalsPanel | null = null
   async connectMCP(
     url: string,
     opts: { onStatus?: (s: 'connecting' | 'open' | 'closed' | 'error') => void; clientId?: string; mode?: 'auto' | 'propose' } = {},
   ): Promise<() => void> {
     const { McpClient, AuditLog, ProposalQueue } = await import('./mcp.js')
+    const { ProposalsPanel } = await import('./proposals-panel.js')
     this.#mcp?.disconnect()
     // One ring per EDITITOR, shared across reconnects — hosts read it via `editor.mcpAudit`
     // (and MCP clients via the get_audit_log tool / audit://recent resource).
     this.#mcpAudit ??= new AuditLog()
-    if (opts.mode === 'propose') this.#mcpProposals ??= new ProposalQueue()
+    if (opts.mode === 'propose') {
+      this.#mcpProposals ??= new ProposalQueue()
+      // The panel is the queue's default face: badge surfaces while entries wait, review UI on
+      // click. Hosts wanting their own UI simply never open it — the queue stays public.
+      this.#proposalsPanel ??= new ProposalsPanel({ overlayRoot: this.overlayRoot, queue: this.#mcpProposals })
+    }
     const client = new McpClient(
       this as unknown as McpEditorSurface,
       {
@@ -3584,6 +3599,18 @@ export class XenolithEditor {
    *  mode 'propose'. Hosts render it, approve() lands the batch as ONE undoable transaction,
    *  reject() discards. See ADR 0007 for the re-resolution semantics. */
   get mcpProposals(): import('./mcp.js').ProposalQueue | null { return this.#mcpProposals ?? null }
+
+  /** Open the built-in proposal review panel (F1). False when no propose-mode session ever
+   *  connected — there is nothing to review. Hosts with their own UI never call this. */
+  showProposals(): boolean {
+    if (!this.#proposalsPanel) return false
+    this.#proposalsPanel.open()
+    return true
+  }
+
+  hideProposals(): void { this.#proposalsPanel?.close() }
+
+  isProposalsVisible(): boolean { return this.#proposalsPanel?.isOpen() ?? false }
 
   /** World-space bounding box of all nodes, or null when the graph is empty. */
   #graphBounds(): { x: number; y: number; w: number; h: number } | null {
