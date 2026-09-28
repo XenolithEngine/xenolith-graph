@@ -134,6 +134,7 @@ import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
 import { InsertPalette } from './palette.js'
 import { SearchPalette } from './search-palette.js'
 import { findNodesIn, type FindNodesQuery, type FoundNode } from './find-nodes.js'
+import { nearestNodeInDirection, type NavNodeRect } from './keyboard-nav.js'
 import { pruneOrphanInlineReroutes } from './clipboard-prune.js'
 import { EdgeContextMenu, type EdgeMenuItem } from './edge-menu.js'
 import { ContextMenuRegistry } from './context-menu.js'
@@ -670,6 +671,8 @@ export class XenolithEditor {
   #palette: InsertPalette | null = null
   /** Ctrl+F search over EXISTING graph nodes (H1) — built lazily on first open. */
   #search: SearchPalette | null = null
+  /** Visually-hidden aria-live region announcing selection changes (G3 a11y). */
+  #srLive: HTMLDivElement | null = null
   /** When the palette was opened via an edge's "Add Node" menu: the edge to splice into plus its
    *  endpoint types (so the palette filters to compatible nodes). Consumed by `#insertFromPalette`. */
   #pendingEdgeSplice: { edgeId: EdgeId; srcType: string; dstType: string } | null = null
@@ -917,7 +920,9 @@ export class XenolithEditor {
     this.selection.on((e) => {
       this.#updateVisualStates(); this.#requestRender()
       this.#events.emit('selection:changed', { nodeIds: e.ids })
+      this.#announceSelection(e.ids)
     })
+    this.#setupA11y()
     this.#viewport.on((vp) => { this.#onViewportChanged(); this.#events.emit('viewport:changed', { x: vp.x, y: vp.y, zoom: vp.zoom }) })
 
     // Bridge command-bus lifecycle → public graph-mutation events (covers programmatic API, palette,
@@ -4776,9 +4781,90 @@ export class XenolithEditor {
    *  the accessor had drifted out of the code while the contract kept listing it. */
   get isDestroyed(): boolean { return this.#destroyed }
 
+  /** G3 a11y slice 1 — the canvas host becomes a focusable application with a live region.
+   *  Screen readers still cannot traverse the WebGL scene; what they get is: keyboard
+   *  navigation of nodes (arrows / Enter / Esc, see #onKeyDown), focus visibility, and a
+   *  polite announcement of what the selection became. */
+  #setupA11y(): void {
+    this.#host.setAttribute('role', 'application')
+    this.#host.setAttribute('aria-label', 'Node graph editor')
+    this.#host.tabIndex = 0
+    // Focus ring only when the HOST itself gains focus (keyboard Tab), not when an inner
+    // input (palette, search, widgets) focuses — those carry their own focus styles.
+    this.#host.addEventListener('focusin', (e) => {
+      if (e.target === this.#host) this.#host.style.outline = '2px solid var(--xeno-accent, #d8b45a)'
+    })
+    this.#host.addEventListener('focusout', () => { this.#host.style.outline = '' })
+    const live = document.createElement('div')
+    live.setAttribute('aria-live', 'polite')
+    live.setAttribute('aria-atomic', 'true')
+    live.style.cssText = 'position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;'
+    this.overlayRoot.appendChild(live)
+    this.#srLive = live
+  }
+
+  #announceSelection(ids: readonly NodeId[]): void {
+    if (!this.#srLive) return
+    if (ids.length === 0) { this.#srLive.textContent = 'Selection cleared'; return }
+    if (ids.length === 1) {
+      const hit = this.findNodes({}).find((n) => n.id === String(ids[0]))
+      this.#srLive.textContent = `Selected ${hit?.title ?? hit?.type ?? 'node'}`
+      return
+    }
+    this.#srLive.textContent = `${ids.length} nodes selected`
+  }
+
+  /** Arrow keys move selection to the nearest node whose center lies strictly in that
+   *  direction (see keyboard-nav.ts). No selection → start from the viewport center. */
+  #keyboardNavigate(dir: 'left' | 'right' | 'up' | 'down'): void {
+    const rects: NavNodeRect[] = []
+    for (const n of this.graphNodes()) {
+      const size = n.size ?? { x: this.#theme.tokens.geometry.node.minWidth, y: 40 }
+      rects.push({ id: String(n.id), x: n.position.x, y: n.position.y, w: size.x, h: size.y })
+    }
+    if (rects.length === 0) return
+    const selected = [...this.selection.ids()]
+    let origin: { x: number; y: number }
+    if (selected.length === 1) {
+      const n = this.graph.getNode(selected[0]!)
+      if (!n) return
+      const size = n.size ?? { x: this.#theme.tokens.geometry.node.minWidth, y: 40 }
+      origin = { x: n.position.x + size.x / 2, y: n.position.y + size.y / 2 }
+    } else {
+      const c = this.screenToWorld({
+        x: this.#host.clientWidth / 2,
+        y: this.#host.clientHeight / 2,
+      })
+      origin = c
+    }
+    const hit = nearestNodeInDirection(rects, origin, dir)
+    if (!hit) return
+    this.setSelection([hit as NodeId])
+    // Bring the target into view only when it is off-screen — the canvas shouldn't lurch on
+    // every arrow press while navigating a visible cluster.
+    const target = rects.find((r) => r.id === hit)!
+    const screen = this.worldToScreen({ x: target.x + target.w / 2, y: target.y + target.h / 2 })
+    const margin = 80
+    if (
+      screen.x < margin || screen.y < margin
+      || screen.x > this.#host.clientWidth - margin || screen.y > this.#host.clientHeight - margin
+    ) {
+      this.focusNode(hit as NodeId)
+    }
+  }
+
   readonly #onKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape' && this.#pointer.isPinDrag()) {
       this.#cancelPinDrag()
+      return
+    }
+
+    // Escape closes the sidebar even when focus sits in one of its inputs — carve this out
+    // BEFORE the input guard below, which would otherwise swallow the key (standard editor
+    // UX: Esc always exits the top-most overlay).
+    if (e.key === 'Escape' && !e.metaKey && !e.ctrlKey && this.isSidebarOpen()) {
+      e.preventDefault()
+      this.closeSidebar()
       return
     }
 
@@ -4815,6 +4901,24 @@ export class XenolithEditor {
       e.preventDefault()
       if (this.isSearchOpen) this.closeSearch()
       else this.openSearch()
+      return
+    }
+    if (!mod && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault()
+      this.#keyboardNavigate(e.key === 'ArrowLeft' ? 'left' : e.key === 'ArrowRight' ? 'right' : e.key === 'ArrowUp' ? 'up' : 'down')
+      return
+    }
+    if (!mod && e.key === 'Enter') {
+      const selected = [...this.selection.ids()]
+      if (selected.length === 1) {
+        e.preventDefault()
+        this.openSidebar(selected[0]!)
+        return
+      }
+    }
+    if (!mod && e.key === 'Escape' && this.selection.size > 0) {
+      e.preventDefault()
+      this.setSelection([])
       return
     }
     if (!mod && (e.key === 'Delete' || e.key === 'Backspace')) {
