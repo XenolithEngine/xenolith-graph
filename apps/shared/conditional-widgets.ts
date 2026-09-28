@@ -71,6 +71,6 @@ export function buildConditionalWidgets(editor: XenolithEditor): ConditionalWidg
     nodeId: id,
     setMethod: (m) => editor.setWidgetValue(id, 'method', m),
     setAuth:   (a) => editor.setWidgetValue(id, 'auth',   a),
-    state: () => ({ ...(editor.graph.getNode(id)?.state ?? {}) }),
+    state: () => ({ ...(editor.getNode(id)?.state ?? {}) }),
   }
 }

@@ -139,7 +139,7 @@ it('удаление каскадит рёбра, undo возвращает вс
   ed.removeNode(b.id)
   expect([...ed.graph.edges()]).toHaveLength(0)
 
-  ed.commandBus.undo()
+  ed.history.undo()
   expect([...ed.graph.edges()]).toHaveLength(1)
 })
 ```

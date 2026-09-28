@@ -30,6 +30,6 @@ export function buildCanvasWidget(editor: XenolithEditor): { nodeId: NodeId } {
   editor.registerWidget('level', levelWidget)
   editor.loadJSON(graph)
   editor.fitView({ padding: 90, maxZoom: 1 })
-  const nodeId = [...editor.graph.nodes()][0]!.id
+  const nodeId = [...editor.graphNodes()][0]!.id
   return { nodeId }
 }

@@ -288,7 +288,7 @@ export const OUT_RESULT = 'result'
 
 /** Follow the linear chain from the source node and collect the filter nodes (excluding output). */
 function chainFilters(editor: XenolithEditor, srcId: string, outId: string): Node[] {
-  const edges = [...editor.graph.edges()]
+  const edges = [...editor.graphEdges()]
   const out: Node[] = []
   const seen = new Set<string>()
   let cur = srcId
@@ -296,7 +296,7 @@ function chainFilters(editor: XenolithEditor, srcId: string, outId: string): Nod
     const edge = edges.find((e) => e.from.node === cur)
     if (!edge || edge.to.node === outId || seen.has(edge.to.node)) break
     seen.add(edge.to.node)
-    const n = editor.graph.getNode(edge.to.node)
+    const n = editor.getNode(edge.to.node)
     if (!n) break
     out.push(n as Node)
     cur = edge.to.node
@@ -371,11 +371,11 @@ export function buildImagePipeline(editor: XenolithEditor, widgets: ImagePipelin
     if (busy) return
     // If the Output is no longer wired up from the Source (an edge was cut), there is no result to
     // show — clear it. Otherwise the Result node would keep displaying a stale image that can't exist.
-    if (!reachableFrom(editor.graph, source.id).has(output.id)) {
+    if (!reachableFrom(editor.readGraph(), source.id).has(output.id)) {
       editor.setWidgetValue(output.id, OUT_RESULT, '')
       return
     }
-    const src = editor.graph.getNode(source.id)?.state['src']
+    const src = editor.getNode(source.id)?.state['src']
     if (typeof src !== 'string' || !src) return
     busy = true
     try {
@@ -401,7 +401,7 @@ export function buildImagePipeline(editor: XenolithEditor, widgets: ImagePipelin
   void process()
 
   const download = (): void => {
-    const url = editor.graph.getNode(output.id)?.state[OUT_RESULT]
+    const url = editor.getNode(output.id)?.state[OUT_RESULT]
     if (typeof url !== 'string' || !url) return
     const a = document.createElement('a')
     a.href = url; a.download = 'result.png'
@@ -414,7 +414,7 @@ export function buildImagePipeline(editor: XenolithEditor, widgets: ImagePipelin
 /** Trigger a PNG download of the current Result node's image. Standalone helper so a host can
  *  wire a Download button via just `useEditor()` — no need to thread a build-handle around. */
 export function downloadImageResult(editor: XenolithEditor): void {
-  const output = [...editor.graph.nodes()].find((n) => n.type === 'Output')
+  const output = [...editor.graphNodes()].find((n) => n.type === 'Output')
   if (!output) return
   const url = output.state[OUT_RESULT]
   if (typeof url !== 'string' || !url) return

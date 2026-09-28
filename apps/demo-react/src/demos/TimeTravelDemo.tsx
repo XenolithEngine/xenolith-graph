@@ -70,7 +70,7 @@ function ScrubPanel() {
   // Construct + auto-run the debugger once per editor instance.
   useEffect(() => {
     let cancelled = false
-    const dbg = new StepDebugger(editor, executor)
+    const dbg = new StepDebugger(editor.readGraph(), executor)
     debuggerRef.current = dbg
     ;(async () => {
       await dbg.start()

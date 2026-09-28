@@ -41,7 +41,7 @@ Host rules sit on top of that. This one forbids a cycle. `wouldCreateCycle` is i
 import { wouldCreateCycle } from '@xenolithengine/graph-core'
 
 editor.setIsValidConnection(({ source, target }) =>
-  !wouldCreateCycle(editor.graph, source, target),
+  !wouldCreateCycle(editor.readGraph(), source, target),
 )
 ```
 
@@ -61,19 +61,19 @@ await editor.loadJSON(JSON.parse(localStorage.getItem('patch')!))
 
 ## 4. Run
 
-`evaluateGraph` reads `editor.graph`. Your function sees the node and a map of incoming values keyed by pin label. Return a map keyed by outgoing pin label. Missing inputs are absent — use your own default.
+`evaluateGraph` reads `editor.readGraph()`. Your function sees the node and a map of incoming values keyed by pin label. Return a map keyed by outgoing pin label. Missing inputs are absent — use your own default.
 
 ```ts
 import { evaluateGraph } from '@xenolithengine/graph-core'
 
-const { outputs, cyclic } = evaluateGraph(editor.graph, (node, inputs) => {
+const { outputs, cyclic } = evaluateGraph(editor.readGraph(), (node, inputs) => {
   if (node.type === 'Const') return { Out: Number(node.state['value'] ?? 0) }
   if (node.type === 'Add') return { Sum: Number(inputs['A'] ?? 0) + Number(inputs['B'] ?? 0) }
 })
 
 if (cyclic.length > 0) throw new Error('cycle')
 
-for (const node of editor.graph.nodes()) {
+for (const node of editor.graphNodes()) {
   if (node.type !== 'Add') continue
   const sum = outputs.get(`${node.id}:Sum`)
   // write it somewhere the user can see — a widget, a panel, a log

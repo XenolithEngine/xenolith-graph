@@ -14,7 +14,7 @@ function Inspector() {
   const [, bump] = useState(0)
   useEditorEvent('widget:changed', () => bump((n) => n + 1))
   const nodeId = selection[0] ?? null
-  const node = nodeId ? editor.graph.getNode(nodeId) : undefined
+  const node = nodeId ? editor.getNode(nodeId) : undefined
   const widgets = (node?.widgets ?? []).filter((w) => w.key !== undefined)
   const set = (w: WidgetSpec, value: unknown): void => { editor.setWidgetValue(nodeId!, w.id, value); bump((n) => n + 1) }
 

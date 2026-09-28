@@ -76,18 +76,22 @@ interface DeclaredWidget {
 }
 
 const numberConfig = (cfg: unknown): { min?: number; max?: number; step?: number } => {
+  // exactOptionalPropertyTypes: an optional prop must never be ASSIGNED undefined — build the
+  // result by presence, in both the legacy array [min,max,step] and the object config form.
+  const out: { min?: number; max?: number; step?: number } = {}
   if (Array.isArray(cfg) && cfg.every((x) => typeof x === 'number')) {
-    const [min, max, step] = cfg as number[]
-    return { min, max, ...(step !== undefined ? { step } : {}) }
+    const [min, max, step] = cfg as Array<number | undefined>
+    if (typeof min === 'number') out.min = min
+    if (typeof max === 'number') out.max = max
+    if (typeof step === 'number') out.step = step
+    return out
   }
   if (isObj(cfg)) {
-    const out: { min?: number; max?: number; step?: number } = {}
     for (const k of ['min', 'max', 'step'] as const) {
       if (typeof cfg[k] === 'number') out[k] = cfg[k] as number
     }
-    return out
   }
-  return {}
+  return out
 }
 
 /** One declared input → widget spec + synthetic pin + fallback value; null when the input is a
@@ -264,8 +268,9 @@ export interface ComfyImportResult {
 export interface ImportComfyOptions {
   /** The server's /object_info map (type → definition). Types present here get NAMED widgets
    *  (combos with options, numerics with min/max/step); the rest fall back to the positional
-   *  `param N` heuristic. Fetch `http://<comfy>/object_info` and pass it through. */
-  objectInfo?: Record<string, ComfyObjectInfo>
+   *  `param N` heuristic. Fetch `http://<comfy>/object_info` and pass it through.
+   *  Explicit `| undefined` so callers can spread a maybe-fetched map (exactOptionalPropertyTypes). */
+  objectInfo?: Record<string, ComfyObjectInfo> | undefined
 }
 
 export function importComfyWorkflow(input: unknown, opts: ImportComfyOptions = {}): ComfyImportResult {

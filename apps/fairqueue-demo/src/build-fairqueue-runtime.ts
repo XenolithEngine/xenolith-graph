@@ -5,7 +5,6 @@
 // runs on the plugin engine. (runtime-graph.test.ts already proves the graph == step() bit-for-bit.)
 
 import type { XenolithEditor, NodeId, Node } from '@xenolithengine/graph-editor'
-import { SetNodeState } from '@xenolithengine/graph-core'
 import { Runtime } from '@xenolithengine/graph-plugin-runtime'
 import { createSim, type Agent, type GoodieSpec } from './fairqueue.js'
 import { simToGraph, AGENT_WIDGETS, GOODIE_WIDGETS, STATE_ID } from './sim-to-graph.js'
@@ -61,8 +60,8 @@ export function buildFairqueueRuntime(editor: XenolithEditor): FairqueueHandle {
   editor.fitView({ padding: 90, maxZoom: 1 })
 
   editor.setIsValidConnection((c) => {
-    const s = editor.graph.getNode(c.source)
-    const t = editor.graph.getNode(c.target)
+    const s = editor.getNode(c.source)
+    const t = editor.getNode(c.target)
     return !!s && !!t && s.type === 'Goodie' && t.type === 'Agent'
   })
 
@@ -71,13 +70,13 @@ export function buildFairqueueRuntime(editor: XenolithEditor): FairqueueHandle {
     if (node.type === 'Agent') {
       editor.setWidgetValue(node.id, 'salary', 0.5)
       editor.setWidgetValue(node.id, 'priority', 0)
-      const st = editor.graph.getNode(STATE_ID as NodeId)
+      const st = editor.getNode(STATE_ID as NodeId)
       if (st) editor.connect(node as Node, 1, st as Node, 0, { animated: false })
     } else if (node.type === 'Goodie') {
       editor.setWidgetValue(node.id, 'cost', 2)
       editor.setWidgetValue(node.id, 'rate', 0.3)
-      editor.commandBus.apply(new SetNodeState(node.id, { gtype: `good-${++goodieCounter}` }))
-      const wh = editor.graph.getNode(WAREHOUSE_ID as NodeId)
+      editor.setNodeState(node.id, { gtype: `good-${++goodieCounter}` })
+      const wh = editor.getNode(WAREHOUSE_ID as NodeId)
       if (wh) editor.connect(node as Node, 0, wh as Node, 0, { animated: false })
     }
   })
@@ -92,8 +91,8 @@ export function buildFairqueueRuntime(editor: XenolithEditor): FairqueueHandle {
   const graph = fairqueueStepGraph()
 
   const snapshot = (): { nodes: NodeLike[]; edges: EdgeLike[] } => ({
-    nodes: [...editor.graph.nodes()].map((n) => ({ id: String(n.id), type: n.type, state: n.state })),
-    edges: [...editor.graph.edges()].map((e) => ({ from: { node: String(e.from.node) }, to: { node: String(e.to.node) } })),
+    nodes: [...editor.graphNodes()].map((n) => ({ id: String(n.id), type: n.type, state: n.state })),
+    edges: [...editor.graphEdges()].map((e) => ({ from: { node: String(e.from.node) }, to: { node: String(e.to.node) } })),
   })
 
   const arrivalsFor = (goodieList: GoodieSpec[]): string[] => {
@@ -114,7 +113,7 @@ export function buildFairqueueRuntime(editor: XenolithEditor): FairqueueHandle {
   }
 
   const agentPriorities = (): number[] =>
-    [...editor.graph.nodes()].filter((n) => n.type === 'Agent').map((n) => Number(n.state['priority'] ?? 0))
+    [...editor.graphNodes()].filter((n) => n.type === 'Agent').map((n) => Number(n.state['priority'] ?? 0))
 
   const metricsSubs = new Set<(m: Metrics) => void>()
   const emitMetrics = (running: boolean): void => {
@@ -157,7 +156,7 @@ export function buildFairqueueRuntime(editor: XenolithEditor): FairqueueHandle {
   }
 
   const setAnimated = (animated: boolean): void => {
-    for (const e of editor.graph.edges()) editor.setEdgeAnimated(e.id, animated)
+    for (const e of editor.graphEdges()) editor.setEdgeAnimated(e.id, animated)
   }
 
   let timer: ReturnType<typeof setInterval> | null = null

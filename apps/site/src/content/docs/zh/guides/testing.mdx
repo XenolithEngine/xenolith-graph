@@ -116,7 +116,7 @@ it('删除级联边，undo 全部恢复', () => {
   ed.removeNode(b.id)
   expect([...ed.graph.edges()]).toHaveLength(0)
 
-  ed.commandBus.undo()
+  ed.history.undo()
   expect([...ed.graph.edges()]).toHaveLength(1)
 })
 ```

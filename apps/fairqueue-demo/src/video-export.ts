@@ -38,7 +38,10 @@ export async function recordGraphVideo(
   const pick = bestVideoMime()
   if (!pick) throw new Error('Video recording not supported in this browser')
 
-  const canvas = editor.app.canvas as HTMLCanvasElement
+  // The raw PIXI Application is @internal (stripped from .d.ts) — the canvas is reachable
+  // through the app's own DOM instead: overlayRoot lives inside the host element alongside it.
+  const canvas = editor.overlayRoot.parentElement?.querySelector('canvas')
+  if (!canvas) throw new Error('recordGraphVideo: editor canvas not found in the host DOM')
   const stream = canvas.captureStream(opts.fps ?? 30)
   const rec = new MediaRecorder(stream, { mimeType: pick.mimeType, videoBitsPerSecond: opts.bitrate ?? 12_000_000 })
   const chunks: BlobPart[] = []

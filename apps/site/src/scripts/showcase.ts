@@ -29,7 +29,11 @@ async function buildShowcase(mountEl: HTMLElement, theme: XenolithTheme) {
     const w = mountEl.clientWidth
     const h = mountEl.clientHeight
     if (w > 0 && h > 0) {
-      editor.app.renderer.resize(w, h)
+      // Dev-script escape hatch: the raw PIXI Application is stripped from the editor's public
+      // typings (G1), but this offline showcase driver needs a manual renderer resize. Typed
+      // locally so the dependency is explicit and greppable.
+      const app = (editor as unknown as { app: { renderer: { resize(w: number, h: number): void } } }).app
+      app.renderer.resize(w, h)
       // Re-frame the whole graph for the new canvas size so it's always fully visible.
       editor.fitView({ padding: 36, maxZoom: 1 })
     }

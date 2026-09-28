@@ -41,16 +41,16 @@ export function loadLLMGraph(editor: XenolithEditor): void {
  *  no subscriptions, no handle. Call it directly from the panel that owns the Run button. */
 export async function runLLM(editor: XenolithEditor): Promise<void> {
   editor.clearNodeStatuses()
-  const inputId = [...editor.graph.nodes()].find((n) => n.type === 'Input')?.id
-  const active = inputId ? reachableFrom(editor.graph, inputId) : new Set<NodeId>()
-  const { order } = topoOrder(editor.graph)
+  const inputId = [...editor.graphNodes()].find((n) => n.type === 'Input')?.id
+  const active = inputId ? reachableFrom(editor.readGraph(), inputId) : new Set<NodeId>()
+  const { order } = topoOrder(editor.readGraph())
   const out = new Map<NodeId, string>()
   for (const id of order) {
     if (!active.has(id)) continue
-    const node = editor.graph.getNode(id)
+    const node = editor.getNode(id)
     if (!node) continue
     editor.setNodeStatus(id, 'running')
-    const ins = incomers(editor.graph, id).map((n) => out.get(n.id) ?? '').join('\n').trim()
+    const ins = incomers(editor.readGraph(), id).map((n) => out.get(n.id) ?? '').join('\n').trim()
     let result = ''
     if (node.type === 'Input') result = String(node.state['value'] ?? '')
     else if (node.type === 'Prompt') result = String(node.state['template'] ?? '').replace(/\{[^}]*\}/g, ins || '…')

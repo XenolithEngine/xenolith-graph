@@ -35,13 +35,13 @@ export function setupTypeConversions(editor: XenolithEditor): void {
   editor.types.register({ id: 'text',   color: '#9F69FF', shape: 'circle' })
   editor.setPinLiveValueProvider((nodeId, pinKey) => {
     if (String(nodeId) !== 'sink' || pinKey !== 'in') return undefined
-    const sink = editor.graph.getNode('sink' as NodeId)
+    const sink = editor.getNode('sink' as NodeId)
     if (!sink) return undefined
     const sinkInPin = sink.pins.find((p) => p.label === 'in' || String(p.id) === 'sink_in')
     if (!sinkInPin) return undefined
-    const incoming = [...editor.graph.edges()].find((e: Edge) => String(e.to.pin) === String(sinkInPin.id))
+    const incoming = [...editor.graphEdges()].find((e: Edge) => String(e.to.pin) === String(sinkInPin.id))
     if (!incoming) return undefined
-    const src = editor.graph.getNode(incoming.from.node)
+    const src = editor.getNode(incoming.from.node)
     if (!src) return undefined
     const raw = (src.state as Record<string, unknown>)['value']
     try { return editor.types.convert(raw, 'number', 'text') } catch { return raw }
@@ -79,14 +79,14 @@ export function setConversionEnabled(editor: XenolithEditor, enabled: boolean): 
   }
   editor.types.unregisterConversion('number', 'text')
   let dropped = 0
-  for (const e of [...editor.graph.edges()]) {
-    const src = editor.graph.getNode(e.from.node)
-    const dst = editor.graph.getNode(e.to.node)
+  for (const e of [...editor.graphEdges()]) {
+    const src = editor.getNode(e.from.node)
+    const dst = editor.getNode(e.to.node)
     if (!src || !dst) continue
     const srcPin = src.pins.find((p) => String(p.id) === String(e.from.pin))
     const dstPin = dst.pins.find((p) => String(p.id) === String(e.to.pin))
     if (srcPin?.type === 'number' && dstPin?.type === 'text') {
-      editor.commandBus.apply(new DisconnectEdge(e.id)); dropped++
+      editor.disconnectEdge(e.id); dropped++
     }
   }
   return { enabled: false, droppedEdges: dropped }
@@ -113,13 +113,13 @@ export function buildTypeConversions(editor: XenolithEditor): TypeConversionsSce
   editor.setPinLiveValueProvider((nodeId, pinKey) => {
     if (String(nodeId) !== 'sink' || pinKey !== 'in') return undefined
     // Find the edge feeding the sink's IN pin.
-    const sink = editor.graph.getNode('sink' as NodeId)
+    const sink = editor.getNode('sink' as NodeId)
     if (!sink) return undefined
     const sinkInPin = sink.pins.find((p) => p.label === 'in' || String(p.id) === 'sink_in')
     if (!sinkInPin) return undefined
-    const incoming = [...editor.graph.edges()].find((e: Edge) => String(e.to.pin) === String(sinkInPin.id))
+    const incoming = [...editor.graphEdges()].find((e: Edge) => String(e.to.pin) === String(sinkInPin.id))
     if (!incoming) return undefined
-    const src = editor.graph.getNode(incoming.from.node)
+    const src = editor.getNode(incoming.from.node)
     if (!src) return undefined
     // Slider value lives on src.state under the widget's `key`. NumberSource exposes 'value'.
     const raw = (src.state as Record<string, unknown>)['value']
@@ -172,14 +172,14 @@ export function buildTypeConversions(editor: XenolithEditor): TypeConversionsSce
       // Drop any extant edge that depended on the cast — without the conversion the wire is
       // semantically invalid; leaving it would be lying about the type contract.
       let dropped = 0
-      for (const e of [...editor.graph.edges()]) {
-        const src = editor.graph.getNode(e.from.node)
-        const dst = editor.graph.getNode(e.to.node)
+      for (const e of [...editor.graphEdges()]) {
+        const src = editor.getNode(e.from.node)
+        const dst = editor.getNode(e.to.node)
         if (!src || !dst) continue
         const srcPin = src.pins.find((p) => String(p.id) === String(e.from.pin))
         const dstPin = dst.pins.find((p) => String(p.id) === String(e.to.pin))
         if (srcPin?.type === 'number' && dstPin?.type === 'text') {
-          editor.commandBus.apply(new DisconnectEdge(e.id)); dropped++
+          editor.disconnectEdge(e.id); dropped++
         }
       }
       append(`✗ conversion removed${dropped > 0 ? ` (dropped ${dropped} stale edge${dropped === 1 ? '' : 's'})` : ''} — try connecting again, it refuses`)

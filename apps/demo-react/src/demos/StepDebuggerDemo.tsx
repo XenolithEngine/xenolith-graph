@@ -175,7 +175,7 @@ function DebuggerPanel() {
   useEffect(() => {
     const macroId = findMacroId(editor)
     macroIdRef.current = macroId
-    const dbg = new StepDebugger(editor, makeExecutor(editor))
+    const dbg = new StepDebugger(editor.readGraph(), makeExecutor(editor))
     debuggerRef.current = dbg
     // Test surface — Playwright reads/drives the debugger via this handle.
     ;(window as unknown as { __xenoDebug?: { editor: XenolithEditor; debugger: StepDebugger; macroId: NodeId | null } }).__xenoDebug = {

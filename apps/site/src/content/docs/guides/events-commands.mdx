@@ -95,27 +95,27 @@ The `Commands` object exposes stable string ids for well-known actions (Undo, Re
 Every mutation flows through a command bus. By default each apply gets its own undo entry. Wrap related work in a **group** to coalesce them into one — Ctrl+Z then rolls back the whole batch atomically.
 
 ```ts
-editor.commandBus.beginGroup({ label: 'rename + recolor' })
-editor.commandBus.apply(new SetNodeState(id, { title: 'New' }))
-editor.commandBus.apply(new SetNodeState(id, { color: '#9f69ff' }))
-editor.commandBus.endGroup()
+editor.transaction(() => {
+  editor.setNodeState(id, { title: 'New' })
+  editor.setNodeState(id, { color: '#9f69ff' })
+})
 ```
 
 Groups also support an idle timeout — useful for text editing where you want a string of keystrokes coalesced if they happen within N ms of each other:
 
 ```ts
-editor.commandBus.beginGroup({ label: 'type', idleTimeoutMs: 800 })
-// keystroke handlers call commandBus.apply() one by one;
-// the group auto-closes 800 ms after the last apply.
+editor.beginGroup({ label: 'type', idleTimeoutMs: 800 })
+// keystroke handlers mutate one by one (editor.setNodeState / setWidgetValue);
+// the group auto-closes 800 ms after the last mutation.
 ```
 
 `transaction(fn)` is the simpler form for one-shot blocks (no idle timeout):
 
 ```ts
-editor.commandBus.transaction(() => {
-  editor.commandBus.apply(new AddNode(a))
-  editor.commandBus.apply(new AddNode(b))
-  editor.commandBus.apply(new ConnectPins(edge))
+editor.transaction(() => {
+  editor.insertNode('Box', { x: 0, y: 0 })
+  editor.insertNode('Box', { x: 200, y: 0 })
+  editor.connect(a, 'out', b, 'in')
 })  // a + b + edge → one undo entry
 ```
 
@@ -126,7 +126,7 @@ For lighter use than `edge:connecting`, set a single validator:
 ```ts
 editor.setIsValidConnection((c) => {
   if (c.fromNode === c.toNode) return false        // forbid self-loops
-  if (wouldCreateCycle(editor.graph, c)) return false
+  if (wouldCreateCycle(editor.readGraph(), c)) return false
   return true
 })
 ```

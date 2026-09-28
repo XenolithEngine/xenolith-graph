@@ -138,7 +138,7 @@ it('remove cascades edges and undo restores both', () => {
   ed.removeNode(b.id)
   expect([...ed.graph.edges()]).toHaveLength(0)
 
-  ed.commandBus.undo()
+  ed.history.undo()
   expect([...ed.graph.edges()]).toHaveLength(1)
 })
 ```

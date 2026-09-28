@@ -33,7 +33,7 @@ A template definition lives once in `editor.definitions`; instance nodes (`$temp
 const instanceId = editor.createTemplateFromSelection(undefined, 'Pipeline')
 
 // Rename the underlying definition (affects every instance).
-const defId = (editor.graph.getNode(instanceId)!.state.definitionId as string)
+const defId = (editor.getNode(instanceId)!.state.definitionId as string)
 editor.renameTemplate(defId, 'Pipeline v2')
 
 // Inline an instance back into the graph (one-off). Definition + other instances untouched.
@@ -85,7 +85,7 @@ editor.setSelection(['n1', 'n2', 'n3'])
 const inst1 = editor.createTemplateFromSelection(undefined, 'Mixer')
 
 // Spawn a second instance of the same definition somewhere else:
-const def = editor.graph.getNode(inst1)!.state.definitionId as string
+const def = editor.getNode(inst1)!.state.definitionId as string
 const inst2 = editor.addNode({
   id: createNodeId(), type: '$templateInstance',
   position: { x: 600, y: 0 }, state: { definitionId: def, pinBoundary: {} }, pins: [],

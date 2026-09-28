@@ -12,9 +12,9 @@ export interface Attempt { ok: boolean; text: string }
 export function buildConnectionValidation(editor: XenolithEditor, log: (a: Attempt) => void): void {
   editor.loadJSON(graph)
 
-  const name = (id: NodeId): string => editor.graph.getNode(id)?.type ?? '?'
+  const name = (id: NodeId): string => editor.getNode(id)?.type ?? '?'
   editor.setIsValidConnection((conn) => {
-    if (wouldCreateCycle(editor.graph, conn.source, conn.target)) {
+    if (wouldCreateCycle(editor.readGraph(), conn.source, conn.target)) {
       log({ ok: false, text: `${name(conn.source)} → ${name(conn.target)} · would create a cycle` })
       return false
     }

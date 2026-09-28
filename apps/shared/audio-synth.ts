@@ -21,7 +21,7 @@ export interface AudioSynthHandle {
 /** Build live Web Audio nodes from the graph and connect them per the edges. */
 function startAudio(editor: XenolithEditor, ctx: AudioContext): Map<NodeId, AudioNode> {
   const map = new Map<NodeId, AudioNode>()
-  for (const n of editor.graph.nodes()) {
+  for (const n of editor.graphNodes()) {
     if (n.type === 'Oscillator') {
       const o = ctx.createOscillator()
       o.type = String(n.state['wave']) as OscillatorType
@@ -41,7 +41,7 @@ function startAudio(editor: XenolithEditor, ctx: AudioContext): Map<NodeId, Audi
       map.set(n.id, ctx.destination)
     }
   }
-  for (const e of editor.graph.edges()) {
+  for (const e of editor.graphEdges()) {
     const a = map.get(e.from.node), b = map.get(e.to.node)
     if (a && b && 'connect' in a) (a as AudioNode).connect(b)
   }
@@ -71,7 +71,7 @@ export function createAudioEngine(editor: XenolithEditor): AudioSynthHandle {
   let map: Map<NodeId, AudioNode> | null = null
   let offs: Array<() => void> = []
 
-  const sourceId = (): NodeId | undefined => [...editor.graph.nodes()].find((n) => n.type === 'Oscillator')?.id
+  const sourceId = (): NodeId | undefined => [...editor.graphNodes()].find((n) => n.type === 'Oscillator')?.id
 
   // Light ONLY the nodes still reachable from the oscillator through connected edges — mirrors the
   // audible chain, so a node past a broken/deleted edge stops glowing.
@@ -79,7 +79,7 @@ export function createAudioEngine(editor: XenolithEditor): AudioSynthHandle {
     editor.clearNodeStatuses()
     const src = sourceId()
     if (!src) return
-    for (const id of reachableFrom(editor.graph, src)) editor.setNodeStatus(id, 'running')
+    for (const id of reachableFrom(editor.readGraph(), src)) editor.setNodeStatus(id, 'running')
   }
 
   // (Re)build the audio graph from the CURRENT edges and re-light the chain.

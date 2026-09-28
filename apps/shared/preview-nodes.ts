@@ -166,8 +166,8 @@ export function buildPreviewNodes(editor: XenolithEditor): PreviewNodesScene {
   const swatchId = 'swatch'
   const tick = (): void => {
     // Sparkline.
-    const sparkEdge = [...editor.graph.edges()].find((e) => String(e.to.node) === sparkId)
-    const sparkSrc = sparkEdge ? editor.graph.getNode(sparkEdge.from.node) : undefined
+    const sparkEdge = [...editor.graphEdges()].find((e) => String(e.to.node) === sparkId)
+    const sparkSrc = sparkEdge ? editor.getNode(sparkEdge.from.node) : undefined
     const sparkVal = sparkSrc ? Number(((sparkSrc.state as Record<string, unknown>)['value'] ?? 0)) : 0
     const buf = SAMPLES_PER_NODE.get(sparkId) ?? []
     buf.push(sparkVal)
@@ -176,8 +176,8 @@ export function buildPreviewNodes(editor: XenolithEditor): PreviewNodesScene {
     editor.setWidgetValue(sparkId as never, 'spark', buf.length, { ephemeral: true })
 
     // ColorPreview.
-    const swatchEdge = [...editor.graph.edges()].find((e) => String(e.to.node) === swatchId)
-    const swatchSrc = swatchEdge ? editor.graph.getNode(swatchEdge.from.node) : undefined
+    const swatchEdge = [...editor.graphEdges()].find((e) => String(e.to.node) === swatchId)
+    const swatchSrc = swatchEdge ? editor.getNode(swatchEdge.from.node) : undefined
     const tint = swatchSrc ? String(((swatchSrc.state as Record<string, unknown>)['tint'] ?? '')) : ''
     editor.setWidgetValue(swatchId as never, 'paint', tint, { ephemeral: true })
   }

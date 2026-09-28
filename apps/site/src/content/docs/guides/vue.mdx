@@ -117,7 +117,7 @@ that needs the live instance:
 useEditorReady((editor) => {
   const off = editor.commands.register({
     id: 'app.deleteAll', label: 'Delete all', hotkey: 'Mod+Shift+K',
-    execute: () => { for (const n of [...editor.graph.nodes()]) editor.removeNode(n.id) },
+    execute: () => { for (const n of [...editor.graphNodes()]) editor.removeNode(n.id) },
   })
   return off                              // cleanup runs on component unmount
 })

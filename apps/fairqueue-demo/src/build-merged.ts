@@ -51,7 +51,7 @@ function defaultScenario(): { agents: Agent[]; goodies: GoodieSpec[] } {
 
 // Pick out the agent / goodie Struct nodes. All merged-graph nodes are generic Structs; `state.kind`
 // is the discriminator the host uses (NOT `render.category` — `render` lives in a separate map on
-// the editor, not on Node, so it's invisible to host code that reads `editor.graph.nodes()`).
+// the editor, not on Node, so it's invisible to host code that reads `editor.graphNodes()`).
 export const isAgentStruct = (n: { type: string; state: Record<string, unknown> }): boolean =>
   n.type === 'Struct' && n.state['kind'] === 'agent'
 export const isGoodieStruct = (n: { type: string; state: Record<string, unknown> }): boolean =>
@@ -74,14 +74,14 @@ export function buildMerged(editor: XenolithEditor): MergedHandle {
   // NOTE: bypasses setWidgetValue because `subs` is not user-editable here (no widget bound to it);
   // we mutate state directly so Struct V3's fallback reads it on the next tick.
   const rebuildSubs = (): void => {
-    const all = [...editor.graph.nodes()]
+    const all = [...editor.graphNodes()]
     const agentIds = all.filter(isAgentStruct).map((n) => String(n.id))
     const goodieTypeByNodeId = new Map<string, string>()
     for (const g of all.filter(isGoodieStruct)) {
       const t = g.state['type']
       if (typeof t === 'string') goodieTypeByNodeId.set(String(g.id), t)
     }
-    const edges: SubEdge[] = [...editor.graph.edges()].map((edge) => ({
+    const edges: SubEdge[] = [...editor.graphEdges()].map((edge) => ({
       from: { node: String(edge.from.node), pin: String(edge.from.pin) },
       to:   { node: String(edge.to.node),   pin: String(edge.to.pin)   },
     }))

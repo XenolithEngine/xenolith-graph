@@ -116,7 +116,7 @@ export function resolvePin(node: Node, pinRef: string | number, dir: 'in' | 'out
 }
 
 function byType(editor: XenolithEditor, type: string): Node {
-  const node = [...editor.graph.nodes()].find((n) => n.type === type)
+  const node = [...editor.graphNodes()].find((n) => n.type === type)
   if (!node) throw new Error(`add_node must run before connect (${type} missing)`)
   return node as Node
 }
@@ -225,8 +225,8 @@ export async function runAgentSession(
   for (const [name, svg] of Object.entries(CUSTOM_ICONS)) editor.icons.register(name, svg)
   for (const schema of agentSchemas) editor.registry.register(schema)
   const ui = buildLog(editor, opts.mode ?? 'auto')
-  const nodeCount = () => [...editor.graph.nodes()].length
-  const edgeCount = () => [...editor.graph.edges()].length
+  const nodeCount = () => [...editor.graphNodes()].length
+  const edgeCount = () => [...editor.graphEdges()].length
   const run = { history: [] as Array<{ nodeId: string; type: string; durationMs: number }>, alert: '', count: -1 }
   ;(window as unknown as Record<string, unknown>)['__agentRun'] = run
 
@@ -331,7 +331,7 @@ export async function runAgentSession(
   const pinIdToLabel = (node: Node, id: string | PinId): string => node.pins.find((p) => String(p.id) === String(id))?.label ?? String(id)
   const labelToPinId = (node: Node, label: string): string => String(node.pins.find((p) => p.label === label)?.id ?? label)
   // StepDebugger speaks pinIds; our computes speak pin labels — convert both ways at the edge.
-  const debugger_ = new StepDebugger(editor.graph, (ctx) => {
+  const debugger_ = new StepDebugger(editor.readGraph(), (ctx) => {
     const labelled: Record<string, unknown> = {}
     for (const [id, v] of ctx.inputs) labelled[pinIdToLabel(ctx.node, id)] = v
     const result = computes[ctx.node.type]?.(labelled) ?? {}
@@ -341,7 +341,7 @@ export async function runAgentSession(
   })
   const animated = new Set<string>()
   const animateOut = (nodeId: string) => {
-    for (const e of editor.graph.edges()) {
+    for (const e of editor.graphEdges()) {
       if (String(e.from.node) === nodeId) { editor.setEdgeAnimated(e.id, true); animated.add(String(e.id)) }
     }
   }

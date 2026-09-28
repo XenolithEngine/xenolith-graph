@@ -4,7 +4,6 @@
 // built-in stats overlay shows live FPS + counts; the handle adds nodes or resets.
 
 import type { XenolithEditor, Node, NodeSchema } from '@xenolithengine/graph-editor'
-import { ConnectPins, createEdgeId } from '@xenolithengine/graph-core'
 
 // 4 categories × 4 names × 1 glyph per category = 16 schemas. The variety makes the stress grid
 // read as an actual graph instead of a wall of identical pills; the bake cache still ends up with
@@ -40,9 +39,9 @@ const COLS = 32
  *  Pushes through the command bus inside one transaction — so React hooks (`useNodes`) re-render and
  *  the whole burst undoes as a single Cmd+Z. */
 function addNodes(editor: XenolithEditor, n: number): void {
-  const existing = [...editor.graph.nodes()]
+  const existing = [...editor.graphNodes()]
   const start = existing.length
-  editor.commandBus.transaction(() => {
+  editor.transaction(() => {
     const made: Node[] = []
     for (let i = 0; i < n; i++) {
       const idx = start + i
@@ -60,9 +59,7 @@ function addNodes(editor: XenolithEditor, n: number): void {
       const outPin = a.pins.find((p) => p.direction === 'out')
       const inPin = b.pins.find((p) => p.direction === 'in')
       if (outPin && inPin) {
-        editor.commandBus.apply(new ConnectPins({
-          id: createEdgeId(), from: { node: a.id, pin: outPin.id }, to: { node: b.id, pin: inPin.id },
-        }))
+        editor.connect(a, outPin.id, b, inPin.id)
       }
     }
   })
@@ -95,7 +92,7 @@ export function addStressNodes(editor: XenolithEditor, n: number): void {
 /** @deprecated Use `setupStressTest` + `addStressNodes` + `editor.clear()` + `useNodes().length`. */
 export function buildStressTest(editor: XenolithEditor, initial = 500): StressHandle {
   setupStressTest(editor, initial)
-  const count = (): number => [...editor.graph.nodes()].length
+  const count = (): number => [...editor.graphNodes()].length
   return {
     add: (n) => { addNodes(editor, n); return count() },
     reset: () => { editor.clear(); return count() },

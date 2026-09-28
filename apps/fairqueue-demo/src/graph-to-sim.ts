@@ -1,7 +1,7 @@
 // Derive a SimState from the live editor graph — the graph is the source of truth for topology, so
 // connecting/disconnecting an edge subscribes/unsubscribes an agent, and per-node widget values
 // (salary, cost, rate, priority) ride in node.state. Pure: it reads plain node/edge shapes, so it
-// unit-tests without the editor. The builder feeds it [...editor.graph.nodes()] / .edges() each tick.
+// unit-tests without the editor. The builder feeds it [...editor.graphNodes()] / .edges() each tick.
 
 import { createSim, type SimState, type SimParams } from './fairqueue.js'
 

@@ -6,7 +6,7 @@
 // the Warehouse. Everything rides the public API — no core changes.
 
 import type { XenolithEditor, NodeId, Node } from '@xenolithengine/graph-editor'
-import { SetNodeState, type Unsubscribe } from '@xenolithengine/graph-core'
+import { type Unsubscribe } from '@xenolithengine/graph-core'
 import { createSim, step, type Agent, type GoodieSpec } from './fairqueue.js'
 import { simToGraph, AGENT_WIDGETS, GOODIE_WIDGETS, STATE_ID } from './sim-to-graph.js'
 import { graphToSim, type NodeLike, type EdgeLike } from './graph-to-sim.js'
@@ -83,8 +83,8 @@ export function buildFairqueue(editor: XenolithEditor): FairqueueHandle {
 
   // Subscriptions are edges, but only Goodie(out) → Agent(in) ones make sense.
   editor.setIsValidConnection((c) => {
-    const s = editor.graph.getNode(c.source)
-    const t = editor.graph.getNode(c.target)
+    const s = editor.getNode(c.source)
+    const t = editor.getNode(c.target)
     return !!s && !!t && s.type === 'Goodie' && t.type === 'Agent'
   })
 
@@ -97,15 +97,15 @@ export function buildFairqueue(editor: XenolithEditor): FairqueueHandle {
       editor.setWidgetValue(node.id, 'salary', 0.5)
       editor.setWidgetValue(node.id, 'priority', 0)
       // Wire the agent's "tax" out-pin (index 1) into the State, like the built-in agents.
-      const st = editor.graph.getNode(STATE_ID as NodeId)
+      const st = editor.getNode(STATE_ID as NodeId)
       if (st) editor.connect(node as Node, 1, st as Node, 0, { animated: false })
     } else if (node.type === 'Goodie') {
       editor.setWidgetValue(node.id, 'cost', 2)
       editor.setWidgetValue(node.id, 'rate', 0.3)
       // Short stable type (avoids a raw uuid in the warehouse) + wire it to the Warehouse so the
       // overflow path is visible, like the built-in goodies.
-      editor.commandBus.apply(new SetNodeState(node.id, { gtype: `good-${++goodieCounter}` }))
-      const wh = editor.graph.getNode(WAREHOUSE_ID as NodeId)
+      editor.setNodeState(node.id, { gtype: `good-${++goodieCounter}` })
+      const wh = editor.getNode(WAREHOUSE_ID as NodeId)
       if (wh) editor.connect(node as Node, 0, wh as Node, 0, { animated: false })
     }
   })
@@ -116,8 +116,8 @@ export function buildFairqueue(editor: XenolithEditor): FairqueueHandle {
   const acc = new Map<string, number>() // fractional-rate spawn accumulator, per goodie type
 
   const snapshot = (): { nodes: NodeLike[]; edges: EdgeLike[] } => ({
-    nodes: [...editor.graph.nodes()].map((n) => ({ id: String(n.id), type: n.type, state: n.state })),
-    edges: [...editor.graph.edges()].map((e) => ({ from: { node: String(e.from.node) }, to: { node: String(e.to.node) } })),
+    nodes: [...editor.graphNodes()].map((n) => ({ id: String(n.id), type: n.type, state: n.state })),
+    edges: [...editor.graphEdges()].map((e) => ({ from: { node: String(e.from.node) }, to: { node: String(e.to.node) } })),
   })
 
   const arrivalsFor = (goodieList: GoodieSpec[]): string[] => {
@@ -138,7 +138,7 @@ export function buildFairqueue(editor: XenolithEditor): FairqueueHandle {
   }
 
   const agentPriorities = (): number[] =>
-    [...editor.graph.nodes()].filter((n) => n.type === 'Agent').map((n) => Number(n.state['priority'] ?? 0))
+    [...editor.graphNodes()].filter((n) => n.type === 'Agent').map((n) => Number(n.state['priority'] ?? 0))
 
   const metricsSubs = new Set<(m: Metrics) => void>()
   const emitMetrics = (running: boolean): void => {
@@ -173,7 +173,7 @@ export function buildFairqueue(editor: XenolithEditor): FairqueueHandle {
 
   // Toggle animated flow per edge on Run/Pause — the public API, no graph round-trip.
   const setAnimated = (animated: boolean): void => {
-    for (const e of editor.graph.edges()) editor.setEdgeAnimated(e.id, animated)
+    for (const e of editor.graphEdges()) editor.setEdgeAnimated(e.id, animated)
   }
 
   let timer: ReturnType<typeof setInterval> | null = null

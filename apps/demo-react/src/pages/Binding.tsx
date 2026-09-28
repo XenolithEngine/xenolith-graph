@@ -9,7 +9,7 @@ const code = `function Inspector() {
   // editor → form: a widget dragged inside the canvas refreshes the inputs.
   useEffect(() => editor.on('widget:changed', rerender), [editor])
 
-  const node = editor.graph.getNode(nodeId)
+  const node = editor.getNode(nodeId)
   return node?.widgets.map((w) => (
     <label key={w.id}>
       {w.label}

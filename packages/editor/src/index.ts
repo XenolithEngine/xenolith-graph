@@ -423,6 +423,44 @@ export class XenolithEditor {
   /** Live iteration over the displayed graph's edges. See {@link graphNodes}. */
   graphEdges(): IterableIterator<Readonly<Edge>> { return this.#displayGraph.edges() }
 
+  /** One node by id (live view of the displayed graph), or undefined. The single-node companion
+   *  to {@link graphNodes} — the typed alternative to the internal `graph` getter. */
+  getNode(id: NodeId): Readonly<Node> | undefined { return this.#displayGraph.getNode(id) }
+
+  /** The live display graph, for the core read/traversal helpers (`topoOrder`, `evaluateGraph`,
+   *  `reachableFrom`, `incomers` — all stable `graph-core` exports). READ-ONLY by convention:
+   *  mutating it bypasses the command bus (no undo, no preventable events) — use the mutation
+   *  API. This is the typed successor of the internal `graph` getter the Run guide used. */
+  readGraph(): Graph { return this.#displayGraph }
+
+  /** Replace a node's `state` object (bus-routed `SetNodeState` — undoable, fires the usual
+   *  events). For ticking sims that must not flood undo history use widget-value writes with
+   *  `ephemeral` or the plugin runtime-delegation surface instead. */
+  setNodeState(nodeId: NodeId, state: Record<string, unknown>): void {
+    this.commandBus.apply(new SetNodeState(nodeId, state))
+  }
+
+  /** Run many mutations as ONE undo entry (auto begin/end-group; rolls back and rethrows if fn
+   *  throws). The public face of what the README has always advertised as
+   *  `commandBus.beginGroup()/endGroup()` — grouping used to be reachable only through the
+   *  internal bus getter, which is no longer part of the shipped typings. */
+  transaction<R>(fn: () => R): R {
+    return this.commandBus.transaction(fn)
+  }
+
+  /** Begin an undo group MANUALLY — for spans that can't be a synchronous `transaction()`:
+   *  coalesce a string of keystrokes with `{ idleTimeoutMs }` (auto-closes N ms after the last
+   *  mutation) or pair with {@link endGroup} yourself. Every mutation in between becomes ONE
+   *  undo entry. */
+  beginGroup(opts?: { label?: string; idleTimeoutMs?: number }): void {
+    this.commandBus.beginGroup(opts)
+  }
+
+  /** Close a group opened by {@link beginGroup}. */
+  endGroup(): void {
+    this.commandBus.endGroup()
+  }
+
   /** Plugin registry for context-menu items (right-click / long-press menus). Items are merged
    *  with the built-in menu at open time. See {@link ContextMenuRegistry}. */
   readonly contextMenu = new ContextMenuRegistry()
