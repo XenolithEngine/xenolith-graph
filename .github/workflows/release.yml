@@ -40,11 +40,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # ONLY the 18 publishable packages — apps/ (playground, site, comfy/fairqueue/wasm/
-      # react demos) are private and irrelevant for the npm publish. dist/ from this step is
-      # exactly what gets packed into the npm tarballs.
+      # ONLY packages/* — apps/ (playground, site, comfy/fairqueue/wasm/react demos) are private
+      # and irrelevant for the npm publish. test-fixtures is NOT publishable but IS a test-time
+      # dependency of editor (import-reactflow-fixtures.test.ts imports it through its package
+      # exports → needs dist/ built), so it must stay in the BUILD. The PUBLISH step below keeps
+      # the exclusion. (Caught by the v0.7.0-beta.6 tag: this workflow last ran before E3 added
+      # that import, and the exclusion made the resolve fail only HERE — CI on main was green.)
       - name: Build publishable packages
-        run: pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' run build
+        run: pnpm -r --filter './packages/*' run build
 
       - name: Run unit + integration tests for publishable packages
         run: pnpm -r --filter './packages/*' --filter '!@xenolithengine/test-fixtures' run test
