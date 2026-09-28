@@ -1,5 +1,7 @@
 // Records the /?demo=agent session to video for the "Agents build. Humans debug." asset.
 // Usage: (pnpm --filter @xenolithengine/playground dev &) && node scripts/record-mcp-demo.mjs
+//   --propose records the trust-boundary variant (?demo=agent&mode=propose — F2 / ADR 0007)
+//   for the "Agents build. Humans approve." asset.
 //
 // The raw page load is several seconds of gray (Vite cold-transforms the module graph on the
 // FIRST request, then the editor boots). Two fixes keep it out of the recording:
@@ -9,7 +11,9 @@
 import { chromium } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 
-const PAGE_URL = 'http://localhost:5173/?demo=agent'
+const PAGE_URL = process.argv.includes('--propose')
+  ? 'http://localhost:5173/?demo=agent&mode=propose'
+  : 'http://localhost:5173/?demo=agent'
 const OUT_DIR = new URL('../.recordings/', import.meta.url).pathname
 mkdirSync(OUT_DIR, { recursive: true })
 

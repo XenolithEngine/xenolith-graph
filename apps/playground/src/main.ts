@@ -30,13 +30,18 @@ editor.registerWidget('preview', createPreviewWidget())
 // ?demo=agent — the scripted MCP session: an "agent" builds a typed pipeline through the exact
 // tool surface the MCP server exposes, with a live transcript panel. Used by the agent-builds
 // e2e spec and the "Agents build. Humans debug." capture (scripts/record-mcp-demo.mjs).
+// ?demo=agent&mode=propose — the trust-boundary variant (F2 / ADR 0007): every agent mutation
+// queues for review, a "human" approves the batch through the real panel UI, and the whole
+// batch lands as ONE undo step. Capture: scripts/record-mcp-demo.mjs --propose.
 // -----------------------------------------------------------------------------------------------
-const isAgentDemo = new URLSearchParams(window.location.search).get('demo') === 'agent'
+const params = new URLSearchParams(window.location.search)
+const isAgentDemo = params.get('demo') === 'agent'
+const agentPropose = params.get('mode') === 'propose'
 if (isAgentDemo) {
   const { agentSchemas, runAgentSession } = await import('@xenolithengine/demo/agent-session')
   for (const schema of agentSchemas) editor.registry.register(schema)
   editor.setControls({ position: 'top-right', orientation: 'horizontal' })
-  await runAgentSession(editor)
+  await runAgentSession(editor, agentPropose ? { mode: 'propose' } : {})
 } else {
   for (const schema of demoSchemas) editor.registry.register(schema)
   editor.loadJSON(demoGraph)
