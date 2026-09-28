@@ -64,6 +64,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.connectMCP(url)` | |
 | **Namespaces:** | |
 | `editor.view.{pan, zoomAt, resetView, fitView, setViewport, state, screenToWorld, worldToScreen, lastPointerWorld}` | Viewport. |
+| `editor.autoLayout({direction, spacing, fit})` | Layered DAG layout — the same layout the MCP `auto_layout` tool uses, now public for hosts. |
 | `editor.history.{undo, redo, canUndo, canRedo, clear}` | Undo/redo + history. |
 | `editor.clipboard.{copy, paste, duplicate, selectAll, deleteSelection}` | Clipboard ops. |
 | `editor.chrome.{setControls, setMinimapVisible, setMinimapPosition, setStatsVisible, toggleStats, showOverlay, hideOverlay, withOverlay, enterFullscreen, exitFullscreen, toggleFullscreen, isFullscreen, overlayRoot, setBreadcrumbVisible}` | UI chrome. |

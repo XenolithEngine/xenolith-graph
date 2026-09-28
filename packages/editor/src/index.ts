@@ -140,6 +140,7 @@ import { Minimap, type MinimapPosition } from './minimap.js'
 import { EditorControls, type ControlsOptions } from './controls.js'
 import { createGraphEventBridge, firePreventable, type EditorEvents } from './events.js'
 import type { McpClient, McpEditorSurface } from './mcp.js'
+import { layeredLayout } from './layout-ops.js'
 import { PluginHost, type PluginContext, type XenolithPlugin } from './plugin.js'
 import {
   parseXenolithGraph,
@@ -4392,6 +4393,18 @@ export class XenolithEditor {
    * sits centred inside the canvas with `padding` px of margin. No-op on an empty graph. `maxZoom`
    * defaults to 1 so small graphs aren't blown up; `minZoom` defaults to the editor's zoom floor.
    */
+  /** Arrange the whole graph with the layered DAG layout (rank by longest-path-from-source,
+   *  ranks become columns in 'LR' or rows in 'TB'). The same layout the MCP `auto_layout` tool
+   *  uses — hosts and agents get identical results. Collapsed macros are the layout unit;
+   *  their hidden members translate along. `fit` (default true) frames the result. */
+  autoLayout(opts: { direction?: 'LR' | 'TB'; spacing?: number; fit?: boolean } = {}): { moved: number; direction: 'LR' | 'TB' } {
+    const direction = opts.direction ?? 'LR'
+    const positions = layeredLayout(this, direction, opts.spacing ?? 80)
+    for (const [id, p] of positions) this.moveNode(id, p)
+    if (opts.fit !== false) this.fitView({ padding: 64 })
+    return { moved: positions.size, direction }
+  }
+
   fitView(opts: { padding?: number; maxZoom?: number; minZoom?: number } = {}): void {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
     let count = 0

@@ -8,6 +8,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Added
+
+- `editor.autoLayout({ direction, spacing, fit })` — the layered DAG layout that powered the MCP `auto_layout` tool is now a public host API (extracted to `layout-ops.ts`; identical results for hosts and agents).
+
 ### Notes
 
 - `0.7.0-beta.4` was tagged in the repo but never reached npm (the publish token had expired; fixed for beta.5). The registry jumps beta.3 → beta.5 — nothing is missing, beta.5 includes the full beta.4 scope.
