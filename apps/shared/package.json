@@ -26,7 +26,8 @@
     "./properties-sidebar": "./properties-sidebar.ts",
     "./breadcrumb-dive": "./breadcrumb-dive.ts",
     "./conditional-widgets": "./conditional-widgets.ts",
-    "./palette-sidebar": "./palette-sidebar.ts"
+    "./palette-sidebar": "./palette-sidebar.ts",
+    "./agent-session": "./agent-session.ts"
   },
   "types": "./demo-graph.ts",
   "dependencies": {

@@ -150,11 +150,21 @@ import HeadMeta from '../components/HeadMeta.astro'
 
       // Register schemas so Tab / double-click can spawn any node type, then load the whole graph
       // from our own xenolith.v1 data format (both reroute kinds baked in) and frame it.
+      // `?demo=agent` swaps the default graph for the scripted MCP agent session (build →
+      // auto_layout → execute → verify) — the same module the Vite playground and the README/
+      // landing GIFs use.
+      const isAgentDemo = new URLSearchParams(window.location.search).get('demo') === 'agent'
       editor.registerWidget('curve', createCurveWidget())
       editor.registerWidget('xypad', createXYPadWidget())
-      for (const schema of demoSchemas) editor.registry.register(schema)
-      editor.loadJSON(demoGraph)
-      editor.fitView({ padding: 64, maxZoom: 1 })
+      if (isAgentDemo) {
+        const { agentSchemas, runAgentSession } = await import('@xenolithengine/demo/agent-session')
+        for (const schema of agentSchemas) editor.registry.register(schema)
+        await runAgentSession(editor)
+      } else {
+        for (const schema of demoSchemas) editor.registry.register(schema)
+        editor.loadJSON(demoGraph)
+        editor.fitView({ padding: 64, maxZoom: 1 })
+      }
     </script>
   </body>
 </html>

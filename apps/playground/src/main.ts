@@ -33,7 +33,7 @@ editor.registerWidget('preview', createPreviewWidget())
 // -----------------------------------------------------------------------------------------------
 const isAgentDemo = new URLSearchParams(window.location.search).get('demo') === 'agent'
 if (isAgentDemo) {
-  const { agentSchemas, runAgentSession } = await import('./agent-session.js')
+  const { agentSchemas, runAgentSession } = await import('@xenolithengine/demo/agent-session')
   for (const schema of agentSchemas) editor.registry.register(schema)
   editor.setControls({ position: 'top-right', orientation: 'horizontal' })
   await runAgentSession(editor)
