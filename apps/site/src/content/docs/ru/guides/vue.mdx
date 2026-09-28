@@ -9,7 +9,9 @@ description: Подключение XenolithGraph в Vue 3 через `<Xenolith
 :::
 
 См. [англоязычную версию](../../../guides/vue/) — там полное API адаптера `@xenolithengine/graph-vue`:
-`<XenolithGraph @ready>`, composables (`useEditor`, `useEditorOrNull`, `useEditorReady`,
-`useEditorEvent`, `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` /
-`useUndoRedo`), in-editor компоненты (`<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`,
-`<XenolithMiniMap>`), `vueWidget(Component)` для Vue SFC-виджетов, и события через `@*-*` listeners.
+`<XenolithGraph @ready>` (типизированные payload в обработчиках), composables (`useEditor`,
+`useEditorOrNull`, `useEditorReady`, `useEditorEvent`, `useXenolithGraph`, `useNodes` /
+`useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`, контролируемый
+триплет `useNodesState`), in-editor компоненты (`<XenolithPanel>`, `<XenolithButton>`,
+`<XenolithControls>`, `<XenolithMiniMap>`), `vueWidget(Component)` для Vue SFC-виджетов, и
+события через `@*-*` listeners.

@@ -9,7 +9,8 @@ description: 使用 `<XenolithGraph>`、composables、编辑器内面板组件�
 :::
 
 请参阅[英文版本](../../../guides/vue/) — `@xenolithengine/graph-vue` 适配器的完整 API:
-`<XenolithGraph @ready>`, composables (`useEditor`, `useEditorOrNull`, `useEditorReady`,
-`useEditorEvent`, `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` /
-`useUndoRedo`), 编辑器内组件 (`<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`,
-`<XenolithMiniMap>`), 自定义 Vue SFC widget 使用 `vueWidget(Component)`, 通过 `@*-*` 监听器处理事件。
+`<XenolithGraph @ready>`(处理函数带有类型化的 payload),composables(`useEditor`,
+`useEditorOrNull`, `useEditorReady`, `useEditorEvent`, `useXenolithGraph`, `useNodes` /
+`useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`,受控三元组
+`useNodesState`),编辑器内组件(`<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`,
+`<XenolithMiniMap>`),自定义 Vue SFC widget 使用 `vueWidget(Component)`,通过 `@*-*` 监听器处理事件。

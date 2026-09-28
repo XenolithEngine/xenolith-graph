@@ -125,7 +125,7 @@ theme's `--xeno-*` vars:
 | Adapter | Mount | Props (9/9) | Typed events | Hook set | `useNodesState` | Components | Widget | Learn page |
 |---|---|---|---|---|---|---|---|---|
 | React | ✅ StrictMode-safe | ✅ | ✅ `EventCallbacks` | ✅ full | ✅ | ✅ ×4 + Queue | ✅ | ✅ |
-| Vue | ✅ | ❌ 7/9 (A2) | ❌ string emits (A2) | ❌ no mount hook / `useNodesState` (A2) | ❌ (A2) | ✅ ×4 + Queue | ✅ | ⚠️ (A2: controlled pattern) |
+| Vue | ✅ | ✅ (A2 done) | ✅ typed emits (A2) | ✅ full (A2: `useXenolithGraph`) | ✅ (A2) | ✅ ×4 + Queue | ✅ | ✅ (A2: controlled pattern + mount composable) |
 | Svelte | stub (action) | partial | ✗ | ✗ | ✗ | ✗ | ✗ | integration note |
 | Solid / Angular / WC | stubs | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
 

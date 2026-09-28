@@ -8,6 +8,21 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Added
+
+- **Adapter contract (A1)** — `docs/ADAPTER-CONTRACT.md`: the checklist every framework adapter must satisfy (mount component with all nine `XenolithProps`, typed events derived from `EDITOR_EVENT_NAMES`, full composable/hook set incl. the `useNodesState` triple, in-editor components, widget wrapper, test parity, Learn page) with a per-adapter status matrix. React is the reference; Vue reached parity (A2); Svelte/Angular/Solid/WC follow per contract before any "parity" claims.
+- **Vue adapter parity with React (A2)**:
+  - `useNodesState()` — the controlled-state triple (E5 / ADR 0006) as a 1:1 Vue port: `shallowRef` graph mirror folded from commit-time `graph:changed` arrays, `applyChanges` forwarding, `setNodes` one-shot diff landing as ONE undo step. Mirror React's integration suite with the real headless editor.
+  - `useXenolithGraph(target, props?)` — headless mount composable (React `useXenolith` counterpart): mount into any element outside `<XenolithGraph>`, props synced by reference, destroyed on unmount, target swap can't leak an in-flight async init.
+  - Typed emits — `<XenolithGraph>` declares object-form emits with typed validator signatures, so `@node-click` handlers get real payload types in vue-tsc/Volar (was a plain string array → `any`). `XenolithGraphEmits` export + compile-time drift gate.
+  - `isValidConnection` prop — was not declared at all (landed in `$attrs`, never reached the editor); now declared, forwarded and watched. `resizeToWindow` changes now reach `setProps` (was silently dropped by the watch list). Vue is 9/9 on `XenolithProps`.
+  - Hook test parity: new `hooks.test.ts` (mirror of React's suite) + real-editor `use-nodes-state.test.ts`; Vue package 7 → 27 tests.
+- `@xenolithengine/graph-adapter-core`: `diffNodesToChanges(live, nextNodes)` — the incremental `setNodes` diff (add / position-by-coordinates / state-by-reference / remove in ONE batch), shared by the React and Vue controlled triples (was an inline copy in React). Deliberately NOT `documentReplacedChanges` — that is the full-replace burst for document swaps and would balloon undo payloads of incremental edits.
+
+### Changed
+
+- React `useUndoRedo` builds its store hook at module level like the other hooks (was created inside the component body — invisible to rules-of-hooks lint, no shared snapshot cache); gained its first unit coverage.
+
 ## [0.7.0-beta.6] — 2026-09-29
 
 Summary in [docs/release-notes/v0.7.0-beta.6.md](docs/release-notes/v0.7.0-beta.6.md).

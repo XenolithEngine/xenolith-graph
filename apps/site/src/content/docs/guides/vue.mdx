@@ -64,10 +64,12 @@ Same shape as the React adapter (kebab-cased in templates):
 | `disable-grid` | `boolean` | Hide the background grid. |
 | `resize-to-window` | `boolean` | Default `true`. Set `false` to fit the parent. |
 | `fit-on-load` | `boolean` | After `graph` mounts, call `fitView`. |
+| `is-valid-connection` | `(info) => boolean` | Custom connection guard on top of the type check; return `false` to reject a wire. |
 
 ### `<XenolithGraph>` events
 
-`@ready` plus one event per editor event (kebab-cased):
+`@ready` plus one event per editor event (kebab-cased), each with its **typed payload** —
+handler params are inferred by `vue-tsc`/Volar, no `any`:
 
 ```vue
 <XenolithGraph
@@ -91,8 +93,8 @@ editor via `provide(XenolithEditorKey, ref)`. Children inject the same ref.
 
 ```ts
 import {
-  useEditor, useEditorOrNull, useEditorReady, useEditorEvent,
-  useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo,
+  useEditor, useEditorOrNull, useEditorReady, useEditorEvent, useXenolithGraph,
+  useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo, useNodesState,
 } from '@xenolithengine/graph-vue'
 ```
 
@@ -102,12 +104,14 @@ import {
 | `useEditorOrNull()` | same | Same but tombstones to `shallowRef(null)` instead of throwing. |
 | `useEditorReady(cb)` | same + runs cb when editor mounts | The right call for one-shot per-component setup (registering commands, contextMenu items). |
 | `useEditorEvent(event, handler)` | `void` | One-shot subscribe; cleans up on unmount. |
+| `useXenolithGraph(target, props?)` | `ShallowRef<XenolithEditor \| null>` | Mount into any element WITHOUT `<XenolithGraph>` — portals, third-party slots. Props synced by reference; destroyed on unmount. |
 | `useNodes()` | `Readonly<ShallowRef<readonly Node[]>>` | Re-fires on node mutations + undo/redo. |
 | `useEdges()` | `Readonly<ShallowRef<readonly Edge[]>>` | Same for edges. |
 | `useSelection()` | `Readonly<ShallowRef<readonly NodeId[]>>` | `selection:changed`. |
 | `useViewport()` | `Readonly<ShallowRef<ViewportState>>` | `viewport:changed`. |
 | `useGraphJSON()` | `Readonly<ShallowRef<XenolithGraphV1 \| null>>` | Any mutation, load, undo/redo. |
 | `useUndoRedo()` | `{ canUndo, canRedo: ShallowRef<boolean>; undo, redo: () => boolean }` | Toolbar state + handles. |
+| `useNodesState()` | `{ nodes, edges: Readonly<ShallowRef<…>>; applyChanges; setNodes }` | The controlled triple — see below. |
 
 `editor.value` is `null` during a child component's `setup()` because Vue runs setup synchronously
 before the parent's `onMounted`. Use `useEditorReady(cb)` (or `watch(editor, ...)`) for any setup
@@ -136,6 +140,62 @@ const { canUndo, canRedo, undo, redo } = useUndoRedo()
     <XenolithButton :disabled="!canUndo" @click="undo()">Undo</XenolithButton>
     <XenolithButton :disabled="!canRedo" @click="redo()">Redo</XenolithButton>
   </XenolithPanel>
+</template>
+```
+
+## Controlled state (commit-time)
+
+React Flow / Pinia migrants: `useNodesState()` gives you the controlled triple — `nodes`,
+`edges`, `applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+Same semantics as React's `useNodesState`, Vue-shaped: the mirror is a `shallowRef` of plain
+records, exposed as readonly computed refs. One deliberate difference from React Flow:
+positions arrive when a drag COMMITS, never per frame, so your component tree stays still
+while the WebGL renderer owns the drag.
+
+```vue
+<script setup lang="ts">
+import { XenolithGraph, useNodesState } from '@xenolithengine/graph-vue'
+
+const { nodes, setNodes } = useNodesState()
+const addBox = () => setNodes((prev) => [...prev, makeBox(prev.length)])
+</script>
+
+<template>
+  <XenolithGraph :resize-to-window="false" style="position:absolute;inset:0">
+    <button v-for="n in nodes" :key="n.id" :style="nodeStyle(n)">{{ n.type }}</button>
+  </XenolithGraph>
+</template>
+```
+
+- `setNodes(next)` — pass the next nodes array or an updater over the live mirror. Adds,
+  removes, position and state deltas are diffed onto the editor as **one undo step**
+  (shallow diff: position by coordinates, state by reference); the `graph:changed` echo
+  converges the mirror.
+- `applyChanges(changes)` — forward an array (yours, or an echo) to `editor.applyChanges`;
+  idempotent for echoes.
+- For Pinia/Vuex stores use the pure `reduceGraphChanges` reducer from
+  `@xenolithengine/graph-editor` directly and subscribe to `graph:changed` yourself.
+
+## Mount without the component tree
+
+`useXenolithGraph(target, props?)` mounts an editor into any element — a portal, a
+third-party slot — and returns `ShallowRef<XenolithEditor | null>`. `target` is a template
+ref (or getter); `props` is a `ref`/`computed`/getter producing a fresh object when props
+change (reference-diffed). The binding is destroyed on component unmount; a target swap
+tears the old editor down before the new one mounts.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useXenolithGraph } from '@xenolithengine/graph-vue'
+
+const host = ref<HTMLDivElement | null>(null)
+const editor = useXenolithGraph(host, () => ({ snap: 8, minimap: true }))
+</script>
+
+<template>
+  <div ref="host" style="position:absolute;inset:0" />
 </template>
 ```
 
@@ -235,7 +295,8 @@ This is the same primitive `<XenolithGraph>` builds on internally.
 
 - **No `v-model="graph"`.** Same architectural reason as React: 1000-node diffing on each parent
   update would defeat the WebGL renderer. `v-model` on individual widget values (via
-  `vueWidget()`) is the supported boundary.
+  `vueWidget()`) is the supported boundary, and `useNodesState()` covers the controlled-store
+  use case at commit time (see above).
 - **No SSR rendering.** `<ClientOnly>` is required in Nuxt.
 
 ## Related
