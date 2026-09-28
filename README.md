@@ -17,6 +17,14 @@ An embeddable, drop-in node-graph editor for the web with a polished design syst
 
 <p align="center"><a href="https://graph.xenolith.studio/playground/" target="_blank" rel="noopener noreferrer"><img alt="Try it live" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20live%20%E2%80%94%20open%20the%20playground-FCB400?style=for-the-badge&labelColor=0A0A0A" /></a> <a href="https://graph.xenolith.studio/examples/" target="_blank" rel="noopener noreferrer"><img alt="Examples gallery" src="https://img.shields.io/badge/Examples%20gallery%20%E2%86%92-1d1d1d?style=for-the-badge" /></a></p>
 
+<p align="center">
+  <a href="https://graph.xenolith.studio/playground/?demo=agent" target="_blank" rel="noopener noreferrer">
+    <img src="docs/screenshots/agent-demo.gif" alt="An agent session builds a 14-node telemetry-anomaly pipeline through the MCP tool surface, runs it with per-node timing, and verifies its own output" width="86%" />
+  </a>
+</p>
+
+**Agents build. Humans debug.** The capture above is a scripted session driving the editor through the exact MCP tool surface Claude Desktop or Cursor gets — `list_node_types → add_node ×14 → connect_pins ×17 → auto_layout → set_category_palette` — then it **executes the graph for real** (step-by-step, per-node timing) and **verifies its own output** (`anomalies=2 ✓`). Every agent edit rides the same command bus as a human edit, so Ctrl+Z just works. Run it live: [playground/?demo=agent](https://graph.xenolith.studio/playground/?demo=agent).
+
 <p><a href="https://graph.xenolith.studio/playground/?theme=xen" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/xen.png" alt="Xen — default dark/gold theme (click to open the live playground)" width="32%" /></a> <a href="https://graph.xenolith.studio/playground/?theme=daylight" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/daylight.png" alt="Daylight — original light-mode theme (click to open the live playground)" width="32%" /></a> <a href="https://graph.xenolith.studio/playground/?theme=liquid-glass" target="_blank" rel="noopener noreferrer"><img src="docs/screenshots/liquid-glass.png" alt="Liquid Glass — shader-based frosted theme (click to open the live playground)" width="32%" /></a></p>
 
 ## What it does

@@ -30,6 +30,8 @@ const t = (() => {
     ctaPrimary:   'Открыть документацию',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — тема по умолчанию',
+    demoTitle: 'Агенты строят. Люди отлаживают.',
+    demoSub: 'Скриптованная сессия агента ведёт редактор тем же MCP-инструментарием, что получают Claude Desktop и Cursor — add_node → connect_pins → auto_layout — затем реально исполняет граф (пошагово, с таймингами) и проверяет собственный результат. [Запустить вживую](/playground/?demo=agent).',
     showcaseSub: 'Реальный граф под Xen — оригинальной design-системой XenolithGraph. Дополнительные темы (например Liquid Glass) включаются в [playground](/playground/) и [Examples](/examples/).',
     featuresTitle: 'Что внутри',
     featuresSub: 'Всё что нужно реальному редактору графов из коробки — UX, модель, темы, плагины. Берите то что нужно — остальное не мешает.',
@@ -74,6 +76,8 @@ editor.loadJSON(myGraph)
     ctaPrimary:   '查看文档',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — 默认主题',
+    demoTitle: '智能体搭建，人类调试。',
+    demoSub: '脚本化的智能体会话通过 Claude Desktop / Cursor 所用的同一套 MCP 工具驱动编辑器 —— add_node → connect_pins → auto_layout —— 随后真正执行图（逐步、带耗时统计）并验证自身输出。[在线运行](/playground/?demo=agent)。',
     showcaseSub: '使用 XenolithGraph 原创设计系统 Xen 渲染的真实图。其他主题(如 Liquid Glass)在 [playground](/playground/) 与 [Examples](/examples/) 中提供。',
     featuresTitle: '内置什么',
     featuresSub:   '真实图编辑器所需的一切，开箱即用 — UX、模型、主题、插件。需要什么就用什么，其余不挡路。',
@@ -118,6 +122,8 @@ editor.loadJSON(myGraph)
     ctaPrimary:   'Open documentation',
     ctaSecondary: 'GitHub',
     showcaseA: 'Xen — the default theme',
+    demoTitle: 'Agents build. Humans debug.',
+    demoSub: 'A scripted agent session drives the editor through the same MCP tool surface Claude Desktop or Cursor gets — add_node → connect_pins → auto_layout — then executes the graph for real (step-by-step, per-node timing) and verifies its own output. [Run it live](/playground/?demo=agent).',
     showcaseSub: 'A real graph rendered with Xen, the original XenolithGraph design system. Additional themes (e.g. Liquid Glass) live in the [playground](/playground/) and the [Examples](/examples/) gallery.',
     featuresTitle: 'What is inside',
     featuresSub: 'Everything a real-world graph editor needs out of the box — UX, model, themes, plugins. Pick the parts you want, the rest stays out of the way.',
@@ -181,6 +187,14 @@ editor.loadJSON(myGraph)
       <Image src={logo} alt="XenolithGraph" width={320} height={320} />
       <div class="xn-emblem-glow"></div>
     </div>
+  </section>
+
+  <section class="xn-showcase-section xn-agent-demo-section">
+    <h2 class="xn-h2">{t.demoTitle}</h2>
+    <p class="xn-h2-sub" set:html={t.demoSub.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')} />
+    <a class="xn-demo-link" href="/playground/?demo=agent">
+      <img class="xn-demo-gif" src="/agent-demo.gif" alt={t.demoTitle} loading="lazy" />
+    </a>
   </section>
 
   <section class="xn-showcase-section">
@@ -523,4 +537,7 @@ editor.loadJSON(myGraph)
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.015);
   }
+
+.xn-agent-demo-section .xn-demo-link { display: block; max-width: 980px; margin: 0 auto; }
+.xn-demo-gif { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45); }
 </style>
