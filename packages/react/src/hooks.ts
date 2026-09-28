@@ -72,14 +72,14 @@ const DEFAULT_VIEWPORT: ViewportState = Object.freeze({ x: 0, y: 0, zoom: 1 })
 /** Live array of nodes; re-renders on add/remove/move, load and undo/redo. */
 export const useNodes: () => readonly Node[] = makeEditorStoreHook(
   NODE_EVENTS,
-  (e) => Object.freeze(Array.from(e.graph.nodes()) as Node[]) as readonly Node[],
+  (e) => Object.freeze(Array.from(e.graphNodes()) as Node[]) as readonly Node[],
   EMPTY_NODES,
 )
 
 /** Live array of edges; re-renders on connect/disconnect, node removal, load and undo/redo. */
 export const useEdges: () => readonly Edge[] = makeEditorStoreHook(
   EDGE_EVENTS,
-  (e) => Object.freeze(Array.from(e.graph.edges()) as Edge[]) as readonly Edge[],
+  (e) => Object.freeze(Array.from(e.graphEdges()) as Edge[]) as readonly Edge[],
   EMPTY_EDGES,
 )
 
@@ -180,7 +180,7 @@ export function useNodesState(): {
 
   useEffect(() => {
     if (!editor) return
-    setMirror(snapshotGraph(editor.graph.nodes(), editor.graph.edges()))
+    setMirror(snapshotGraph(editor.graphNodes(), editor.graphEdges()))
     const off = editor.on('graph:changed', ({ changes }) => {
       setMirror((prev) => reduceGraphChanges(prev, changes))
     })
@@ -193,7 +193,7 @@ export function useNodesState(): {
     next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[]),
   ): void => {
     if (!editor) return
-    const live = snapshotGraph(editor.graph.nodes(), editor.graph.edges())
+    const live = snapshotGraph(editor.graphNodes(), editor.graphEdges())
     const nextNodes = typeof next === 'function' ? next(live.nodes) : next
     const changes: GraphChanges = { nodes: [], edges: [], unsupported: [] }
     const byId = new Map(live.nodes.map((n) => [n.id as string, n]))

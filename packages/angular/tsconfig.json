@@ -6,8 +6,15 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": []
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [],
+    "stripInternal": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

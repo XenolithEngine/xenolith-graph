@@ -59,14 +59,14 @@ const DEFAULT_VIEWPORT: ViewportState = Object.freeze({ x: 0, y: 0, zoom: 1 })
 /** Live array of nodes; re-renders on add/remove/move, load, and undo/redo. */
 export const useNodes = makeStoreHook<readonly Node[]>(
   NODE_EVENTS,
-  (e) => Object.freeze(Array.from(e.graph.nodes()) as Node[]) as readonly Node[],
+  (e) => Object.freeze(Array.from(e.graphNodes()) as Node[]) as readonly Node[],
   EMPTY_NODES,
 )
 
 /** Live array of edges; re-renders on connect/disconnect, node removal, load, and undo/redo. */
 export const useEdges = makeStoreHook<readonly Edge[]>(
   EDGE_EVENTS,
-  (e) => Object.freeze(Array.from(e.graph.edges()) as Edge[]) as readonly Edge[],
+  (e) => Object.freeze(Array.from(e.graphEdges()) as Edge[]) as readonly Edge[],
   EMPTY_EDGES,
 )
 

@@ -8,7 +8,7 @@ const state = { nodes: [] as any[], edges: [] as any[], sel: [] as string[], vp:
 const emit = (ev: string, p?: any): void => { act(() => { listeners.get(ev)?.forEach((h) => h(p)) }) }
 const editor = {
   overlayRoot: document.createElement('div'),
-  graph: { nodes: () => state.nodes[Symbol.iterator](), edges: () => state.edges[Symbol.iterator]() },
+  graphNodes: () => state.nodes[Symbol.iterator]() as any, graphEdges: () => state.edges[Symbol.iterator]() as any,
   selection: { ids: () => state.sel },
   get viewport() { return state.vp },
   toJSON: () => state.json,

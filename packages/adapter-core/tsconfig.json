@@ -3,12 +3,21 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true
+    "composite": true,
+    "stripInternal": true
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "references": [
-    { "path": "../core" },
-    { "path": "../render-pixi" },
-    { "path": "../editor" }
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../render-pixi"
+    },
+    {
+      "path": "../editor"
+    }
   ]
 }

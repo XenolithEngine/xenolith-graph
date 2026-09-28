@@ -15,7 +15,7 @@ import { OUTPUT_VAR_PREFIX } from '../vm/collection.js'
  *  Returns a disposer that removes the listener (call on host teardown / engine switch). */
 export function attachRuntimeBridge(editor: XenolithEditor, rt: Runtime): () => void {
   return rt.onAfterTick(() => {
-    for (const n of editor.graph.nodes()) {
+    for (const n of editor.graphNodes()) {
       if (n.type !== 'Output') continue
       const v = rt.getVar(`${OUTPUT_VAR_PREFIX}${String(n.id)}`)
       if (v === undefined) continue

@@ -405,10 +405,19 @@ export class XenolithEditor {
 
   /**
    * Public read-only snapshot of the current graph as a structured-clonable JSON document
-   * (`xenolith.v1` format). Equivalent to {@link toJSON} — provided so the public API has a
-   * stable, type-safe alternative to the `@internal` `graph` getter.
+   * (`xenolith.v1` format). Equivalent to {@link toJSON} — the stable, type-safe read
+   * alternative to the internal `graph` getter.
    */
   getGraphReadonly(): Readonly<XenolithGraphV1> { return this.toJSON() }
+
+  /** Live iteration over the displayed graph's nodes (root document at dive depth 0, the
+   *  definition while dived). The read surface the selector hooks (`useNodes`, …) are built
+   *  on — the stable, typed alternative to the internal `graph` getter. Objects are live
+   *  views; mutating them is unsupported. */
+  graphNodes(): IterableIterator<Readonly<Node>> { return this.#displayGraph.nodes() }
+
+  /** Live iteration over the displayed graph's edges. See {@link graphNodes}. */
+  graphEdges(): IterableIterator<Readonly<Edge>> { return this.#displayGraph.edges() }
 
   /** Plugin registry for context-menu items (right-click / long-press menus). Items are merged
    *  with the built-in menu at open time. See {@link ContextMenuRegistry}. */
@@ -1974,7 +1983,9 @@ export class XenolithEditor {
   }
 
   /** Force a repaint on the next frame regardless of internal dirty tracking. Hosts can call
-   *  this after mutating the canvas element / DPR or any state the editor can't observe. */
+   *  this after mutating the canvas element / DPR or any state the editor can't observe.
+   *
+   *  @internal — renderer internals; hidden from the public `.d.ts` at v1.0. */
   requestRender(): void { this.#requestRender() }
 
   /** Ephemeral position write — bypasses the command bus AND syncs the view + incident edges in
@@ -4565,6 +4576,7 @@ export class XenolithEditor {
   get viewport(): ViewportState { return this.#viewport.state }
   /** How many nodes currently have a live PIXI view. With virtualization (#59) on a large graph this
    *  stays O(visible) — far below `graph.nodeCount` — which is what keeps GPU memory bounded. */
+  /** @internal — renderer internals; hidden from the public `.d.ts` at v1.0. */
   get renderedNodeCount(): number { return this.#views.size }
   /** Set the viewport (pan/zoom) directly. */
   setViewport(state: ViewportState): void { this.#viewport.setState(state) }
@@ -4834,7 +4846,9 @@ export class XenolithEditor {
 
   /** The node's CURRENT rendered (view) position — equals `node.position` at rest, but during a drag
    *  it's the live cursor-follow position (ahead of the not-yet-committed `node.position`). Null if the
-   *  node has no live view (virtualized off-screen). Handy for anchoring DOM overlays to a node. */
+   *  node has no live view (virtualized off-screen). Handy for anchoring DOM overlays to a node.
+   *
+   *  @internal — renderer internals; hidden from the public `.d.ts` at v1.0. */
   renderedNodePosition(nodeId: NodeId): { x: number; y: number } | null {
     return this.#livePosition(nodeId)
   }
@@ -4844,7 +4858,9 @@ export class XenolithEditor {
    *   - `false` — view exists but is hidden (typically a macro member when its macro is collapsed),
    *   - `null`  — no view at all (off-screen under virtualisation, or never materialised).
    *  Designed for e2e introspection: tests can assert "macro members must NOT be visible after
-   *  paste" without poking at private state. Cheap (Map lookup + bool read). */
+   *  paste" without poking at private state. Cheap (Map lookup + bool read).
+   *
+   *  @internal — renderer internals; hidden from the public `.d.ts` at v1.0. */
   isNodeRendered(nodeId: NodeId): boolean | null {
     const view = this.#views.get(nodeId)
     if (!view) return null

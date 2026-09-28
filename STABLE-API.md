@@ -47,10 +47,10 @@ but are deprecated and will be removed in v1.0.
 | `XenolithEditor.init(target, opts)` → `Promise<XenolithEditor>` | Mount the editor. |
 | `editor.destroy()`, `editor.isDestroyed` | |
 | `editor.on(event, handler)` → `Unsubscribe` | The 25 public events listed below. |
-| `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()` | Same data — `getGraphReadonly` is the new name. |
+| `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()`, `editor.graphNodes()`, `editor.graphEdges()` | Same data — `getGraphReadonly` is the new name. `graphNodes`/`graphEdges` are the LIVE read surface (what `useNodes`/`useEdges` are built on) — the typed alternative to the `@internal` `graph` getter. |
 | `importFromReactFlow(json, opts?)` → `{ doc, report }`, `editor.importReactFlow(json, opts?)` → `ImportReport` | React Flow (xyflow) `toObject()` JSON → xenolith.v1. Pins synthesized from edge handles (`inferType` or `schemas[]` for typing), loss accounting in the report — nothing drops silently. Guide: Migrate from React Flow. |
 | `editor.applyChanges(changes)`, `editor.getGraphMirror()`, `reduceGraphChanges(mirror, changes)`, `snapshotGraph(nodes, edges)` | The write side of the controlled protocol: one transaction per call (one undo step), echo-idempotent (re-adding/re-removing/no-op positions skip). `reduceGraphChanges` is the pure store reducer (Zustand/Redux); React hosts get `useNodesState()` in `@xenolithengine/graph-react`. ADR 0006. |
-| `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.disconnect`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
+| `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
 | `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId` | **The canonical wire API.** Refs (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` = the node's single pin of that direction. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs. |
 | `editor.setNodeStatus`, `editor.clearNodeStatuses` | |
 | `editor.addComment`, `editor.removeComment`, `editor.setCommentText`, `editor.setCommentColor` | |
@@ -181,18 +181,21 @@ hits the command bus. Cancelling fires no follow-up event (no `node:removed` aft
 
 ## `@internal` — DO NOT depend on
 
-The following exist at runtime today but are NOT part of the public contract. They will be
-hidden from typings before v1.0. If you reach for one, file an issue describing what you need —
-we'll likely promote the underlying capability through a proper public method.
+The following exist at runtime today but are NOT part of the public contract. They are
+**already stripped from the shipped `.d.ts`** (`stripInternal` is on in every package except
+`graph-core`, whose `Graph._add*` mutators are the editor's legal in-repo mutation path — a
+friend-interface refactor there is future work). If you reach for one, file an issue describing
+what you need — we'll likely promote the underlying capability through a proper public method.
 
 - `editor.app` — raw PIXI `Application`. Couples hosts to PIXI's major-version cadence. Use
   `editor.exportImage()` / `editor.chrome.overlayRoot` / `editor.setTheme(...)` instead.
 - `editor.commandBus` — raw `CommandBus`. Dispatching commands directly bypasses preventable
   events (`node:removing`, `edge:connecting`, …). Use the public mutation API.
 - `editor.graph` — raw `Graph`. Mutating through this skips the bus and breaks undo. Use
-  `editor.getGraphReadonly()` for snapshots and the command API for mutations.
+  `editor.getGraphReadonly()` for snapshots, `editor.graphNodes()`/`graphEdges()` for live
+  iteration, and the command API for mutations.
 - `editor.requestRender`, `editor.renderedNodePosition`, `editor.isNodeRendered`,
-  `editor.renderedNodeCount`, `editor.setEdgeOptions` (mutator) — renderer internals.
+  `editor.renderedNodeCount` — renderer internals.
 - `markPinInteractive`, `readPinHandle`, `clearGlowTextureCache`, `clearGradientCache` in
   `@xenolithengine/graph-render-pixi` — PIXI-internal helpers.
 

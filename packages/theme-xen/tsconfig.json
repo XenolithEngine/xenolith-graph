@@ -5,8 +5,19 @@
     "rootDir": "./src",
     "composite": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "stripInternal": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json"],
-  "references": [{ "path": "../core" }]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json"
+  ],
+  "references": [
+    {
+      "path": "../core"
+    }
+  ]
 }
