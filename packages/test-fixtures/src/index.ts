@@ -6,6 +6,12 @@ import type { FixtureFormat, FixtureRecord, FixtureSize } from './manifest.js'
 
 export { MANIFEST }
 export type { FixtureFormat, FixtureRecord, FixtureSize } from './manifest.js'
+export {
+  generateReactFlowFixture,
+  reactFlowFeaturesFixture,
+  type GenerateOptions,
+  type GeneratedReactFlow,
+} from './reactflow-gen.js'
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 

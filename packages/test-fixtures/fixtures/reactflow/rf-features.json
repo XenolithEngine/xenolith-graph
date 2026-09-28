@@ -1,0 +1,243 @@
+{
+ "nodes": [
+  {
+   "id": "f-in",
+   "type": "input",
+   "position": {
+    "x": 0,
+    "y": 0
+   },
+   "data": {
+    "label": "Feed"
+   },
+   "width": 202,
+   "height": 88,
+   "measured": {
+    "width": 202,
+    "height": 88
+   },
+   "selected": true,
+   "dragging": false,
+   "hidden": false,
+   "draggable": true,
+   "selectable": true,
+   "connectable": true,
+   "zIndex": 3,
+   "className": "feed-node",
+   "style": {
+    "background": "#eef"
+   },
+   "ariaLabel": "feed input",
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "sourcePosition": "right",
+   "targetPosition": "left"
+  },
+  {
+   "id": "f-map",
+   "type": "transform",
+   "position": {
+    "x": 300,
+    "y": 0
+   },
+   "data": {
+    "label": "Map",
+    "factor": 1.5
+   },
+   "deletable": true,
+   "parentId": "f-group-a"
+  },
+  {
+   "id": "f-filter",
+   "type": "filterNode",
+   "position": {
+    "x": 300,
+    "y": 180
+   },
+   "data": {
+    "label": "Where",
+    "predicate": "x > 10"
+   },
+   "parentId": "f-group-a"
+  },
+  {
+   "id": "f-agg",
+   "type": "aggregate",
+   "position": {
+    "x": 620,
+    "y": 90
+   },
+   "data": {
+    "label": "GroupBy",
+    "keys": 2
+   }
+  },
+  {
+   "id": "f-out",
+   "type": "output",
+   "position": {
+    "x": 940,
+    "y": 90
+   },
+   "data": {
+    "label": "Sink",
+    "format": "parquet"
+   }
+  },
+  {
+   "id": "f-card",
+   "type": "customCard",
+   "position": {
+    "x": 620,
+    "y": 280
+   },
+   "data": {
+    "label": "Card",
+    "variant": 2
+   }
+  },
+  {
+   "id": "f-group-a",
+   "type": "group",
+   "position": {
+    "x": 260,
+    "y": -40
+   },
+   "data": {
+    "label": "Stage A"
+   },
+   "style": {
+    "width": 380,
+    "height": 420
+   },
+   "parentId": "f-group-root"
+  },
+  {
+   "id": "f-group-root",
+   "type": "group",
+   "position": {
+    "x": 220,
+    "y": -80
+   },
+   "data": {
+    "label": "Pipeline"
+   },
+   "style": {
+    "width": 460,
+    "height": 520
+   }
+  }
+ ],
+ "edges": [
+  {
+   "id": "fe-1",
+   "source": "f-in",
+   "sourceHandle": "out",
+   "target": "f-map",
+   "targetHandle": "in",
+   "type": "smoothstep",
+   "animated": true,
+   "label": "feed",
+   "labelStyle": {
+    "fill": "#345"
+   },
+   "labelBgStyle": {
+    "fill": "#fff"
+   },
+   "markerEnd": {
+    "type": "arrowclosed",
+    "width": 20,
+    "height": 20
+   },
+   "style": {
+    "stroke": "#789",
+    "strokeWidth": 2
+   },
+   "deletable": true,
+   "focusable": true,
+   "interactionWidth": 18
+  },
+  {
+   "id": "fe-2",
+   "source": "f-map",
+   "sourceHandle": "out",
+   "target": "f-filter",
+   "targetHandle": "in",
+   "type": "step"
+  },
+  {
+   "id": "fe-3",
+   "source": "f-map",
+   "sourceHandle": "errors",
+   "target": "f-card",
+   "targetHandle": "request",
+   "type": "straight",
+   "hidden": false,
+   "markerStart": {
+    "type": "arrow"
+   }
+  },
+  {
+   "id": "fe-4",
+   "source": "f-filter",
+   "sourceHandle": "passed",
+   "target": "f-agg",
+   "targetHandle": "in",
+   "type": "default"
+  },
+  {
+   "id": "fe-5",
+   "source": "f-filter",
+   "sourceHandle": "rejected",
+   "target": "f-out",
+   "targetHandle": "in",
+   "type": "simplebezier",
+   "markerEnd": {
+    "type": "arrow"
+   }
+  },
+  {
+   "id": "fe-6",
+   "source": "f-agg",
+   "sourceHandle": "out",
+   "target": "f-out",
+   "targetHandle": "in",
+   "type": "fancy-custom-edge"
+  },
+  {
+   "source": "f-card",
+   "sourceHandle": "result",
+   "target": "f-out",
+   "targetHandle": "in"
+  },
+  {
+   "id": "fe-8",
+   "source": "f-in",
+   "target": "f-agg"
+  },
+  {
+   "id": "fe-9",
+   "source": "f-in",
+   "sourceHandle": "out",
+   "target": "ghost-node",
+   "targetHandle": "in"
+  },
+  {
+   "id": "fe-10",
+   "source": "f-agg",
+   "sourceHandle": "out",
+   "target": "f-card",
+   "targetHandle": "request",
+   "markerEnd": {
+    "type": "dot"
+   }
+  }
+ ],
+ "viewport": {
+  "x": 0,
+  "y": 0,
+  "zoom": 1
+ }
+}

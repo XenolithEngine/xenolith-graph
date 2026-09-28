@@ -1,4 +1,4 @@
-export type FixtureFormat = 'litegraph' | 'native'
+export type FixtureFormat = 'litegraph' | 'native' | 'reactflow'
 
 export type FixtureSize = 's' | 'm' | 'l' | 'xl' | 'xxl'
 
@@ -16,6 +16,43 @@ export interface FixtureRecord {
 }
 
 export const MANIFEST: readonly FixtureRecord[] = [
+  // ---- React Flow (generated — deterministic seeds, regenerate via scripts/generate-reactflow.mjs) ----
+  {
+    id: 'reactflow/features',
+    format: 'reactflow',
+    size: 's',
+    path: 'fixtures/reactflow/rf-features.json',
+    nodes: 8,
+    links: 10,
+    bytes: 3786,
+    source: 'generated: reactflow-gen.ts reactFlowFeaturesFixture() — every RF field + adversarial cases',
+    license: 'MIT',
+    description: 'Exhaustive field coverage for the RF importer report contract (subflows 2 levels, null handles, custom edge types, unknown endpoints).',
+  },
+  {
+    id: 'reactflow/mid',
+    format: 'reactflow',
+    size: 'm',
+    path: 'fixtures/reactflow/rf-mid.json',
+    nodes: 153,
+    links: 230,
+    bytes: 83286,
+    source: 'generated: scripts/generate-reactflow.mjs (seed 1337) — layered DAG, hot-spot fan-in, 3 subflows',
+    license: 'MIT',
+    description: 'Realistic mid-size RF app graph for importer mechanics.',
+  },
+  {
+    id: 'reactflow/xl',
+    format: 'reactflow',
+    size: 'xl',
+    path: 'fixtures/reactflow/rf-xl.json',
+    nodes: 1008,
+    links: 1600,
+    bytes: 562789,
+    source: 'generated: scripts/generate-reactflow.mjs (seed 4242) — layered DAG, hot-spot fan-in, 8 subflows',
+    license: 'MIT',
+    description: 'Large RF graph: import invariants, round-trip and performance guard. For XXL (5k nodes) generate on demand via generateReactFlowFixture().',
+  },
   {
     id: 'litegraph/s-basic',
     format: 'litegraph',

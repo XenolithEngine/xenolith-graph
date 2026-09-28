@@ -519,6 +519,9 @@ importers:
         specifier: workspace:*
         version: link:../theme-xen
     devDependencies:
+      '@xenolithengine/test-fixtures':
+        specifier: workspace:*
+        version: link:../test-fixtures
       pixi.js:
         specifier: ^8.6.0
         version: 8.18.1
