@@ -1,0 +1,161 @@
+---
+title: Тестирование интеграции
+description: Юнит-тесты XenolithGraph в vitest + jsdom — поднимайте реальный WebGL-редактор без GPU через @xenolithengine/graph-test-utils или гоняйте логику на FakeEditor.
+---
+
+XenolithGraph рендерит через WebGL, а в jsdom WebGL нет. Раньше это означало, что хост не мог
+юнит-тестировать ничего, что касается редактора, — компонент падал при монтировании до первого
+assert'а. `@xenolithengine/graph-test-utils` закрывает этот пробел: пакет стабит **границу
+браузера** (canvas-контексты, `ResizeObserver`, `requestAnimationFrame`), поэтому в jsdom
+поднимается *настоящий* редактор — реальный `XenolithEditor.init`, реальная инициализация
+PIXI-рендерера, реальная command bus.
+
+Поддерживаются два уровня:
+
+- **Реальный редактор** — `renderEditorToDOM()` / `renderXenolithToDOM()`: полный бут,
+  мутации графа, события, сериализация. Вы ассертитесь на том же коде, который работают ваши
+  пользователи.
+- **Уровень логики** — `FakeEditor` (сабпуть `/fake`): реальные примитивы ядра (Graph,
+  CommandBus, EventEmitter, NodeRegistry) без рендеринга. Быстрые сьюты для логики графа,
+  которой DOM не нужен.
+
+Взаимодействие мышью/клавиатурой и отрисованные пиксели по-прежнему принадлежат e2e-сьюту на
+Playwright — стабы доказывают бут и работу с состоянием, а не визуал.
+
+## Установка
+
+```bash
+pnpm add -D @xenolithengine/graph-test-utils
+```
+
+У кита нет собственных runtime-зависимостей; `@xenolithengine/graph-editor` — peer, а `react` /
+`react-dom` / `@xenolithengine/graph-react` — опциональные peers, нужные только сабпутю `/react`.
+
+## Бут реального редактора
+
+Включайте jsdom-окружение в файлах, где монтируется редактор, — докблок оставляет остальной
+сьют быстрым:
+
+```ts
+// @vitest-environment jsdom
+import { renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+it('соединяет две ноды', async () => {
+  const { editor, unmount } = await renderEditorToDOM()
+
+  editor.registry.register({
+    type: 'Number',
+    title: 'Number',
+    category: 'data',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = editor.insertNode('Number', { x: 0, y: 0 })!
+  const b = editor.insertNode('Number', { x: 200, y: 0 })!
+  editor.connect(a, 1, b, 0)
+
+  expect(editor.toJSON().edges).toHaveLength(1)
+  unmount()
+})
+```
+
+`renderEditorToDOM()` сам ставит `mockPixi()` и откатывает его в `unmount()`. Передайте
+`host`-элемент, если тесту нужен свой контейнер.
+
+## Ручное управление моком
+
+Когда нужен детерминированный контроль кадров, ставьте мок сами — тогда
+`renderEditorToDOM()` переиспользует его, а не ставит свой:
+
+```ts
+import { mockPixi, renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+const mock = mockPixi()
+try {
+  const { editor, unmount } = await renderEditorToDOM()
+  editor.insertNode('Number', { x: 0, y: 0 })
+
+  mock.flushFrames()          // прогнать rAF-коллбэки (тики рендера) по требованию
+  expect(mock.stats['2d']).toBeGreaterThan(0)  // интроспекция: сколько контекстов выдано
+
+  unmount()                   // НЕ откатывает чужой мок
+} finally {
+  mock.restore()
+}
+```
+
+`requestAnimationFrame` по умолчанию — ручная очередь: коллбэки ждут, пока их не прогонит
+`mock.flushFrames()` (одно поколение на вызов), поэтому тикер не крутится в фоне. Передайте
+`{ raf: 'native' }`, чтобы оставить родной rAF окружения.
+
+Одно правило порядка важно: **ставьте мок до первого бута редактора в тестовом файле.** PIXI
+мемоизирует проверку WebGL-поддержки на воркер; если первым прогонится бут без мока,
+закэшированный вердикт «WebGL нет» прилипает, и последующие буты молча падают в Canvas2D-рендерер.
+
+## React-компоненты
+
+Сабпуть `/react` монтирует настоящий `<XenolithGraph>` — без моков `createEditorBinding`,
+реальный компонент с реальным редактором внутри:
+
+```tsx
+// @vitest-environment jsdom
+import { renderXenolithToDOM } from '@xenolithengine/graph-test-utils/react'
+
+it('монтирует адаптер и отдаёт редактор', async () => {
+  const { editor, container, unmount } = await renderXenolithToDOM()
+  expect(container.querySelector('canvas')).toBeTruthy()
+  // editor — настоящий XenolithEditor, работайте с ним как хост
+  unmount()
+})
+```
+
+Внутри — `react-dom/client` + React `act()` напрямую, поэтому в runtime нет зависимости от
+`@testing-library`; оберните в свои хелперы, если пользуетесь им. Передайте
+`{ strictMode: true }`, чтобы монтировать под `<React.StrictMode>` и проверять поведение при
+двойном вызове эффектов.
+
+## Логика на FakeEditor
+
+Для логики графа, которой не нужны ни DOM, ни рендеринг, `/fake` даёт реальные объекты ядра
+вместе с семантикой undo/redo:
+
+```ts
+import { FakeEditor } from '@xenolithengine/graph-test-utils/fake'
+
+it('удаление каскадит рёбра, undo возвращает всё', () => {
+  const ed = new FakeEditor().register({
+    type: 'Number', title: 'Number',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = ed.insertNode('Number', { x: 0, y: 0 })!
+  const b = ed.insertNode('Number', { x: 1, y: 0 })!
+  ed.connect(a, 1, b, 0)
+
+  ed.removeNode(b.id)
+  expect([...ed.graph.edges()]).toHaveLength(0)
+
+  ed.commandBus.undo()
+  expect([...ed.graph.edges()]).toHaveLength(1)
+})
+```
+
+`FakeEditor.toJSON()` возвращает простой снапшот для ассертов — это **не** формат обмена
+`xenolith.v1`, и скармливать его `editor.loadJSON` нельзя.
+
+## Что стабы доказывают, а что нет
+
+| Вопрос | Покрыто |
+| --- | --- |
+| Бут редактора, регистрация схем, мутации, undo/redo, события, сериализация | ✅ реальные кодовые пути |
+| Выбор WebGL-рендерера и последовательность инициализации | ✅ (стабленный GL-контекст) |
+| Отрисовка, hit-testing, жесты мышью | ❌ используйте Playwright e2e |
+| Поведение GPU (фильтры, текстурные атласы) | ❌ застаблены no-op'ами |
+
+GL-стаб намеренно пермиссивный — на любой запрос он отвечает правдоподобным значением.
+Именно это и делает возможным реальный бут; обратная сторона — тест не может ассертиться на
+визуальную корректность. Пиксельное доверие остаётся в e2e.

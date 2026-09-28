@@ -1,0 +1,160 @@
+---
+title: Testing your integration
+description: Unit-test XenolithGraph in vitest + jsdom — boot the real WebGL editor headlessly with @xenolithengine/graph-test-utils, or drive a logic-level FakeEditor.
+---
+
+XenolithGraph renders through WebGL, and jsdom has no WebGL. Historically that meant hosts could
+not unit-test anything that touches the editor — the component failed to mount before the first
+assertion ran. `@xenolithengine/graph-test-utils` closes that gap: it stubs the **browser
+boundary** (canvas contexts, `ResizeObserver`, `requestAnimationFrame`), so the *real* editor —
+real `XenolithEditor.init`, real PIXI renderer init, real command bus — boots inside jsdom.
+
+Two levels of testing are supported:
+
+- **Real editor** — `renderEditorToDOM()` / `renderXenolithToDOM()`: full boot, graph mutations,
+  events, serialization. What you assert on is the same code your users run.
+- **Logic level** — `FakeEditor` (subpath `/fake`): real core primitives (Graph, CommandBus,
+  EventEmitter, NodeRegistry) with zero rendering. Fast suites for graph logic that never need
+  a DOM.
+
+Pointer/keyboard interaction and rendered pixels still belong to the Playwright e2e suite — the
+stubs prove boot and state plumbing, not visuals.
+
+## Install
+
+```bash
+pnpm add -D @xenolithengine/graph-test-utils
+```
+
+The kit has no runtime dependencies of its own; `@xenolithengine/graph-editor` is a peer, and
+`react` / `react-dom` / `@xenolithengine/graph-react` are optional peers used only by the
+`/react` subpath.
+
+## Boot the real editor
+
+Set the jsdom environment on the files that mount the editor — a docblock keeps the rest of
+your suite fast:
+
+```ts
+// @vitest-environment jsdom
+import { renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+it('connects two nodes', async () => {
+  const { editor, unmount } = await renderEditorToDOM()
+
+  editor.registry.register({
+    type: 'Number',
+    title: 'Number',
+    category: 'data',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = editor.insertNode('Number', { x: 0, y: 0 })!
+  const b = editor.insertNode('Number', { x: 200, y: 0 })!
+  editor.connect(a, 1, b, 0)
+
+  expect(editor.toJSON().edges).toHaveLength(1)
+  unmount()
+})
+```
+
+`renderEditorToDOM()` installs `mockPixi()` for you and undoes it on `unmount()`. Pass a
+`host` element if your test needs its own container.
+
+## Manual mock control
+
+When you need deterministic frame control, install the mock yourself — `renderEditorToDOM()`
+reuses it instead of installing its own:
+
+```ts
+import { mockPixi, renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+const mock = mockPixi()
+try {
+  const { editor, unmount } = await renderEditorToDOM()
+  editor.insertNode('Number', { x: 0, y: 0 })
+
+  mock.flushFrames()          // run queued rAF callbacks (render ticks) on demand
+  expect(mock.stats['2d']).toBeGreaterThan(0)  // introspection: contexts handed out
+
+  unmount()                   // does NOT restore a mock it doesn't own
+} finally {
+  mock.restore()
+}
+```
+
+`requestAnimationFrame` is a manual queue by default: callbacks wait until
+`mock.flushFrames()` runs them (one generation per call), so the ticker never churns in the
+background. Pass `{ raf: 'native' }` to keep the environment's own rAF.
+
+One ordering rule matters: **install the mock before the first editor boot in a test file.**
+PIXI memoizes its WebGL-support probe per worker; if an unmocked boot runs first, the cached
+"no WebGL" verdict sticks and later boots silently fall back to the Canvas2D renderer.
+
+## React components
+
+The `/react` subpath mounts the real `<XenolithGraph>` adapter — no `createEditorBinding`
+mocks, the actual component with the actual editor underneath:
+
+```tsx
+// @vitest-environment jsdom
+import { renderXenolithToDOM } from '@xenolithengine/graph-test-utils/react'
+
+it('mounts the adapter and reports the editor', async () => {
+  const { editor, container, unmount } = await renderXenolithToDOM()
+  expect(container.querySelector('canvas')).toBeTruthy()
+  // editor is a real XenolithEditor — drive it like the host does
+  unmount()
+})
+```
+
+It uses `react-dom/client` + React's `act()` directly, so there is no `@testing-library`
+dependency at runtime — wrap it in your own helpers if you use one. Pass
+`{ strictMode: true }` to mount under `<React.StrictMode>` and exercise double-invoke
+behaviour.
+
+## Logic-level tests with FakeEditor
+
+For graph logic that needs neither DOM nor rendering, `/fake` gives you real core objects with
+undo/redo semantics included:
+
+```ts
+import { FakeEditor } from '@xenolithengine/graph-test-utils/fake'
+
+it('remove cascades edges and undo restores both', () => {
+  const ed = new FakeEditor().register({
+    type: 'Number', title: 'Number',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = ed.insertNode('Number', { x: 0, y: 0 })!
+  const b = ed.insertNode('Number', { x: 1, y: 0 })!
+  ed.connect(a, 1, b, 0)
+
+  ed.removeNode(b.id)
+  expect([...ed.graph.edges()]).toHaveLength(0)
+
+  ed.commandBus.undo()
+  expect([...ed.graph.edges()]).toHaveLength(1)
+})
+```
+
+`FakeEditor.toJSON()` returns a plain snapshot for assertions — it is **not** the
+`xenolith.v1` interchange format and must not be fed to `editor.loadJSON`.
+
+## What the stubs do and don't prove
+
+| Concern | Covered |
+| --- | --- |
+| Editor boot, schema registration, mutations, undo/redo, events, serialization | ✅ real code paths |
+| WebGL renderer selection & init sequence | ✅ (stubbed GL context) |
+| Rendered output, hit-testing, pointer gestures | ❌ use Playwright e2e |
+| GPU-side behaviour (filters, texture atlases) | ❌ stubbed as no-ops |
+
+The GL stub is permissive by design — it answers every query with a plausible value. That is
+what makes a real boot possible; it also means a test can't assert on visual correctness. Keep
+pixel-level trust in the e2e suite.

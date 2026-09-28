@@ -1,0 +1,135 @@
+---
+title: 测试你的集成
+description: 在 vitest + jsdom 中对 XenolithGraph 做单元测试 —— 用 @xenolithengine/graph-test-utils 无 GPU 地启动真实的 WebGL 编辑器，或用 FakeEditor 驱动纯逻辑测试。
+---
+
+XenolithGraph 通过 WebGL 渲染，而 jsdom 没有 WebGL。过去这意味着宿主无法对任何涉及编辑器的代码做单元测试 —— 组件在第一条断言之前就挂载失败。`@xenolithengine/graph-test-utils` 补上了这个缺口：它对**浏览器边界**打桩（canvas 上下文、`ResizeObserver`、`requestAnimationFrame`），因此*真实的*编辑器 —— 真实的 `XenolithEditor.init`、真实的 PIXI 渲染器初始化、真实的 command bus —— 能够在 jsdom 中启动。
+
+支持两个层级：
+
+- **真实编辑器** —— `renderEditorToDOM()` / `renderXenolithToDOM()`：完整启动、图变更、事件、序列化。你断言的就是用户实际运行的代码。
+- **逻辑层级** —— `FakeEditor`（子路径 `/fake`）：真实的内核原语（Graph、CommandBus、EventEmitter、NodeRegistry），零渲染。适合不需要 DOM 的图逻辑快速套件。
+
+指针/键盘交互和渲染像素仍属于 Playwright e2e 套件 —— 桩证明的是启动与状态链路，不是视觉。
+
+## 安装
+
+```bash
+pnpm add -D @xenolithengine/graph-test-utils
+```
+
+该工具包自身没有运行时依赖；`@xenolithengine/graph-editor` 是 peer，`react` / `react-dom` / `@xenolithengine/graph-react` 是仅 `/react` 子路径使用的可选 peer。
+
+## 启动真实编辑器
+
+在挂载编辑器的文件上设置 jsdom 环境 —— docblock 让套件的其余部分保持快速：
+
+```ts
+// @vitest-environment jsdom
+import { renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+it('连接两个节点', async () => {
+  const { editor, unmount } = await renderEditorToDOM()
+
+  editor.registry.register({
+    type: 'Number',
+    title: 'Number',
+    category: 'data',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = editor.insertNode('Number', { x: 0, y: 0 })!
+  const b = editor.insertNode('Number', { x: 200, y: 0 })!
+  editor.connect(a, 1, b, 0)
+
+  expect(editor.toJSON().edges).toHaveLength(1)
+  unmount()
+})
+```
+
+`renderEditorToDOM()` 会自动安装 `mockPixi()` 并在 `unmount()` 时撤销。如果测试需要自己的容器，传入 `host` 元素。
+
+## 手动控制 mock
+
+需要确定性的帧控制时，自行安装 mock —— `renderEditorToDOM()` 会复用它而不是再装一个：
+
+```ts
+import { mockPixi, renderEditorToDOM } from '@xenolithengine/graph-test-utils'
+
+const mock = mockPixi()
+try {
+  const { editor, unmount } = await renderEditorToDOM()
+  editor.insertNode('Number', { x: 0, y: 0 })
+
+  mock.flushFrames()          // 按需运行排队的 rAF 回调（渲染 tick）
+  expect(mock.stats['2d']).toBeGreaterThan(0)  // 自省：已发出的上下文数
+
+  unmount()                   // 不会撤销不属于自己的 mock
+} finally {
+  mock.restore()
+}
+```
+
+`requestAnimationFrame` 默认是手动队列：回调会等待 `mock.flushFrames()` 运行（每次调用一代），ticker 不会在后台空转。传入 `{ raf: 'native' }` 可保留环境自带的 rAF。
+
+有一条顺序规则很重要：**在测试文件中第一次启动编辑器之前安装 mock。** PIXI 会按 worker 记忆 WebGL 支持探测；如果未打桩的启动先运行，缓存的"无 WebGL"结论会固化，后续启动会静默回退到 Canvas2D 渲染器。
+
+## React 组件
+
+`/react` 子路径挂载真实的 `<XenolithGraph>` 适配器 —— 不 mock `createEditorBinding`，而是底层带着真实编辑器的真实组件：
+
+```tsx
+// @vitest-environment jsdom
+import { renderXenolithToDOM } from '@xenolithengine/graph-test-utils/react'
+
+it('挂载适配器并拿到编辑器', async () => {
+  const { editor, container, unmount } = await renderXenolithToDOM()
+  expect(container.querySelector('canvas')).toBeTruthy()
+  // editor 是真实的 XenolithEditor —— 像宿主一样驱动它
+  unmount()
+})
+```
+
+它直接使用 `react-dom/client` + React 的 `act()`，运行时不依赖 `@testing-library`；如果你在用它，就包一层自己的 helper。传入 `{ strictMode: true }` 可在 `<React.StrictMode>` 下挂载并检验双重调用行为。
+
+## 用 FakeEditor 做逻辑测试
+
+对于既不需要 DOM 也不需要渲染的图逻辑，`/fake` 提供带 undo/redo 语义的真实内核对象：
+
+```ts
+import { FakeEditor } from '@xenolithengine/graph-test-utils/fake'
+
+it('删除级联边，undo 全部恢复', () => {
+  const ed = new FakeEditor().register({
+    type: 'Number', title: 'Number',
+    pins: [
+      { kind: 'data', direction: 'in', type: 'float', label: 'In' },
+      { kind: 'data', direction: 'out', type: 'float', label: 'Out' },
+    ],
+  })
+  const a = ed.insertNode('Number', { x: 0, y: 0 })!
+  const b = ed.insertNode('Number', { x: 1, y: 0 })!
+  ed.connect(a, 1, b, 0)
+
+  ed.removeNode(b.id)
+  expect([...ed.graph.edges()]).toHaveLength(0)
+
+  ed.commandBus.undo()
+  expect([...ed.graph.edges()]).toHaveLength(1)
+})
+```
+
+`FakeEditor.toJSON()` 返回用于断言的普通快照 —— 它**不是** `xenolith.v1` 交换格式，不能喂给 `editor.loadJSON`。
+
+## 桩证明什么、不证明什么
+
+| 关注点 | 覆盖 |
+| --- | --- |
+| 编辑器启动、schema 注册、变更、undo/redo、事件、序列化 | ✅ 真实代码路径 |
+| WebGL 渲染器选择与初始化序列 | ✅（打桩的 GL 上下文） |
+| 渲染输出、命中测试、指针手势 | ❌ 使用 Playwright e2e |
+| GPU 侧行为（滤镜、纹理图集） | ❌ 以 no-op 打桩 |
+
+GL 桩刻意宽松 —— 它对每个查询都返回一个合理的值。这正是真实启动得以可能的原因；反面是测试无法断言视觉正确性。像素级的信任留给 e2e。

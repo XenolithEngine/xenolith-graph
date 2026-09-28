@@ -118,7 +118,7 @@ A PR that blows a size-limit ceiling fails CI. Fix it in the same PR or open a d
 
 Releases are **tag-driven** (`.github/workflows/release.yml`) — there is no changesets setup. To cut a release:
 
-1. Bump `"version"` in **every** publishable `packages/*/package.json` to the same version, plus the `VERSION` constants and version strings in source (`core`/`render-pixi`/`editor`/`theme-*` `src/index.ts`, `mcp-server/src/server.ts`, `editor/src/mcp.ts`, `theme-xen/src/tokens.json`).
+1. Bump `"version"` in **every** publishable `packages/*/package.json` to the same version, plus the `VERSION` constants and version strings in source (`core`/`render-pixi`/`editor`/`theme-*` `src/index.ts`, `mcp-server/src/server.ts`, `editor/src/mcp.ts`, `theme-xen/src/tokens.json`). The publishable set is every `packages/*` except `@xenolithengine/test-fixtures` (see the filter in `release.yml`); `graph-test-utils` has no source-level version string — its `package.json` is the only bump point.
 2. Move the CHANGELOG `[Unreleased]` entries into a new version section and write `docs/release-notes/v<version>.md`.
 3. Commit, then tag `v<version>` and push the tag. The workflow rebuilds, re-runs unit tests + size gates, verifies every package version equals the tag, publishes to npm with provenance, and creates the GitHub Release from the notes file.
 

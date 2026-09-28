@@ -186,6 +186,7 @@ These were listed here before. They are not the plan until someone is actually b
 | `@xenolithengine/demo` | One `xenolith.v1` data graph + ComfyUI importer + topology-reactive runners. Consumed by every demo host. |
 | `@xenolithengine/graph-adapter-core`, `@xenolithengine/graph-wc` | Framework-agnostic editor wrapper + universal web component. |
 | `@xenolithengine/graph-react` | React adapter (`<XenolithPanel>` / `<XenolithControls>` / `<XenolithMiniMap>` / `<XenolithButton>`, reactive selector hooks). |
+| `@xenolithengine/graph-test-utils` | jsdom test kit for hosts — `mockPixi()` / `renderEditorToDOM()` boot the real WebGL editor headlessly; `/react` and `/fake` subpaths for adapter tests and logic-level tests. |
 | `@xenolithengine/graph-mcp-server` | MCP server (stdio MCP ↔ WS bridge → browser editor via `editor.connectMCP(url)`). 25 tools + 2 resources, token-auth, read-only mode. |
 | `@xenolithengine/graph-plugin-runtime` *(in progress)* | Blueprint VM (exec-push + pure-pull, `Allocate` verb). Installs via `editor.use()`. |
 
@@ -206,10 +207,12 @@ Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). ADRs: [`docs/adr/`
 
 `pnpm test` runs the full suite.
 
-- **1012 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
+- **1035 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
 - **142 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
 - Visual snapshot tests for the renderer (PIXI render → PNG → image-diff)
 - `pnpm size` enforces per-package bundle budgets in CI
+
+Hosts unit-test their own integration with [`@xenolithengine/graph-test-utils`](https://graph.xenolith.studio/guides/testing/) — it boots the real WebGL editor under vitest + jsdom.
 
 Coverage report and visual baselines live in `coverage/` and `apps/playground/tests/__snapshots__/`.
 

@@ -1,0 +1,91 @@
+{
+  "name": "@xenolithengine/graph-test-utils",
+  "version": "0.7.0-beta.5",
+  "description": "jsdom test kit for XenolithGraph hosts: boot the real WebGL editor headlessly, or drive a logic-level FakeEditor.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./fake": {
+      "types": "./dist/fake.d.ts",
+      "import": "./dist/fake.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "dependencies": {
+    "@xenolithengine/graph-core": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@xenolithengine/graph-editor": "workspace:*",
+    "@xenolithengine/graph-react": "workspace:*",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@xenolithengine/graph-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@xenolithengine/graph-editor": "workspace:*",
+    "@xenolithengine/graph-react": "workspace:*",
+    "jsdom": "^25.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "node-editor",
+    "testing",
+    "jsdom",
+    "vitest",
+    "mock",
+    "pixi",
+    "webgl",
+    "xenolith"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XenolithEngine/xenolith-graph.git",
+    "directory": "packages/test-utils"
+  },
+  "homepage": "https://graph.xenolith.studio/",
+  "bugs": {
+    "url": "https://github.com/XenolithEngine/xenolith-graph/issues"
+  },
+  "author": "XenolithEngine"
+}
