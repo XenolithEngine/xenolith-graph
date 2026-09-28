@@ -39,6 +39,114 @@ function widgetsFromValues(values: unknown): { widgets: WidgetSpec[]; state: Rec
   return { widgets, state, widgetPins }
 }
 
+// ---- object_info-driven import (H2) --------------------------------------------------------------
+//
+// The server's /object_info carries what the workflow JSON lacks: widget NAMES, combo option
+// lists, and min/max/step for numerics. Shape per type: { input: { required: { name: [spec…] } },
+// output: […] }. A spec's FIRST element is the type: a string ('INT'/'FLOAT'/'BOOLEAN'/'STRING'
+// are widgets; socket names like MODEL are not) or an ARRAY of options (a combo). The second
+// element is the config — an object {min,max,step,multiline} or a legacy array [min,max,step].
+// widgets_values serialize in the DECLARATION order of widget-typed inputs, so the k-th declared
+// widget consumes values[k]; declared-but-absent values fall back to honest defaults.
+
+export interface ComfyObjectInfo {
+  input?: { required?: Record<string, readonly unknown[]>; optional?: Record<string, readonly unknown[]> }
+  output?: unknown[]
+  name?: string
+  category?: string
+}
+
+export interface ComfyImportReport {
+  /** Nodes whose type had an object_info entry (named-widget path). */
+  nodesWithObjectInfo: number
+  /** Widgets mapped from a DECLARED input (named, possibly with combo options / min-max). */
+  widgetsNamed: number
+  /** Widgets mapped by the positional value-shape heuristic (`param N`). */
+  widgetsInferred: number
+  /** values[k] entries consumed by neither path (arrays/objects like seed-control pairs). */
+  widgetsSkipped: number
+}
+
+interface DeclaredWidget {
+  name: string
+  spec: WidgetSpec
+  pin: PinSchema
+  /** Value when neither widgets_values nor a combo default can supply one. */
+  fallback: unknown
+}
+
+const numberConfig = (cfg: unknown): { min?: number; max?: number; step?: number } => {
+  if (Array.isArray(cfg) && cfg.every((x) => typeof x === 'number')) {
+    const [min, max, step] = cfg as number[]
+    return { min, max, ...(step !== undefined ? { step } : {}) }
+  }
+  if (isObj(cfg)) {
+    const out: { min?: number; max?: number; step?: number } = {}
+    for (const k of ['min', 'max', 'step'] as const) {
+      if (typeof cfg[k] === 'number') out[k] = cfg[k] as number
+    }
+    return out
+  }
+  return {}
+}
+
+/** One declared input → widget spec + synthetic pin + fallback value; null when the input is a
+ *  SOCKET (not a widget) — those are covered by the node's inputs[] slots. */
+function declaredWidgetOf(name: string, spec: readonly unknown[]): DeclaredWidget | null {
+  const type = spec[0]
+  const cfg = spec[1]
+  if (Array.isArray(type)) {
+    const values = type.map(String)
+    return {
+      name, fallback: values[0],
+      spec: { id: name, type: 'combo', label: '', key: name, values },
+      pin: { kind: 'data', direction: 'in', type: 'string', label: name, multiple: false },
+    }
+  }
+  if (typeof type !== 'string') return null
+  if (type === 'INT' || type === 'FLOAT' || type === 'NUMBER') {
+    const { min, max, step } = numberConfig(cfg)
+    return {
+      name, fallback: min ?? 0,
+      spec: { id: name, type: 'number', label: '', key: name, ...(min !== undefined ? { min } : {}), ...(max !== undefined ? { max } : {}), ...(step !== undefined ? { step } : {}) },
+      pin: { kind: 'data', direction: 'in', type: 'float', label: name, multiple: false },
+    }
+  }
+  if (type === 'BOOLEAN') return { name, fallback: false, spec: { id: name, type: 'toggle', label: '', key: name }, pin: { kind: 'data', direction: 'in', type: 'bool', label: name, multiple: false } }
+  if (type === 'STRING') {
+    const multiline = isObj(cfg) && cfg['multiline'] === true
+    return {
+      name, fallback: '',
+      spec: { id: name, type: 'text', label: '', key: name, ...(multiline ? { multiline: true } : {}) },
+      pin: { kind: 'data', direction: 'in', type: 'string', label: name, multiple: false },
+    }
+  }
+  return null // socket type (MODEL, LATENT, …)
+}
+
+function widgetsFromObjectInfo(values: unknown, info: ComfyObjectInfo): { widgets: WidgetSpec[]; state: Record<string, unknown>; widgetPins: PinSchema[]; skipped: number } {
+  const declared: DeclaredWidget[] = []
+  for (const section of [info.input?.required, info.input?.optional]) {
+    if (!section) continue
+    for (const [name, spec] of Object.entries(section)) {
+      if (!Array.isArray(spec)) continue
+      const w = declaredWidgetOf(name, spec)
+      if (w) declared.push(w)
+    }
+  }
+  const vals = Array.isArray(values) ? values : []
+  const widgets: WidgetSpec[] = []
+  const state: Record<string, unknown> = {}
+  const widgetPins: PinSchema[] = []
+  declared.forEach((d, i) => {
+    widgets.push(d.spec)
+    widgetPins.push(d.pin)
+    const v = vals[i]
+    state[d.name] = v !== undefined ? v : d.fallback
+  })
+  return { widgets, state, widgetPins, skipped: Math.max(0, vals.length - declared.length) }
+}
+
 /** ComfyUI/litegraph reroute node type names that map onto our core reroute knot. */
 const COMFY_REROUTE_TYPES = new Set(['Reroute', 'RerouteNode', 'Reroute (rgthree)'])
 
@@ -132,7 +240,7 @@ const nodeId  = (comfyId: number): string => `c${comfyId}`
 const inPinId  = (comfyId: number, slot: number): string => `c${comfyId}:i${slot}`
 const outPinId = (comfyId: number, slot: number): string => `c${comfyId}:o${slot}`
 
-function pinSchemasOf(node: ComfyNode): PinSchema[] {
+function pinSchemasOf(node: ComfyNode, widgets: WidgetSpec[], widgetPins: PinSchema[]): PinSchema[] {
   const pins: PinSchema[] = []
   ;(node.inputs ?? []).forEach((s) => {
     pins.push({ kind: 'data', direction: 'in', type: comfyTypeToXen(s.type ?? '*'), label: s.name ?? s.type ?? 'in', multiple: false })
@@ -142,7 +250,6 @@ function pinSchemasOf(node: ComfyNode): PinSchema[] {
   })
   // Mirror the per-widget IN-pins onto the schema so an insert from the palette gets the same
   // shape the imported instance has (pins + widgets agree).
-  const { widgetPins } = widgetsFromValues(node.widgets_values)
   for (const s of widgetPins) pins.push(s)
   return pins
 }
@@ -150,14 +257,46 @@ function pinSchemasOf(node: ComfyNode): PinSchema[] {
 export interface ComfyImportResult {
   graph: XenolithGraphV1
   schemas: NodeSchema[]
+  /** Widget-mapping provenance (H2): named vs inferred vs skipped — nothing vanishes silently. */
+  report: ComfyImportReport
 }
 
-export function importComfyWorkflow(input: unknown): ComfyImportResult {
+export interface ImportComfyOptions {
+  /** The server's /object_info map (type → definition). Types present here get NAMED widgets
+   *  (combos with options, numerics with min/max/step); the rest fall back to the positional
+   *  `param N` heuristic. Fetch `http://<comfy>/object_info` and pass it through. */
+  objectInfo?: Record<string, ComfyObjectInfo>
+}
+
+export function importComfyWorkflow(input: unknown, opts: ImportComfyOptions = {}): ComfyImportResult {
   if (!isObj(input) || !Array.isArray(input['nodes'])) {
     throw new Error('importComfyWorkflow: not a ComfyUI workflow (missing nodes[])')
   }
   const wf = input as unknown as ComfyWorkflow
   const present = new Set(wf.nodes.map((n) => n.id))
+  const report: ComfyImportReport = { nodesWithObjectInfo: 0, widgetsNamed: 0, widgetsInferred: 0, widgetsSkipped: 0 }
+  // Cached per node REFERENCE — the node pass and the schema pass both ask, but provenance is
+  // counted once per node.
+  const widgetCache = new Map<ComfyNode, { widgets: WidgetSpec[]; state: Record<string, unknown>; widgetPins: PinSchema[] }>()
+  const widgetsOf = (n: ComfyNode): { widgets: WidgetSpec[]; state: Record<string, unknown>; widgetPins: PinSchema[] } => {
+    const cached = widgetCache.get(n)
+    if (cached) return cached
+    if (COMFY_REROUTE_TYPES.has(n.type)) return { widgets: [], state: {}, widgetPins: [] }
+    const info = opts.objectInfo?.[n.type]
+    let r: { widgets: WidgetSpec[]; state: Record<string, unknown>; widgetPins: PinSchema[] }
+    if (info) {
+      report.nodesWithObjectInfo++
+      const named = widgetsFromObjectInfo(n.widgets_values, info)
+      report.widgetsNamed += named.widgets.length
+      report.widgetsSkipped += named.skipped
+      r = named
+    } else {
+      r = widgetsFromValues(n.widgets_values)
+      report.widgetsInferred += r.widgets.length
+    }
+    widgetCache.set(n, r)
+    return r
+  }
 
   const nodes: XenolithNodeV1[] = wf.nodes.map((n) => {
     const reroute = COMFY_REROUTE_TYPES.has(n.type)
@@ -176,9 +315,7 @@ export function importComfyWorkflow(input: unknown): ComfyImportResult {
     })
     // Inline reroutes carry no widgets; everything else maps its widgets_values to typed widgets
     // PLUS a synthetic IN-pin per widget (canon: every widget binds to a pin, hides on wire-in).
-    const { widgets, state: widgetState, widgetPins } = reroute
-      ? { widgets: [], state: {}, widgetPins: [] as PinSchema[] }
-      : widgetsFromValues(n.widgets_values)
+    const { widgets, state: widgetState, widgetPins } = widgetsOf(n)
     // Synth pin ids share the node's `c<id>:w<i>` namespace; auto-bind happens by label match.
     widgetPins.forEach((s, i) => {
       pins.push({ id: `${nodeId(n.id)}:w${i}`, kind: 'data', direction: 'in', type: s.type, multiple: false, label: s.label ?? '' })
@@ -230,8 +367,8 @@ export function importComfyWorkflow(input: unknown): ComfyImportResult {
     if (COMFY_REROUTE_TYPES.has(n.type)) continue // reroute is a built-in knot, not a palette type
     if (seen.has(n.type)) continue
     seen.add(n.type)
-    const { widgets } = widgetsFromValues(n.widgets_values)
-    const sch: NodeSchema = { type: n.type, title: n.title ?? n.type, pins: pinSchemasOf(n), category: comfyCategoryOf(n.type) }
+    const { widgets, widgetPins } = widgetsOf(n)
+    const sch: NodeSchema = { type: n.type, title: n.title ?? n.type, pins: pinSchemasOf(n, widgets, widgetPins), category: comfyCategoryOf(n.type) }
     if (widgets.length > 0) sch.widgets = widgets
     schemas.push(sch)
   }
@@ -245,5 +382,5 @@ export function importComfyWorkflow(input: unknown): ComfyImportResult {
     const cat = comfyCategoryOf(n.type)
     if (!categories[cat]) categories[cat] = { color: COMFY_CATEGORY_PALETTE[cat].accent }
   }
-  return { graph: { version: 'xenolith.v1', nodes, edges, ...(Object.keys(categories).length > 0 ? { categories } : {}) }, schemas }
+  return { graph: { version: 'xenolith.v1', nodes, edges, ...(Object.keys(categories).length > 0 ? { categories } : {}) }, schemas, report }
 }

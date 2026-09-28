@@ -156,3 +156,90 @@ describe('importComfyWorkflow — Reroute mapping', () => {
     expect(schemas.some((s) => s.type === REROUTE_TYPE || s.type === 'Reroute')).toBe(false)
   })
 })
+
+// ----------------------------------------------------------------------------------------------
+// H2 — object_info-driven import: real widget NAMES, combos with options, min/max/step —
+// instead of positional `param N` inference. Without object_info the old path is unchanged.
+// ----------------------------------------------------------------------------------------------
+const objectInfo = {
+  CheckpointLoader: {
+    name: 'CheckpointLoader',
+    category: 'loaders',
+    input: {
+      required: {
+        ckpt_name: [['model_a.safetensors', 'model_b.safetensors']],
+      },
+    },
+    output: ['MODEL', 'CLIP', 'VAE'],
+  },
+  KSampler: {
+    name: 'KSampler',
+    category: 'sampling',
+    input: {
+      required: {
+        seed: ['INT', { min: 0, max: 4294967295 }],
+        steps: ['INT', [1, 100, 1]],
+        cfg: ['FLOAT', 1],
+        sampler_name: [['euler', 'euler_ancestral', 'dpmpp_2m']],
+        denoise: ['FLOAT', { min: 0, max: 1, step: 0.01 }],
+      },
+    },
+    output: ['LATENT'],
+  },
+}
+
+describe('importComfyWorkflow with object_info (H2)', () => {
+  const r = importComfyWorkflow(workflow, { objectInfo })
+  const loader = r.graph.nodes.find((n) => n.type === 'CheckpointLoader')!
+  const sampler = r.graph.nodes.find((n) => n.type === 'KSampler')!
+
+  it('names widgets from object_info instead of `param N`, seeded from widgets_values', () => {
+    const w = sampler.widgets!.find((x) => x.id === 'seed')!
+    expect(w).toBeDefined()
+    expect(w.type).toBe('number')
+    expect(w.min).toBe(0)
+    expect(w.max).toBe(4294967295)
+    expect(sampler.state).toMatchObject({ seed: 12345, steps: 20, cfg: 8 })
+  })
+
+  it('maps INT/FLOAT configs in both object and ARRAY form (steps gets 1..100 from [1,100,1])', () => {
+    const steps = sampler.widgets!.find((x) => x.id === 'steps')!
+    expect(steps.min).toBe(1)
+    expect(steps.max).toBe(100)
+  })
+
+  it('declared COMBO inputs become combo widgets with the option list', () => {
+    const combo = loader.widgets!.find((x) => x.id === 'ckpt_name')!
+    expect(combo.type).toBe('combo')
+    expect(combo.values).toEqual(['model_a.safetensors', 'model_b.safetensors'])
+    expect(loader.state?.['ckpt_name']).toBe('sd_xl.safetensors')
+  })
+
+  it('synthetic widget pins use the DECLARED names as labels', () => {
+    const labels = (sampler.pins ?? []).filter((p) => p.direction === 'in').map((p) => p.label)
+    expect(labels).toContain('seed')
+    expect(labels).toContain('steps')
+  })
+
+  it('schemas get the same named widgets (palette insert matches imported shape)', () => {
+    const ks = r.schemas.find((s) => s.type === 'KSampler')!
+    expect(ks.widgets!.map((w) => w.id)).toEqual(['seed', 'steps', 'cfg', 'sampler_name', 'denoise'])
+  })
+
+  it('reports the mapping provenance honestly', () => {
+    // loader: 1 named; sampler: values [12345,20,8] → seed/steps/cfg named, sampler_name+denoise
+    // declared-but-missing values → defaults; nothing inferred on object_info-covered nodes.
+    expect(r.report.nodesWithObjectInfo).toBe(2)
+    expect(r.report.widgetsNamed).toBeGreaterThanOrEqual(4)
+  })
+})
+
+describe('importComfyWorkflow without object_info (unchanged fallback)', () => {
+  it('still keys widgets by `param N` and reports them as inferred', () => {
+    const r = importComfyWorkflow(workflow)
+    const loader = r.graph.nodes.find((n) => n.type === 'CheckpointLoader')!
+    expect(loader.widgets![0]!.id).toBe('param 1')
+    expect(r.report.nodesWithObjectInfo).toBe(0)
+    expect(r.report.widgetsInferred).toBe(4)
+  })
+})

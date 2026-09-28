@@ -1,20 +1,38 @@
 import { XenolithEditor } from '@xenolithengine/graph-editor'
 import { xenTheme, type XenolithTheme } from '@xenolithengine/graph-render-pixi'
 import { liquidGlassTheme } from '@xenolithengine/graph-theme-liquid-glass'
-import { importComfyWorkflow } from '@xenolithengine/demo/comfy'
+import { importComfyWorkflow, type ComfyObjectInfo } from '@xenolithengine/demo/comfy'
 import { generateXxlWorkflow } from './fixtures/xxl.js'
 
 // Wider zoom range than the default [0.25, 2] so the 1391-node monster can be zoomed out far
 // enough to behold in full.
 const editor = await XenolithEditor.init('#app', { theme: xenTheme, zoomBounds: [0.04, 2], minimap: true })
 
+// ?comfy=http://localhost:8188 — pull the server's /object_info once (H2): widgets import with
+// their real NAMES, combo options and numeric ranges instead of the positional `param N`
+// heuristic. Absent/unreachable → the heuristic path, unchanged.
+const comfyServer = new URLSearchParams(location.search).get('comfy')
+let objectInfo: Record<string, ComfyObjectInfo> | undefined
+if (comfyServer) {
+  try {
+    const res = await fetch(`${comfyServer.replace(/\/+$/, '')}/object_info`)
+    objectInfo = await res.json() as Record<string, ComfyObjectInfo>
+    console.info(`[comfy] object_info loaded: ${Object.keys(objectInfo).length} types`)
+  } catch (e) {
+    console.warn(`[comfy] could not fetch ${comfyServer}/object_info — falling back to positional widgets`, e)
+  }
+}
+
 // ---- core load path --------------------------------------------------------------------------
 // The editor owns a themeable busy overlay (blur + spinner) via `withOverlay`: it paints first,
 // runs the heavy import + first render behind the blur, then fades out — so big graphs reveal
-// smoothly instead of freezing then popping in. `editor.fitView()` frames the whole graph from the
-// real node bounds (no footprint guessing) so even the 1391-node monster lands fully in view.
+// smoothly instead of freezing then popping in. `editor.fitView()` frames the whole graph from
+// the real node bounds (no footprint guessing) so even the 1391-node monster lands fully in view.
 function importAndLoad(workflow: unknown): void {
-  const { graph, schemas } = importComfyWorkflow(workflow)
+  const { graph, schemas, report } = importComfyWorkflow(workflow, { objectInfo })
+  if (report.widgetsNamed > 0 || report.widgetsInferred > 0) {
+    console.info(`[comfy] widgets: ${report.widgetsNamed} named (object_info) · ${report.widgetsInferred} inferred · ${report.widgetsSkipped} skipped`)
+  }
   editor.registry.clear()
   for (const s of schemas) editor.registry.register(s)
   editor.loadJSON(graph)
@@ -90,7 +108,7 @@ hint.style.cssText = `
   position: fixed; bottom: 12px; left: 12px; z-index: 1000;
   font: 11px 'Inter', system-ui, sans-serif; color: rgba(255,255,255,0.45);
 `
-hint.textContent = 'Drop a ComfyUI workflow .json · Tab to insert · ` for stats'
+hint.textContent = 'Drop a ComfyUI workflow .json · Tab to insert · ` for stats · ?comfy=<server> for named widgets'
 document.body.appendChild(hint)
 
 // ---- file drop -------------------------------------------------------------------------------

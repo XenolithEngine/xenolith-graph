@@ -12,6 +12,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 Summary in [docs/release-notes/v0.7.0-beta.6.md](docs/release-notes/v0.7.0-beta.6.md).
 
+### Added
+
+- **object_info-driven ComfyUI import (H2)** — `importComfyWorkflow(workflow, { objectInfo })`: pass the server's `/object_info` map and widgets import with their real NAMES (`seed`, `cfg`, `ckpt_name`), combos with option lists, numerics with min/max/step (object AND legacy array configs) — instead of the positional `param N` heuristic, which stays as the no-server fallback. Synthetic widget pins carry the declared names; schemas match the imported shape; a `report` (`nodesWithObjectInfo` / `widgetsNamed` / `widgetsInferred` / `widgetsSkipped`) accounts for every value — nothing silently lost. The comfy-demo wires it via `?comfy=http://localhost:8188` and logs the provenance.
+
 ### Fixed
 
 - **Docs truth pass (F3)** — MCP README rewrote its tool table to reality (26 tools in three categories, 3 resources incl. `audit://recent`, a proposal-mode section with the honest limits); stale counts corrected everywhere: 26 tools · 3 resources (was 25/2), 25 events / 7 preventable (was 24/4), `EDITOR_EVENT_NAMES` 25 (was 24). README test counts regenerated from the actual suites via the new `scripts/update-test-counts.mjs` (1259 unit · 112 e2e — the badge had drifted to 1012/142). Human-in-the-loop guide (EN/RU/ZH) documents the built-in review panel + `<XenolithProposalQueue>`; `/agents.md` explains proposal receipts to agents.
