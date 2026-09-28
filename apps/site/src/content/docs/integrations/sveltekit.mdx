@@ -39,20 +39,26 @@ pnpm add @xenolithengine/graph-editor @xenolithengine/graph-wc pixi.js
 ```svelte
 <!-- src/lib/Editor.svelte -->
 <script lang="ts">
-  import { xenolith } from '@xenolithengine/graph-svelte'
+  import { xenolith, createXenolithStores } from '@xenolithengine/graph-svelte'
   import { myGraph } from '$lib/data'
 
-  const onNodeClick = (e: CustomEvent) => console.log('clicked', e.detail.nodeId)
+  const stores = createXenolithStores()
+
+  function onReady(e: CustomEvent<XenolithEditor>) {
+    stores.editor.set(e.detail)
+    // imperative setup: register schemas, fitView, …
+  }
 </script>
 
 <div
   use:xenolith={{ graph: myGraph, fitOnLoad: true, minimap: true }}
-  on:node-click={onNodeClick}
+  on:ready={onReady}
+  on:node-click={(e) => console.log('clicked', e.detail.nodeId)}
   style="height:100vh"
 ></div>
 ```
 
-The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a component. Pass the graph + options as props; the action re-dispatches every editor event off the host element as a kebab-named `CustomEvent` (`node-click`, `edge-connected`, `selection-changed`, …). For imperative setup that needs the editor instance (registering schemas, custom plugins), use pattern 2 (Web Component) and listen for its `ready` event.
+The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a component. Pass the graph + options as props; the action dispatches `ready` (detail: the `XenolithEditor`) once mounted, then re-dispatches every editor event off the host element as a kebab-named `CustomEvent` (`node-click`, `edge-connected`, `selection-changed`, …) with typed payloads. Wire reactive stores (`nodes`, `selection`, `undoRedo`, the controlled `nodesState()` triple, …) from `on:ready` — see the [Svelte guide](../../guides/svelte/).
 
 ## Pattern 2 — Web Component (framework-neutral)
 

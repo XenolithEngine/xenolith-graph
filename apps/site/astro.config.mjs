@@ -141,6 +141,7 @@ export default defineConfig({
           items: [
             { slug: 'guides/react' },
             { slug: 'guides/vue' },
+            { slug: 'guides/svelte' },
             { slug: 'guides/testing' },
           ],
         },

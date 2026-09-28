@@ -10,6 +10,14 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ### Added
 
+- **Svelte adapter — runtime parity (A3, slice 1)** — `@xenolithengine/graph-svelte` grows from a mount-only action to the contract §1–§2 + §5–§6 surface:
+  - `on:ready` — the action now dispatches `ready` (detail: the live `XenolithEditor`) once mounted. Closes the biggest gap: Svelte hosts no longer need the Web Component fallback for imperative setup (register schemas, fitView, wire stores).
+  - Typed action events — `XenolithActionAttributes` derives `on:node-click`-style handler types with their payloads from `EditorEvents` (compile-time-locked to `EDITOR_EVENT_NAMES`); svelte-check surfaces `e.detail` types in templates.
+  - `createXenolithStores()` — per-editor bag of reactive stores (Svelte's counterpart of the React/Vue hook set): `editor` (writable — set it from `on:ready`), `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`, and `nodesState()` — the controlled triple (E5 / ADR 0006) with the shared `diffNodesToChanges` write side; `dispose()` unsubscribes. Same event lists and microtask coalescing as React/Vue; re-binds on editor swap.
+  - Works on Svelte 4 and 5 (runtime-only: `svelte/store` + actions — nothing needs the compiler). New devDep: `svelte` (the already-declared peer, for types/tests — same pattern as the react/vue packages).
+  - Learn page `guides/svelte` (EN canonical + RU/ZH stubs), sidebar entry, SvelteKit integration page truth-pass (the "use the WC for imperative setup" caveat is gone). Package tests 4 → 17.
+  - Not yet: `<XenolithPanel>`-family components and `svelteWidget` — need `.svelte` source shipping + a compiler devDep; deferred as slice 2 (documented honestly in the guide's "What's NOT").
+
 - **Adapter contract (A1)** — `docs/ADAPTER-CONTRACT.md`: the checklist every framework adapter must satisfy (mount component with all nine `XenolithProps`, typed events derived from `EDITOR_EVENT_NAMES`, full composable/hook set incl. the `useNodesState` triple, in-editor components, widget wrapper, test parity, Learn page) with a per-adapter status matrix. React is the reference; Vue reached parity (A2); Svelte/Angular/Solid/WC follow per contract before any "parity" claims.
 - **Vue adapter parity with React (A2)**:
   - `useNodesState()` — the controlled-state triple (E5 / ADR 0006) as a 1:1 Vue port: `shallowRef` graph mirror folded from commit-time `graph:changed` arrays, `applyChanges` forwarding, `setNodes` one-shot diff landing as ONE undo step. Mirror React's integration suite with the real headless editor.

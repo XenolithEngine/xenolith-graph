@@ -1,0 +1,15 @@
+---
+title: "Svelte 适配器"
+description: "在 Svelte 4/5 中使用 use:xenolith action、类型化的 CustomEvents 和完整的响应式 store 集合(含受控三元组)挂载 XenolithGraph。"
+---
+
+:::caution[翻译可能滞后]
+{/* EN-canonical-banner */}
+英文版本是规范源。如果有内容与[英文页面](../../../guides/svelte/)相矛盾,请以英文为准。在 v1.0 之前我们会定期重新同步翻译。
+:::
+
+请参阅[英文版本](../../../guides/svelte/) — `@xenolithengine/graph-svelte` 适配器的完整 API:
+action `use:xenolith={props}`(带 payload 的类型化 `on:*` CustomEvents、携带编辑器实例的
+`on:ready`)、通过 `createXenolithStores()` 的响应式 store(`nodes` / `edges` / `selection` /
+`viewport` / `graphJSON` / `undoRedo`、受控三元组 `nodesState()`)、命令式原语
+`createXenolithGraph(el, props)`。

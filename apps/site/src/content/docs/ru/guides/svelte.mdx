@@ -1,0 +1,15 @@
+---
+title: "Svelte-адаптер"
+description: "Подключение XenolithGraph в Svelte 4/5: action use:xenolith, типизированные CustomEvents и набор reactive-stores, включая контролируемый триплет."
+---
+
+:::caution[Перевод может отставать]
+{/* EN-canonical-banner */}
+Английская версия — канонический источник. Если что-то противоречит [английской странице](../../../guides/svelte/) — доверяй ей. Переводы будем пересинхронизировать периодически до v1.0.
+:::
+
+См. [англоязычную версию](../../../guides/svelte/) — там полное API адаптера
+`@xenolithengine/graph-svelte`: action `use:xenolith={props}` (типизированные `on:*` CustomEvents
+с payload, `on:ready` с инстансом редактора), reactive-stores через `createXenolithStores()`
+(`nodes` / `edges` / `selection` / `viewport` / `graphJSON` / `undoRedo`, контролируемый триплет
+`nodesState()`), императивный примитив `createXenolithGraph(el, props)`.

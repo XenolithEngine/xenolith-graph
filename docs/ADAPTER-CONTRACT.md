@@ -126,8 +126,12 @@ theme's `--xeno-*` vars:
 |---|---|---|---|---|---|---|---|---|
 | React | ✅ StrictMode-safe | ✅ | ✅ `EventCallbacks` | ✅ full | ✅ | ✅ ×4 + Queue | ✅ | ✅ |
 | Vue | ✅ | ✅ (A2 done) | ✅ typed emits (A2) | ✅ full (A2: `useXenolithGraph`) | ✅ (A2) | ✅ ×4 + Queue | ✅ | ✅ (A2: controlled pattern + mount composable) |
-| Svelte | stub (action) | partial | ✗ | ✗ | ✗ | ✗ | ✗ | integration note |
+| Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ⏳ next slice (.svelte source + compiler devDep) | ⏳ same slice | ✅ (A3) |
 | Solid / Angular / WC | stubs | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+
+Svelte's "components + widget" slice requires shipping `.svelte` source and compiling components
+in tests (`@sveltejs/vite-plugin-svelte` as a test-only devDep — pending owner approval per the
+new-dependency rule). The runtime surface above is complete and covered by tests.
 
 Stubs become "claimed" only when their column is ✅ across this checklist — until then the docs
 must not claim parity (F3 truth-pass rule).

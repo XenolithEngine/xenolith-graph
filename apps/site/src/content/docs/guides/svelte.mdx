@@ -1,0 +1,182 @@
+---
+title: Svelte adapter
+description: Mount XenolithGraph in Svelte 4/5 with the use:xenolith action, typed CustomEvents, and a full reactive-store set — including the controlled-state triple.
+---
+
+The Svelte adapter ships as `@xenolithengine/graph-svelte`. Where React/Vue get a component,
+Svelte gets its own idiom: a **mount action** (`use:xenolith`) that re-dispatches every editor
+event as a typed CustomEvent, plus a **bag of stores** (`createXenolithStores()`) you wire from
+the action's `ready` event. No wrapper component, no context magic — actions and stores are the
+two things Svelte already does natively.
+
+Works with Svelte 4 and 5 (runtime-only API surface — stores and actions; nothing here needs the
+compiler). The editor is WebGL/client-only: in SvelteKit see the
+[integration page](../../integrations/sveltekit/) for the `browser` gate.
+
+## Install
+
+```bash
+pnpm add @xenolithengine/graph-svelte pixi.js
+```
+
+Peer deps: `svelte >= 4`, `pixi.js@^8.6.0`.
+
+## Mount the editor
+
+```svelte
+<script lang="ts">
+  import { xenolith, createXenolithStores } from '@xenolithengine/graph-svelte'
+
+  const stores = createXenolithStores()
+  const props = { minimap: true, resizeToWindow: false, snap: 8 }
+
+  function onReady(e: CustomEvent<XenolithEditor>) {
+    stores.editor.set(e.detail) // wire reactive stores — see below
+    e.detail.registry.register(mySchema)
+    e.detail.view.fitView({ padding: 80 })
+  }
+</script>
+
+<div
+  use:xenolith={props}
+  on:ready={onReady}
+  on:node-click={(e) => console.log('clicked', e.detail.nodeId)}
+  on:node-removing={(e) => { if (e.detail.nodeId === lockedId) e.detail.cancel() }}
+  style="position:absolute;inset:0"
+></div>
+```
+
+When `props` gets a new object reference, the action forwards it to the editor
+(reference-diffed, same immutable-props semantics as the React/Vue adapters).
+
+### Action props
+
+The full `XenolithProps` surface (nine keys, ADAPTER-CONTRACT §1):
+
+| Prop | Type | Notes |
+|---|---|---|
+| `theme` | `XenolithTheme` | Default is the Xen theme. |
+| `graph` | `XenolithGraphV1` | Initial scene; same shape `editor.loadJSON` accepts. |
+| `zoomBounds` | `[min, max]` | Default `[0.05, 16]`. Mount-time. |
+| `minimap` | `boolean \| { position }` | Prefer declarative toggles via `editor.chrome`. |
+| `snap` | `number` | Grid snap step in world px. Mount-time. |
+| `disableGrid` | `boolean` | Hide the background grid. Mount-time. |
+| `resizeToWindow` | `boolean` | Default `true`. Set `false` to fit the host element. |
+| `fitOnLoad` | `boolean` | After `graph` mounts, call `fitView`. |
+| `isValidConnection` | `(info) => boolean` | Custom connection guard; return `false` to reject a wire. |
+
+### Action events
+
+`ready` (detail: the `XenolithEditor` — fires once when mounted) plus one kebab-named CustomEvent
+per editor event, each with its **typed payload** in `event.detail` (svelte-check knows the
+shapes — they derive from `EditorEvents`, never hand-listed):
+
+```svelte
+<div
+  use:xenolith={props}
+  on:ready={onReady}
+  on:selection-changed={(e) => (selectedIds = e.detail.nodeIds)}
+  on:edge-connecting={(e) => { if (!allowed(e.detail)) e.detail.cancel() }}
+  on:widget-changed={(e) => syncForm(e.detail)}
+/>
+```
+
+The `node:click` → `node-click` kebab mapping covers all 25 editor events (the four preventable
+`-ing` ones expose `e.detail.cancel()`); the full list derives from `EDITOR_EVENT_NAMES` in
+`@xenolithengine/graph-adapter-core` — see the [events reference](../events-commands/).
+
+## Reactive stores
+
+`createXenolithStores()` builds a per-editor bag — call it once per editor, never a module-level
+singleton (multiple editors must coexist). Wire the live editor in from `on:ready`; every store
+re-binds on swap, and `dispose()` unsubscribes everything when the editor is gone for good.
+
+```svelte
+<script lang="ts">
+  import { xenolith, createXenolithStores } from '@xenolithengine/graph-svelte'
+
+  const s = createXenolithStores()
+  const selected = derived(s.selection, (ids) => ids.length)
+</script>
+
+<div use:xenolith={{ resizeToWindow: false }} on:ready={(e) => s.editor.set(e.detail)}></div>
+
+<p>{selected} selected · zoom {$s.viewport.zoom.toFixed(2)}</p>
+<button disabled={!$s.undoRedo.canUndo} on:click={() => s.undoRedo.undo()}>Undo</button>
+<ul>{#each $s.nodes as n (n.id)}<li>{n.type} @ {n.position.x},{n.position.y}</li>{/each}</ul>
+```
+
+| Store | Type | Re-fires on |
+|---|---|---|
+| `editor` | `Writable<XenolithEditor \| null>` | You set it from `on:ready`. |
+| `nodes` | `Readable<readonly Node[]>` | add/remove/move, load, undo/redo. |
+| `edges` | `Readable<readonly Edge[]>` | connect/disconnect, node removal, load, undo/redo. |
+| `selection` | `Readable<readonly NodeId[]>` | `selection:changed`. |
+| `viewport` | `Readable<ViewportState>` | pan/zoom. |
+| `graphJSON` | `Readable<XenolithGraphV1 \| null>` | any mutation, load, undo/redo. |
+| `undoRedo` | `{ canUndo, canRedo: Readable<boolean>; undo, redo }` | `history:changed`. |
+| `nodesState()` | the controlled triple — below | commit-time `graph:changed`. |
+
+Event bursts are coalesced into one microtask recompute per store: a 1000-node transaction
+costs ONE rebuild, not 1000 — same budget as the React/Vue hooks.
+
+## Controlled state (commit-time)
+
+React Flow migrants: `stores.nodesState()` gives you the controlled triple — `nodes`, `edges`,
+`applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+Same semantics as React's `useNodesState` / Vue's `useNodesState`, Svelte-shaped: each call
+creates an independent mirror (one per consumer). One deliberate difference from React Flow:
+positions arrive when a drag COMMITS, never per frame.
+
+```svelte
+<script lang="ts">
+  import { xenolith, createXenolithStores } from '@xenolithengine/graph-svelte'
+
+  const s = createXenolithStores()
+  const { nodes, setNodes } = s.nodesState()
+  const addBox = () => setNodes((prev) => [...prev, makeBox(prev.length)])
+</script>
+
+<div use:xenolith={{ resizeToWindow: false }} on:ready={(e) => s.editor.set(e.detail)}></div>
+<button on:click={addBox}>Add box</button>
+{#each $nodes as n (n.id)}<div class="chip" style="transform: translate({n.position.x}px, {n.position.y}px)">{n.type}</div>{/each}
+```
+
+`setNodes(next)` — pass the next nodes array or an updater over the live mirror. Adds, removes,
+position and state deltas are diffed onto the editor as **one undo step** (shallow diff:
+position by coordinates, state by reference); the `graph:changed` echo converges the mirror.
+`applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
+
+## Imperative primitive
+
+`createXenolithGraph(el, props?)` — the raw `createEditorBinding` pass-through for hosts that
+mount outside any template node (the action keeps its binding private). The caller owns
+teardown.
+
+```ts
+import { createXenolithGraph } from '@xenolithengine/graph-svelte'
+
+const binding = await createXenolithGraph(hostEl, { graph: saved, fitOnLoad: true })
+binding.on('node:click', (p) => console.log(p.nodeId))
+// … later:
+binding.destroy()
+```
+
+## What's NOT in this adapter (yet)
+
+- **No in-editor panel components** (`<XenolithPanel>` family). Overlay UI today: portal your own
+  markup into `editor.chrome.overlayRoot`, or drive the built-in chrome imperatively
+  (`editor.chrome.setControls(...)`, `setMinimapVisible(...)`, `showProposals()`). Panel
+  components shipped as `.svelte` source are on the roadmap.
+- **No `svelteWidget` bridge** for custom Svelte node-widgets — same roadmap slice as the panels.
+- **No SSR.** WebGL only; in SvelteKit gate with `browser` / `export const ssr = false` — see the
+  [SvelteKit integration](../../integrations/sveltekit/).
+
+## Related
+
+- [`@xenolithengine/graph-editor` API reference](../api/) — every method on the `XenolithEditor`
+  you get from `on:ready`
+- [Events](../events-commands/) — the full 25-event surface and which are preventable
+- [SvelteKit integration](../../integrations/sveltekit/) — `browser` gate, route config, PIXI dedupe
+- [ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md) — the commit-time controlled protocol

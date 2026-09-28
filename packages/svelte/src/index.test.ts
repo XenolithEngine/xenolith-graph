@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { expectTypeOf } from 'vitest'
 import { svelteEventName } from './index.js'
+import type { XenolithActionAttributes } from './index.js'
+import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 
 const { handlers, binding, createEditorBinding } = vi.hoisted(() => {
   const handlers = new Map<string, (d: unknown) => void>()
@@ -27,6 +30,17 @@ describe('svelteEventName', () => {
   })
 })
 
+// Type-level: `on:*` attributes carry their payloads (what svelte-check surfaces in templates).
+// Enforced by `tsc -b` — vitest itself doesn't typecheck.
+describe('XenolithActionAttributes (types)', () => {
+  it('types on:ready with the editor and on:<event> with its payload', () => {
+    const ready = undefined as unknown as XenolithActionAttributes['on:ready']
+    expectTypeOf(ready).toBeCallableWith({ detail: {} as XenolithEditor } as CustomEvent<XenolithEditor>)
+    const click = undefined as unknown as XenolithActionAttributes['on:node-click']
+    expectTypeOf(click).toBeCallableWith({ detail: {} as EditorEvents['node:click'] } as CustomEvent<EditorEvents['node:click']>)
+  })
+})
+
 describe('xenolith action', () => {
   beforeEach(() => { createEditorBinding.mockClear(); binding.setProps.mockClear(); binding.destroy.mockClear(); handlers.clear() })
 
@@ -45,6 +59,15 @@ describe('xenolith action', () => {
     node.addEventListener('node-click', (e) => seen.push((e as CustomEvent).detail))
     handlers.get('node:click')!({ nodeId: 'n1' })
     expect(seen).toEqual([{ nodeId: 'n1' }])
+  })
+
+  it('dispatches ready with the editor instance once mounted', async () => {
+    const node = document.createElement('div')
+    const readies: unknown[] = []
+    node.addEventListener('ready', (e) => readies.push((e as CustomEvent).detail))
+    xenolith(node)
+    await flush()
+    expect(readies).toEqual([binding.editor])
   })
 
   it('update() forwards to setProps and destroy() tears down', async () => {

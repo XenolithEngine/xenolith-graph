@@ -41,13 +41,15 @@ Editor events are re-dispatched as kebab-named `CustomEvent`s off the host node 
 
 ## What's exported
 
-- `xenolith` — the Svelte action: `use:xenolith={props}`
+- `xenolith` — the Svelte action: `use:xenolith={props}`; dispatches `on:ready` (detail: the `XenolithEditor`) once mounted
+- `createXenolithStores()` — per-editor bag of reactive stores: `editor` (writable), `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`, and the controlled triple `nodesState()` (commit-time mirror + one-undo-step `setNodes`); `dispose()` unsubscribes
 - `createXenolithGraph(el, props)` — imperative primitive returning an `EditorBinding`
 - `svelteEventName(event)` — colon → kebab name translation
-- `XenolithActionReturn` — action return shape (`{ update, destroy }`)
+- `XenolithActionReturn` / `XenolithActionAttributes` — action typing; `on:*` handlers carry typed payloads (derived from `EditorEvents`, surfaced by svelte-check)
 
 ## Docs
 
+- [Svelte guide](https://graph.xenolith.studio/guides/svelte/) — action, stores, controlled state
 - [SvelteKit integration](https://graph.xenolith.studio/integrations/sveltekit/)
 - [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
