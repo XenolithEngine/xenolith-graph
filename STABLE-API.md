@@ -46,9 +46,10 @@ but are deprecated and will be removed in v1.0.
 |---|---|
 | `XenolithEditor.init(target, opts)` → `Promise<XenolithEditor>` | Mount the editor. |
 | `editor.destroy()`, `editor.isDestroyed` | |
-| `editor.on(event, handler)` → `Unsubscribe` | The 24 public events listed below. |
+| `editor.on(event, handler)` → `Unsubscribe` | The 25 public events listed below. |
 | `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()` | Same data — `getGraphReadonly` is the new name. |
 | `importFromReactFlow(json, opts?)` → `{ doc, report }`, `editor.importReactFlow(json, opts?)` → `ImportReport` | React Flow (xyflow) `toObject()` JSON → xenolith.v1. Pins synthesized from edge handles (`inferType` or `schemas[]` for typing), loss accounting in the report — nothing drops silently. Guide: Migrate from React Flow. |
+| `editor.applyChanges(changes)`, `editor.getGraphMirror()`, `reduceGraphChanges(mirror, changes)`, `snapshotGraph(nodes, edges)` | The write side of the controlled protocol: one transaction per call (one undo step), echo-idempotent (re-adding/re-removing/no-op positions skip). `reduceGraphChanges` is the pure store reducer (Zustand/Redux); React hosts get `useNodesState()` in `@xenolithengine/graph-react`. ADR 0006. |
 | `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.disconnect`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
 | `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId` | **The canonical wire API.** Refs (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` = the node's single pin of that direction. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs. |
 | `editor.setNodeStatus`, `editor.clearNodeStatuses` | |
@@ -78,7 +79,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.contextMenu` — `ContextMenuRegistry` | Plugin context-menu items. |
 | `editor.selection` — `Selection` | |
 | `editor.definitions` — template definitions | |
-| **24 public events** | Bus is `editor.on(name, handler)`. See [Events](#events) below. |
+| **25 public events** | Bus is `editor.on(name, handler)`. See [Events](#events) below. |
 | `editor.use(plugin)` — `PluginHost.use` | Mount a plugin. |
 | `parseXenolithGraph`, `serializeXenolithGraph`, `XENOLITH_GRAPH_VERSION` + `XenolithGraphV1` / `XenolithNodeV1` / `XenolithEdgeV1` / `XenolithPinV1` types | |
 | `Commands` const namespace + `CommandSpec` | |
@@ -160,6 +161,7 @@ list is exhaustiveness-checked against this set at build time):
 | `widget:changed` | `{ nodeId, widgetId, value }` | — |
 | `widget:action` | `{ nodeId, widgetId, action }` | — |
 | `graph:loaded` | `{ nodeCount, edgeCount }` | — |
+| `graph:changed` | `{ changes: GraphChanges }` | **Commit-time controlled protocol (ADR 0006)**: one coalesced change-array per transaction / undo-group commit / top-level command / undo-redo step; never per drag frame. Pair with `editor.applyChanges` / `reduceGraphChanges`. |
 | `history:changed` | `{ canUndo, canRedo }` | — |
 | `dive:changed` | `{ depth, definitionId }` | — |
 | `sidebar:opened` | `{ nodeId }` | — |

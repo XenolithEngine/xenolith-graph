@@ -19,6 +19,7 @@ export const EVENT_PROP = {
   'widget:action': 'onWidgetAction',
   'graph:loaded': 'onGraphLoad',
   'history:changed': 'onHistoryChange',
+  'graph:changed': 'onGraphChanged',
   'dive:changed': 'onDiveChange',
   'sidebar:opened': 'onSidebarOpen',
   'sidebar:closed': 'onSidebarClose',

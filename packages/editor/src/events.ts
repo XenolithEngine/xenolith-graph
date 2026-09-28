@@ -38,6 +38,10 @@ export type EditorEvents = {
   'widget:action': { nodeId: NodeId; widgetId: string; action: string }
   'graph:loaded': { nodeCount: number; edgeCount: number }
   'history:changed': { canUndo: boolean; canRedo: boolean }
+  /** Commit-time controlled protocol (ADR 0006): one coalesced change-array per transaction /
+   *  undo-group commit / top-level command / undo-redo history step. Never fires per drag
+   *  frame — positions land when the drag commits. */
+  'graph:changed': { changes: import('./controlled.js').GraphChanges }
   /** Fired when diving into / out of a template definition. `depth` 0 is the root document;
    *  `definitionId` is the definition currently displayed (null at the root). */
   'dive:changed': { depth: number; definitionId: string | null }

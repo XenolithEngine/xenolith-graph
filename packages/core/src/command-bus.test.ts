@@ -83,7 +83,7 @@ describe('CommandBus — mechanics', () => {
   })
 
   it('undo() returns false when nothing is on the stack', () => {
-    const { ctx } = makeContext()
+    const { ctx, ops } = makeContext()
     const bus = new CommandBus(ctx)
     expect(bus.undo()).toBe(false)
   })
@@ -98,7 +98,7 @@ describe('CommandBus — mechanics', () => {
   })
 
   it('redo() returns false when nothing is on the redo stack', () => {
-    const { ctx } = makeContext()
+    const { ctx, ops } = makeContext()
     const bus = new CommandBus(ctx)
     expect(bus.redo()).toBe(false)
   })
@@ -276,7 +276,7 @@ describe('CommandBus — transactions', () => {
   })
 
   it('empty transaction is a no-op (no undo step)', () => {
-    const { ctx } = makeContext()
+    const { ctx, ops } = makeContext()
     const bus = new CommandBus(ctx)
     bus.transaction(() => {})
     expect(bus.canUndo()).toBe(false)
@@ -299,7 +299,7 @@ describe('CommandBus — history bound', () => {
 
 describe('CommandBus — context', () => {
   it('passes the configured context to commands', () => {
-    const { ctx } = makeContext()
+    const { ctx, ops } = makeContext()
     const bus = new CommandBus(ctx)
     const seen: CommandContext[] = []
     bus.apply<undefined>({
@@ -336,7 +336,7 @@ describe('CommandBus — groups (G10 — Baklava rete-history-plugin parity)', (
   })
 
   it('endGroup with no applies leaves the history untouched (no empty entry)', () => {
-    const { ctx } = makeContext()
+    const { ctx, ops } = makeContext()
     const bus = new CommandBus(ctx)
     bus.beginGroup()
     bus.endGroup()
@@ -407,5 +407,57 @@ describe('CommandBus — groups (G10 — Baklava rete-history-plugin parity)', (
     bus.endGroup()
     expect(() => bus.endGroup()).not.toThrow()
     expect(bus.canUndo()).toBe(true)
+  })
+})
+
+describe('history:undone / history:redone (ADR 0006 bracketing)', () => {
+  it('undo of a transaction fires ONE history:undone carrying all entries with results', () => {
+    const { ctx, events, ops } = makeContext()
+    const bus = new CommandBus(ctx)
+    bus.transaction(() => {
+      bus.apply(makeOpCmd('a', ops))
+      bus.apply(makeOpCmd('b', ops))
+    })
+    const seen: number[] = []
+    events.on('history:undone', ({ entries }) => seen.push(entries.length))
+    bus.undo()
+    expect(seen).toEqual([2])
+  })
+
+  it('redo of a transaction fires ONE history:redone', () => {
+    const { ctx, events, ops } = makeContext()
+    const bus = new CommandBus(ctx)
+    bus.transaction(() => bus.apply(makeOpCmd('a', ops)))
+    bus.undo()
+    const seen: number[] = []
+    events.on('history:redone', ({ entries }) => seen.push(entries.length))
+    bus.redo()
+    expect(seen).toEqual([1])
+  })
+
+  it('undo of a SINGLE command also fires history:undone (uniform bracketing)', () => {
+    const { ctx, events, ops } = makeContext()
+    const bus = new CommandBus(ctx)
+    bus.apply(makeOpCmd('a', ops))
+    const seen: number[] = []
+    events.on('history:undone', ({ entries }) => seen.push(entries.length))
+    bus.undo()
+    expect(seen).toEqual([1])
+  })
+
+  it('collecting is true inside transaction and group, false at top level', () => {
+    const { ctx, ops } = makeContext()
+    const bus = new CommandBus(ctx)
+    expect(bus.collecting).toBe(false)
+    bus.transaction(() => {
+      expect(bus.collecting).toBe(true)
+      bus.apply(makeOpCmd('a', ops))
+    })
+    expect(bus.collecting).toBe(false)
+    bus.beginGroup({ label: 'drag' })
+    expect(bus.collecting).toBe(true)
+    bus.apply(makeOpCmd('b', ops))
+    bus.endGroup()
+    expect(bus.collecting).toBe(false)
   })
 })

@@ -27,6 +27,7 @@ Every editor instance dispatches:
 | `widget:changed`     | `{ nodeId, widgetId, value }` | After `setWidgetValue` |
 | `widget:action`      | `{ nodeId, widgetId, action }` | Button widget pressed |
 | `graph:loaded`       | `{ nodeCount, edgeCount }`     | `loadJSON` finished |
+| `graph:changed` | `{ changes }` | Commit-time controlled protocol ([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)): ONE coalesced change-array per transaction / undo-group commit / undo-redo step. Never fires per drag frame. Pair with `editor.applyChanges(changes)` and `reduceGraphChanges` (or the React `useNodesState()` hook). |
 | `history:changed`    | `{ canUndo, canRedo }` | After any apply / undo / redo |
 | `dive:changed`       | `{ depth, definitionId }` | Dive in/out of a template |
 | `sidebar:opened`     | `{ nodeId }`          | Properties sidebar opened |

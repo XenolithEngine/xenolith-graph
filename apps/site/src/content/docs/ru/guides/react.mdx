@@ -13,3 +13,13 @@ description: Подключение XenolithGraph в React-приложение 
 `useGraphJSON` / `useUndoRedo` / `useEditorEvent`, in-editor компоненты (`<XenolithPanel>`,
 `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`), `reactWidget(Component)` для
 кастомных виджетов на React, и события через `on*` props.
+
+## Controlled-состояние (на коммите)
+
+Мигранты с React Flow: `useNodesState()` даёт controlled-тройку — `nodes`, `edges`,
+`applyChanges`, `setNodes` — свернутую из массивов `graph:changed` **на коммите** ([ADR
+0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+Одно намеренное отличие от React Flow: позиции приходят, когда перетаскивание КОММИТИТСЯ,
+никогда покадрово — дерево неподвижно, пока drag владеет WebGL-рендерер. `setNodes(next)`
+применяет диф одним шагом undo; эхи идемпотентны. Для Redux/Zustand берите чистый редьюсер
+`reduceGraphChanges`.

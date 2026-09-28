@@ -230,3 +230,13 @@ example, mounting into a portal or a third-party slot.
 - [Widgets guide](../widgets/) — built-in widgets + the `WidgetSpec` shape `reactWidget` plugs into
 - [Save / export](../save-export/) — `toJSON` / `loadJSON` / `exportImage` patterns
 - [Events](../events-commands/) — the full 24-event surface and which are preventable
+
+## Controlled state (commit-time)
+
+React Flow migrants: `useNodesState()` gives you the controlled triple — `nodes`, `edges`,
+`applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays ([ADR
+0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+One deliberate difference from React Flow: positions arrive when a drag COMMITS, never per
+frame, so your tree stays still while the WebGL renderer owns the drag. `setNodes(next)`
+diffs onto the editor as one undo step; echoes are idempotent. For Redux/Zustand use the pure
+`reduceGraphChanges` reducer directly.

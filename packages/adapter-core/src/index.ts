@@ -10,7 +10,8 @@ export { applyProps, type EditorLike } from './props.js'
 export const EDITOR_EVENT_NAMES = [
   'node:added', 'node:removed', 'node:removing', 'node:moved', 'node:click', 'node:clicking', 'node:drop',
   'edge:connected', 'edge:disconnected', 'edge:connecting', 'edge:disconnecting',
-  'selection:changed', 'viewport:changed',
+  'selection:changed',
+  'graph:changed', 'viewport:changed',
   'widget:changed', 'widget:action',
   'graph:loaded', 'history:changed', 'dive:changed',
   'sidebar:opened', 'sidebar:closed',

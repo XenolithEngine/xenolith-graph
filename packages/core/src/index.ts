@@ -20,7 +20,7 @@ export { evaluateGraph } from './evaluate.js'
 export type { NodeCompute, EvaluateGraphResult } from './evaluate.js'
 
 export { CommandBus } from './command-bus.js'
-export type { Command, CommandContext, CommandBusOptions, CoreEvents } from './command-bus.js'
+export type { Command, CommandContext, CommandBusOptions, CoreEvents, HistoryAppliedCommand } from './command-bus.js'
 
 export { AddNode, RemoveNode, ConnectPins, DisconnectEdge } from './commands.js'
 export type { RemoveNodeUndo } from './commands.js'

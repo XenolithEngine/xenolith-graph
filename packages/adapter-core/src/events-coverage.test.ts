@@ -7,8 +7,8 @@ import { EDITOR_EVENT_NAMES } from './index.js'
 // fails loud — the maintainer has to actively change the number, which forces them to look at the
 // list and decide whether the event is part of the public adapter surface.
 describe('EDITOR_EVENT_NAMES (adapter event coverage)', () => {
-  it('covers all 24 public editor events; bump the number AFTER updating EDITOR_EVENT_NAMES', () => {
-    expect(EDITOR_EVENT_NAMES.length).toBe(24)
+  it('covers all 25 public editor events; bump the number AFTER updating EDITOR_EVENT_NAMES', () => {
+    expect(EDITOR_EVENT_NAMES.length).toBe(25)
   })
 
   it('contains no duplicates (each event surfaced exactly once)', () => {

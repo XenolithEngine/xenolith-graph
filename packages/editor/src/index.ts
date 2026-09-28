@@ -142,6 +142,10 @@ import { createGraphEventBridge, firePreventable, type EditorEvents } from './ev
 import type { McpClient, McpEditorSurface } from './mcp.js'
 import { layeredLayout } from './layout-ops.js'
 import { resolvePin, type PinSelector } from './pin-resolve.js'
+import {
+  applyChangesToBus, createControlledBridge, documentReplacedChanges, snapshotGraph,
+  type GraphChanges, type GraphMirror,
+} from './controlled.js'
 import { PluginHost, type PluginContext, type XenolithPlugin } from './plugin.js'
 import {
   parseXenolithGraph,
@@ -156,6 +160,10 @@ export {
   XENOLITH_GRAPH_VERSION,
 } from './serialize.js'
 export { importFromReactFlow } from './import-reactflow.js'
+export {
+  reduceGraphChanges, snapshotGraph,
+  type GraphChanges, type NodeChange, type EdgeChange, type GraphMirror,
+} from './controlled.js'
 export type {
   ReactFlowGraph,
   ReactFlowNode,
@@ -893,6 +901,15 @@ export class XenolithEditor {
       bus: this.#events,
       canUndo: () => this.commandBus.canUndo(),
       canRedo: () => this.commandBus.canRedo(),
+    })
+
+    // E5 / ADR 0006 — commit-time controlled protocol: coalesced change-arrays on the public
+    // bus. One array per transaction/group commit, per top-level command, per undo/redo step.
+    createControlledBridge({
+      coreEvents: this.#coreEvents,
+      bus: this.commandBus,
+      graph: () => this.#displayGraph,
+      emit: (changes) => { this.#events.emit('graph:changed', { changes }) },
     })
 
     // View-sync: after every command apply/undo/redo, reconcile views with the graph model so
@@ -3771,6 +3788,22 @@ export class XenolithEditor {
   /** Replace the editor's contents with the contents of an `xenolith.v1` payload. Wipes the
    *  existing graph, selection, and viewport before reloading. Throws on malformed input — the
    *  editor is left in its previous state in that case. */
+  /** Apply a change-array back onto the graph (E5 / ADR 0006) — the write side of the
+   *  commit-time controlled protocol. Runs inside ONE transaction: one undo step, and (by
+   *  design) one `graph:changed` echo. Echo-idempotent: adding an existing id, removing a
+   *  missing id, and position writes equal to current are skipped — piping the editor's own
+   *  emission straight back converges instead of looping.
+   *
+   *  @example editor.applyChanges({ nodes: [{ type: 'position', id, position }], edges: [], unsupported: [] }) */
+  applyChanges(changes: GraphChanges): void {
+    applyChangesToBus({ bus: this.commandBus, graph: () => this.#displayGraph }, changes)
+  }
+
+  /** Snapshot the graph in the reducer-compatible shape (`reduceGraphChanges` input). */
+  getGraphMirror(): GraphMirror {
+    return snapshotGraph(this.graph.nodes(), this.graph.edges())
+  }
+
   /** Import a React Flow (xyflow) JSON export — `toObject()` output — replacing the current
    *  graph. Pin refs, dropped fields and structural mismatches are fully accounted in the
    *  returned {@link ImportReport}: nothing is lost silently. Pins are synthesized from the
@@ -3784,6 +3817,7 @@ export class XenolithEditor {
   }
 
   loadJSON(data: unknown): void {
+    const preLoadMirror = this.getGraphMirror() // for the E5 graph:changed replace burst
     // Pass the editor's registry into the parser so compact node JSON (no per-instance pins/widgets)
     // resolves shapes from registered schemas. Any `schemas[]` inline in the graph gets auto-
     // registered first (idempotent — already-registered types are kept as-is). Together these two
@@ -3868,6 +3902,9 @@ export class XenolithEditor {
     this.commandBus.clearHistory()
     this.#events.emit('graph:loaded', { nodeCount: parsed.nodes.length, edgeCount: parsed.edges.length })
     this.#events.emit('history:changed', { canUndo: false, canRedo: false })
+    // E5: the virtualized load path adds nodes/edges as DATA (no commands) — emit the synthetic
+    // replace burst so external mirrors converge onto the new document in one array.
+    this.#events.emit('graph:changed', { changes: documentReplacedChanges(preLoadMirror, this.getGraphMirror()) })
   }
 
   /** Re-attach a deserialized edge using its preserved id and pin-id endpoints — bypasses the
@@ -4342,12 +4379,15 @@ export class XenolithEditor {
   /** Remove every node and edge and drop the undo/redo history — a fast, allocation-light reset (no
    *  per-node commands, no selection glow). The right way to empty a large graph. */
   clear(): void {
+    const before = this.getGraphMirror()
     this.#clearAll()
     this.commandBus.clearHistory()
     this.#scheduleMinimapSync()
     this.#requestRender()
     this.#events.emit('graph:loaded', { nodeCount: 0, edgeCount: 0 })
     this.#events.emit('history:changed', { canUndo: false, canRedo: false })
+    // E5: document wipes bypass the bus — emit the synthetic replace burst so mirrors converge.
+    this.#events.emit('graph:changed', { changes: documentReplacedChanges(before, { nodes: [], edges: [] }) })
   }
 
   /** Clear every node status ring. */

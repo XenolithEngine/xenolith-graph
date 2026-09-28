@@ -18,12 +18,20 @@ export type CoreEvents = {
   'command:redone':        { command: Command<unknown> }
   'transaction:committed': { commands: Command<unknown>[] }
   'transaction:reverted':  { commands: Command<unknown>[] }
+  /** One event per undo()/redo() HISTORY STEP (ADR 0006): single commands and whole
+   *  transactions/groups alike. Carries per-command results so listeners can reconstruct
+   *  side effects (e.g. edges cascaded by RemoveNode) without diffing the graph. */
+  'history:undone':        { entries: readonly HistoryAppliedCommand[] }
+  'history:redone':        { entries: readonly HistoryAppliedCommand[] }
 }
 
-interface AppliedCommand {
+/** A command plus the result its apply() produced — the unit the history log stores. */
+export interface HistoryAppliedCommand {
   command: Command<unknown>
   result: unknown
 }
+
+type AppliedCommand = HistoryAppliedCommand
 
 type LogEntry =
   | { kind: 'single'; entry: AppliedCommand }
@@ -115,10 +123,12 @@ export class CommandBus {
     const entry = this.#log[this.#cursor]!
     if (entry.kind === 'single') {
       this.#undoOne(entry.entry)
+      this.#ctx.events.emit('history:undone', { entries: [entry.entry] })
     } else {
       for (let i = entry.entries.length - 1; i >= 0; i--) {
         this.#undoOne(entry.entries[i]!)
       }
+      this.#ctx.events.emit('history:undone', { entries: entry.entries })
     }
     return true
   }
@@ -131,10 +141,19 @@ export class CommandBus {
     this.#cursor++
     if (entry.kind === 'single') {
       this.#redoOne(entry.entry)
+      this.#ctx.events.emit('history:redone', { entries: [entry.entry] })
     } else {
       for (const e of entry.entries) this.#redoOne(e)
+      this.#ctx.events.emit('history:redone', { entries: entry.entries })
     }
     return true
+  }
+
+  /** True while applies are accumulating into a transaction or undo group — i.e. the commit
+   *  (`transaction:committed`) has not fired yet. Bridges use this to buffer per-command
+   *  events and emit ONE coalesced payload at commit (ADR 0006). */
+  get collecting(): boolean {
+    return this.#txBuffer !== null || this.#groupBuffer !== null
   }
 
   canUndo(): boolean { return this.#cursor > 0 }

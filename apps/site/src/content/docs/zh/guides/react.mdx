@@ -13,3 +13,12 @@ description: 使用 `<XenolithGraph>`、hooks、编辑器内面板组件和自�
 `useGraphJSON` / `useUndoRedo` / `useEditorEvent`, 编辑器内组件 (`<XenolithPanel>`,
 `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`), 自定义 React widget 使用
 `reactWidget(Component)`, 通过 `on*` props 处理事件。
+
+## 受控状态（提交时）
+
+React Flow 迁移者：`useNodesState()` 提供受控三元组 —— `nodes`、`edges`、`applyChanges`、
+`setNodes` —— 由**提交时**的 `graph:changed` 数组折叠而成（[ADR
+0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)）。
+与 React Flow 的一个刻意区别：位置在拖拽 COMMIT 时才到达，绝不逐帧 —— 拖拽期间 WebGL
+渲染器持有状态，你的组件树保持静止。`setNodes(next)` 以一个撤销步应用差异；回声是幂等的。
+Redux/Zustand 请直接使用纯 reducer `reduceGraphChanges`。

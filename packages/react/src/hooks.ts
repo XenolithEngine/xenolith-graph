@@ -1,6 +1,7 @@
 'use client'
-import { useCallback, useRef, useSyncExternalStore } from 'react'
-import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1 } from '@xenolithengine/graph-editor'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1, GraphChanges, GraphMirror } from '@xenolithengine/graph-editor'
+import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
 import { useXenolithEditor } from './context.js'
 
 // Canonical pattern: subscribe to an external (non-React) mutable store via `useSyncExternalStore`.
@@ -103,7 +104,6 @@ export const useGraphJSON: () => XenolithGraphV1 | null = makeEditorStoreHook(
   null as XenolithGraphV1 | null,
 )
 
-import { useEffect } from 'react'
 
 /**
  * Subscribe to a single editor event from a React component. Handler is auto-rebound when the
@@ -151,4 +151,73 @@ export function useUndoRedo(): { canUndo: boolean; canRedo: boolean; undo: () =>
     undo: useCallback(() => editor?.history.undo() ?? false, [editor]),
     redo: useCallback(() => editor?.history.redo() ?? false, [editor]),
   }
+}
+
+
+/**
+ * The controlled-state triple (E5 / ADR 0006): a local mirror of the graph folded from
+ * commit-time `graph:changed` arrays, plus the write side. This is the Redux/Zustand-legible
+ * pattern React migrants expect — with ONE deliberate difference from React Flow: positions
+ * arrive when a drag COMMITS, never per frame, so the component tree stays still while the
+ * renderer owns the drag.
+ *
+ * - `nodes` / `edges` — plain records, new references only when a committed change landed.
+ * - `applyChanges(changes)` — forward an array (yours, or an echo) to `editor.applyChanges`;
+ *   idempotent for echoes.
+ * - `setNodes(next)` — one-shot optimistic diff: pass the next nodes array (or an updater);
+ *   adds/removes/position/state deltas are applied to the editor as ONE undo step, and the
+ *   resulting `graph:changed` echo updates this mirror. Diffing rule is shallow: position by
+ *   coordinates, state by reference.
+ */
+export function useNodesState(): {
+  nodes: readonly Node[]
+  edges: readonly Edge[]
+  applyChanges: (changes: GraphChanges) => void
+  setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+} {
+  const editor = useXenolithEditor()
+  const [mirror, setMirror] = useState<GraphMirror>({ nodes: [], edges: [] })
+
+  useEffect(() => {
+    if (!editor) return
+    setMirror(snapshotGraph(editor.graph.nodes(), editor.graph.edges()))
+    const off = editor.on('graph:changed', ({ changes }) => {
+      setMirror((prev) => reduceGraphChanges(prev, changes))
+    })
+    return off
+  }, [editor])
+
+  const applyChanges = useCallback((changes: GraphChanges) => { editor?.applyChanges(changes) }, [editor])
+
+  const setNodes = useCallback((
+    next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[]),
+  ): void => {
+    if (!editor) return
+    const live = snapshotGraph(editor.graph.nodes(), editor.graph.edges())
+    const nextNodes = typeof next === 'function' ? next(live.nodes) : next
+    const changes: GraphChanges = { nodes: [], edges: [], unsupported: [] }
+    const byId = new Map(live.nodes.map((n) => [n.id as string, n]))
+    const seen = new Set<string>()
+    for (const n of nextNodes) {
+      const id = n.id as string
+      seen.add(id)
+      const prev = byId.get(id)
+      if (!prev) {
+        changes.nodes.push({ type: 'add', node: n })
+      } else {
+        if (prev.position.x !== n.position.x || prev.position.y !== n.position.y) {
+          changes.nodes.push({ type: 'position', id: n.id, position: { ...n.position } })
+        }
+        if (prev.state !== n.state) {
+          changes.nodes.push({ type: 'data', id: n.id, state: { ...n.state } })
+        }
+      }
+    }
+    for (const prev of live.nodes) {
+      if (!seen.has(prev.id as string)) changes.nodes.push({ type: 'remove', id: prev.id })
+    }
+    if (changes.nodes.length > 0) editor.applyChanges(changes)
+  }, [editor])
+
+  return { nodes: mirror.nodes, edges: mirror.edges, applyChanges, setNodes }
 }

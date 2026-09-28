@@ -16,7 +16,7 @@ export {
   type PanelPosition, type XenolithPanelProps, type XenolithButtonProps,
   type XenolithControlsProps, type XenolithMiniMapProps,
 } from './components.js'
-export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useEditorEvent, useUndoRedo } from './hooks.js'
+export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useEditorEvent, useUndoRedo, useNodesState } from './hooks.js'
 export { reactWidget, type WidgetProps } from './react-widget.js'
 
 export interface XenolithGraphProps extends XenolithProps, EventCallbacks {
