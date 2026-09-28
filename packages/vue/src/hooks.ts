@@ -1,9 +1,12 @@
-import { onUnmounted, readonly, shallowRef, watch, type DeepReadonly, type ShallowRef } from 'vue'
+import { computed, onUnmounted, readonly, shallowRef, watch, type DeepReadonly, type ShallowRef } from 'vue'
 
 type ReadonlyRef<T> = DeepReadonly<ShallowRef<T>>
 import type {
   EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1,
+  GraphChanges, GraphMirror,
 } from '@xenolithengine/graph-editor'
+import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
+import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 import { useEditor } from './index.js'
 
 /** Build a reactive store hook that recomputes its value on every event in `events`. Mirrors
@@ -119,4 +122,66 @@ export function useUndoRedo(): {
     undo: () => editor.value?.history.undo() ?? false,
     redo: () => editor.value?.history.redo() ?? false,
   }
+}
+
+/**
+ * The controlled-state triple (E5 / ADR 0006), Vue edition — 1:1 port of React's
+ * `useNodesState`: a local mirror of the graph folded from commit-time `graph:changed` arrays,
+ * plus the write side. The Pinia/Vuex-migrant pattern: keep the graph in YOUR store shape,
+ * mutate through the editor as one undo step, let the echo converge the mirror.
+ *
+ * Like React's version, positions arrive when a drag COMMITS, never per frame — the component
+ * tree stays still while the renderer owns the drag.
+ *
+ * - `nodes` / `edges` — readonly refs of plain records; new references only when a committed
+ *   change landed (mirror folds via `reduceGraphChanges`).
+ * - `applyChanges(changes)` — forward an array (yours, or an echo) to `editor.applyChanges`;
+ *   idempotent for echoes.
+ * - `setNodes(next)` — one-shot optimistic diff (adapter-core `diffNodesToChanges`): pass the
+ *   next nodes array (or an updater receiving the LIVE mirror); adds/removes/position/state
+ *   deltas land on the editor as ONE undo step, and the `graph:changed` echo updates the
+ *   mirror. Position diffs by coordinates, state by reference.
+ *
+ * @example
+ *   const { nodes, setNodes } = useNodesState()
+ *   // in a template: v-for="n in nodes" — and a button:
+ *   // addNode() => setNodes(prev => [...prev, { id: 'x', ... }])
+ */
+export function useNodesState(): {
+  nodes: ReadonlyRef<readonly Node[]>
+  edges: ReadonlyRef<readonly Edge[]>
+  applyChanges: (changes: GraphChanges) => void
+  setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+} {
+  const editor = useEditor()
+  const mirror = shallowRef<GraphMirror>({ nodes: [], edges: [] })
+  let off: (() => void) | null = null
+
+  watch(editor, (e) => {
+    off?.(); off = null
+    if (!e) { mirror.value = { nodes: [], edges: [] }; return }
+    mirror.value = snapshotGraph(e.graphNodes(), e.graphEdges())
+    off = e.on('graph:changed', ({ changes }) => {
+      mirror.value = reduceGraphChanges(mirror.value, changes)
+    })
+  }, { immediate: true })
+  onUnmounted(() => { off?.(); off = null })
+
+  const applyChanges = (changes: GraphChanges): void => { editor.value?.applyChanges(changes) }
+
+  const setNodes = (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])): void => {
+    const e = editor.value
+    if (!e) return
+    const live = snapshotGraph(e.graphNodes(), e.graphEdges())
+    const nextNodes = typeof next === 'function' ? next(live.nodes) : next
+    const changes = diffNodesToChanges(live, nextNodes)
+    if (changes.nodes.length > 0) e.applyChanges(changes)
+  }
+
+  // computed so consumers re-render only when the mirror actually moved; the cast matches the
+  // package-wide ReadonlyRef surface the other store hooks already expose.
+  const nodes = computed(() => mirror.value.nodes) as unknown as ReadonlyRef<readonly Node[]>
+  const edges = computed(() => mirror.value.edges) as unknown as ReadonlyRef<readonly Edge[]>
+
+  return { nodes, edges, applyChanges, setNodes }
 }

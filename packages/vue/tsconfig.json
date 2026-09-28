@@ -24,6 +24,9 @@
     },
     {
       "path": "../adapter-core"
+    },
+    {
+      "path": "../test-utils"
     }
   ]
 }

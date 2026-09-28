@@ -11,7 +11,7 @@ import {
 import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 
 export { vueWidget, type WidgetProps } from './widget.js'
-export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo } from './hooks.js'
+export { useNodes, useEdges, useSelection, useViewport, useGraphJSON, useUndoRedo, useNodesState } from './hooks.js'
 export {
   XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap, XenolithProposalQueue,
   type PanelPosition,

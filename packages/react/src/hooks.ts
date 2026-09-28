@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1, GraphChanges, GraphMirror } from '@xenolithengine/graph-editor'
 import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
+import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 import { useXenolithEditor } from './context.js'
 
 // Canonical pattern: subscribe to an external (non-React) mutable store via `useSyncExternalStore`.
@@ -200,27 +201,7 @@ export function useNodesState(): {
     if (!editor) return
     const live = snapshotGraph(editor.graphNodes(), editor.graphEdges())
     const nextNodes = typeof next === 'function' ? next(live.nodes) : next
-    const changes: GraphChanges = { nodes: [], edges: [], unsupported: [] }
-    const byId = new Map(live.nodes.map((n) => [n.id as string, n]))
-    const seen = new Set<string>()
-    for (const n of nextNodes) {
-      const id = n.id as string
-      seen.add(id)
-      const prev = byId.get(id)
-      if (!prev) {
-        changes.nodes.push({ type: 'add', node: n })
-      } else {
-        if (prev.position.x !== n.position.x || prev.position.y !== n.position.y) {
-          changes.nodes.push({ type: 'position', id: n.id, position: { ...n.position } })
-        }
-        if (prev.state !== n.state) {
-          changes.nodes.push({ type: 'data', id: n.id, state: { ...n.state } })
-        }
-      }
-    }
-    for (const prev of live.nodes) {
-      if (!seen.has(prev.id as string)) changes.nodes.push({ type: 'remove', id: prev.id })
-    }
+    const changes = diffNodesToChanges(live, nextNodes)
     if (changes.nodes.length > 0) editor.applyChanges(changes)
   }, [editor])
 

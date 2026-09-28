@@ -3,6 +3,7 @@ import { applyProps, type XenolithProps } from './props.js'
 
 export type { XenolithProps } from './props.js'
 export { applyProps, type EditorLike } from './props.js'
+export { diffNodesToChanges } from './controlled-diff.js'
 
 /** The canonical public editor event names. Every adapter derives its idiomatic surface from this
  *  single list (React `onNodeClick`, Vue `@node-click`, DOM `node:click`, …). Includes the four
