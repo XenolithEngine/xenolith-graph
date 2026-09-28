@@ -119,6 +119,7 @@ export default defineConfig({
             { slug: 'guides/install' },
             { slug: 'guides/init' },
             { slug: 'guides/api' },
+            { slug: 'guides/migrate-react-flow' },
           ],
         },
         {

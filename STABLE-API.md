@@ -48,6 +48,7 @@ but are deprecated and will be removed in v1.0.
 | `editor.destroy()`, `editor.isDestroyed` | |
 | `editor.on(event, handler)` → `Unsubscribe` | The 24 public events listed below. |
 | `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()` | Same data — `getGraphReadonly` is the new name. |
+| `importFromReactFlow(json, opts?)` → `{ doc, report }`, `editor.importReactFlow(json, opts?)` → `ImportReport` | React Flow (xyflow) `toObject()` JSON → xenolith.v1. Pins synthesized from edge handles (`inferType` or `schemas[]` for typing), loss accounting in the report — nothing drops silently. Guide: Migrate from React Flow. |
 | `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.disconnect`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
 | `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId` | **The canonical wire API.** Refs (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` = the node's single pin of that direction. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs. |
 | `editor.setNodeStatus`, `editor.clearNodeStatuses` | |

@@ -69,7 +69,7 @@ editor.commands.register({
   id: Commands.Undo,
   label: 'Undo',
   hotkey: 'Mod+Z',                   // Mod = Cmd on macOS, Ctrl elsewhere
-  execute: () => editor.undo(),
+  execute: () => editor.history.undo(),
   canExecute: () => editor.canUndo(),
 })
 

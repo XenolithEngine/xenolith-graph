@@ -211,7 +211,7 @@ test.describe('pin context menu — right-click → Unbind', () => {
       const e = (window as unknown as Record<string, any>)[key]
       e.clear()
       e.registry.register({ type: 'A', title: 'A', pins: [{ kind: 'data', direction: 'out', type: 'any', label: 'out' }] })
-      e.registry.register({ type: 'B', title: 'B', pins: [{ kind: 'data', direction: 'in', type: 'any', label: 'in' }, { kind: 'data', direction: 'out', type: 'any', label: 'out' }] })
+      e.registry.register({ type: 'B', title: 'B', pins: [{ kind: 'data', direction: 'in', type: 'any', label: 'in', multiple: true }, { kind: 'data', direction: 'out', type: 'any', label: 'out' }] }) // in-pin takes TWO wires below — canonical connect enforces capacity since E2
       e.insertNode('A', { x: -400, y: 0 }, { center: true })
       e.insertNode('A', { x: -400, y: 200 }, { center: true })
       e.insertNode('B', { x: 0, y: 100 }, { center: true })

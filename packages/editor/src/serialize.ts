@@ -1,5 +1,5 @@
 import type { Edge, Node, NodeId, EdgeId, Pin, WidgetSpec, Comment, TemplateDefinition, TemplateDefId, NodeGlyph, NodeSchema, NodeRegistry } from '@xenolithengine/graph-core'
-import type { RenderEdgeOptions, RenderNodeOptions, GraphCategoryPalette, CategoryColorSpec } from '@xenolithengine/graph-render-pixi'
+import type { EdgePathStyle, RenderEdgeOptions, RenderNodeOptions, GraphCategoryPalette, CategoryColorSpec } from '@xenolithengine/graph-render-pixi'
 
 export const XENOLITH_GRAPH_VERSION = 'xenolith.v1' as const
 export type XenolithGraphVersion = typeof XENOLITH_GRAPH_VERSION
@@ -74,7 +74,7 @@ export interface XenolithEdgeV1 {
   id: string
   from: { node: string; pin: string }
   to:   { node: string; pin: string }
-  opts?: { sourceType?: string; label?: string; markerEnd?: 'arrow' | 'none'; animated?: boolean }
+  opts?: { sourceType?: string; label?: string; markerEnd?: 'arrow' | 'none'; animated?: boolean; pathStyle?: EdgePathStyle }
 }
 
 export interface SerializeInput {
@@ -161,6 +161,7 @@ function serializeEdge(e: Readonly<Edge>, opts: RenderEdgeOptions | undefined): 
     if (opts.label !== undefined) o.label = opts.label
     if (opts.markerEnd !== undefined && opts.markerEnd !== 'none') o.markerEnd = opts.markerEnd
     if (opts.animated) o.animated = true
+    if (opts.pathStyle !== undefined && opts.pathStyle !== 'bezier') o.pathStyle = opts.pathStyle // bezier is the renderer default — omit for byte-lean docs
     if (Object.keys(o).length > 0) out.opts = o
   }
   return out
@@ -407,6 +408,8 @@ function parseEdge(v: unknown, idx: number): { edge: Edge; opts?: RenderEdgeOpti
     if (typeof rawOpts['label'] === 'string') o.label = rawOpts['label']
     if (rawOpts['markerEnd'] === 'arrow') o.markerEnd = 'arrow'
     if (rawOpts['animated'] === true) o.animated = true
+    const ps = rawOpts['pathStyle']
+    if (ps === 'step' || ps === 'smoothstep' || ps === 'linear') o.pathStyle = ps
     if (Object.keys(o).length > 0) opts = o
   }
   return opts ? { edge, opts } : { edge }

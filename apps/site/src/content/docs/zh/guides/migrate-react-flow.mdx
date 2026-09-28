@@ -1,0 +1,96 @@
+---
+title: 从 React Flow 迁移
+description: 用 JSON 导入器把 React Flow (xyflow) 图带入 XenolithGraph，并把心智模型 —— Handle、nodeTypes、受控状态 —— 翻译为类型化引脚、schema 和 command bus。
+---
+
+你有一个 React Flow 应用，想要 WebGL 画布、类型化引脚或 MCP 能力。分两步：**机械地导入图**（一次函数调用），以及**翻译心智模型**（两个库真正不同的地方）。本页覆盖两者 —— 包括导入器无法保留之处的诚实清单。
+
+## 导入图
+
+输入是 React Flow 的 `toObject()` 输出；不需要 reactflow 依赖（导入器零依赖，接受纯 JSON）：
+
+```ts
+import { importFromReactFlow } from '@xenolithengine/graph-editor'
+
+const rfJson = rfInstance.toObject()           // { nodes, edges, viewport }
+const { doc, report } = importFromReactFlow(rfJson, {
+  // 可选：给合成的引脚真实类型
+  inferType: ({ nodeType, handle }) =>
+    nodeType === 'number' ? 'float' : undefined,   // undefined → 'any' 通配
+  // 可选：类型匹配 schemas[] 的节点改用 schema 的引脚
+  schemas: [myNodeSchemas],
+})
+
+editor.loadJSON(doc)   // 或一行：const report = editor.importReactFlow(rfJson, opts)
+```
+
+模型对齐之处几乎是 1:1 映射：
+
+| React Flow | xenolith.v1 |
+|---|---|
+| `node.id` / `node.type` / `node.position` | 原样（缺类型 → `'default'`) |
+| `node.data` | 原样进 `node.state`；`data.label` 额外成为节点标题 |
+| `edge.id` / `source` / `target` / handle | 原样（缺失的边 id 会合成） |
+| `edge.type`：`default`/`simplebezier` → `bezier`、`straight` → `linear`、`step`、`smoothstep` | `edge.opts.pathStyle` |
+| `edge.animated`、`edge.label`、箭头 `markerEnd` | `edge.opts.animated` / `.label` / `.markerEnd` |
+| `viewport` | `viewport` |
+| 边引用到的 handle | **引脚** —— 每个唯一的 `(node, handle, direction)` 一个；label = handle id，`multiple: true`，类型来自 `inferType` 或 `'any'` |
+| 类型匹配 `schemas[]` 的节点上的 handle | schema 的类型化引脚；handle 按label（忽略大小写）、数字索引或引脚 id 解析 |
+
+## 损失报告
+
+没有任何东西被静默丢弃 —— 导入器返回完整账目：
+
+```ts
+interface ImportReport {
+  counts: { nodes: number; edges: number; pins: number }
+  unknownNodes: string[]                 // 边指向不存在的节点（该边被丢弃）
+  unknownHandles: { edgeId, side, nodeId, handle }[]  // handle 未匹配到 schema 引脚（该边被丢弃）
+  droppedFields: Record<string, number>  // 'node.width': 14, 'edge.style': 3, …
+  warnings: string[]                     // 如 subflow 层级、合成 'any' 引脚
+}
+```
+
+**不**会保留的完整清单：
+
+- **Subflow 层级**（`parentId` / group 节点）。子节点导入为顶层节点 —— 导入后用宏分组
+  （`editor.createMacroFromSelection`）。
+- **RF 实测几何**（`node.width` / `node.height`、`sourcePosition` / `targetPosition`）。
+  Xenolith 从 schema 计算节点尺寸；声明式引脚几何正是它在 1000+ 节点保持快速的原因之一。
+- **呈现状态**（`selected`、`dragging`、`hidden`、`style`、`className`、`zIndex` 等）以及
+  超出路径样式/标签/箭头的边样式（`edge.style`、`markerStart`、自定义 marker 颜色）。
+- **没有边引用的 handle** —— React Flow 的 JSON 根本不声明 handle（它们在你的组件里），
+  所以引脚只能从边实际使用的内容合成。想要完整图景请传 `schemas[]`。
+- **自定义边类型** —— `default`/`simplebezier`/`straight`/`step`/`smoothstep` 之外的都计入
+  `edge.type` 并回退到 bezier。
+
+## 心智模型翻译
+
+渲染器和状态模型是两个库真正不同的地方。
+
+| React Flow 概念 | XenolithGraph 等价物 |
+|---|---|
+| `<ReactFlow nodes={} edges={}>`（受控 props） | `editor.loadJSON(doc)` / `editor.toJSON()` —— 文档即状态。提交时的变更协议已在计划中；今天通过钩子读实时快照、通过编辑器做变更。 |
+| `useNodesState` / `applyNodeChanges` | `useNodes` / `useEdges` / `useSelection` / `useViewport` 钩子（React 适配器）—— 选择性订阅，而不是每次拖拽重渲染一切。 |
+| JSX 里的 `<Handle type="source">` | 在 `NodeSchema` 里一次声明的类型化引脚（`{ direction: 'out', type: 'float', label: 'Out' }`）。连线强制类型；`any` 是显式通配。 |
+| `nodeTypes` + 自定义节点组件 | schema + **DOM widget**（`reactWidget` 包装、`freeFloating` 节点内控件、侧栏）。节点体由渲染器绘制 —— 这正是 WebGL 护城河；你的 HTML 活在 widget 里。 |
+| `node.data` | `node.state`（widget 值）；导入器原样映射。 |
+| `onConnect` → `addEdge` | `editor.connect(from, 'Out', to, 'In')` —— 解析 label、可撤销、类型门控。 |
+| `isValidConnection` | `editor.setIsValidConnection(predicate)` —— 同样的钩子，外加内建类型兼容。 |
+| `onNodesChange`（拖拽更新） | 没有逐帧回调 —— 位置在提交前属于渲染器。改听 `node:moved` 和 `graph:changed` 级别的事件。 |
+| `<Background>`、`<Controls>`、`<MiniMap>` | 内建：`editor.chrome.setControls()`、minimap、网格 —— 无需挂载组件。 |
+| CSS 主题化 | [设计令牌](/zh/guides/theme/)（Xen、Daylight、Liquid Glass）—— 颜色、几何与排版即数据。 |
+| 用 `@testing-library` + jsdom 测试 | [`@xenolithengine/graph-test-utils`](/zh/guides/testing/) —— 真实编辑器在 jsdom 下启动。 |
+
+最深的差异：React Flow 在每个拖拽帧重渲染组件树；XenolithGraph 的渲染器拥有画布，DOM 保持静止。React 留给面板、工具栏和应用状态 —— 编辑器表面是命令式 + 事件式的，像 map 或 editor 实例，而不是 props 树。
+
+## 导入之后
+
+```ts
+const report = editor.importReactFlow(rfJson, { schemas: mySchemas })
+if (report.unknownNodes.length) console.warn('丢弃的边 →', report.unknownNodes)
+editor.view.fitView({ padding: 80 })      // 框住导入的布局
+editor.history.clear()                    // 让第一个 Ctrl+Z 不回滚导入本身
+```
+
+为你的节点类型注册 schema（调色板、widget、真实引脚类型），然后带 `schemas` 重新导入 —— 或在 `loadJSON` 前后处理 `doc`。你的应用继续使用那份为 React Flow 做版本管理的同一 JSON。

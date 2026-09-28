@@ -41,7 +41,7 @@ A document is `{ version: 'xenolith.v1', nodes: [...], edges: [...], viewport? }
 ```ts
 for (const schema of schemas) editor.registry.register(schema)  // so Tab can spawn them
 editor.loadJSON(graphDoc)
-editor.fitView()
+editor.view.fitView()
 ```
 
 ## Framing the view
@@ -49,9 +49,9 @@ editor.fitView()
 `fitView` computes the bounding box of every node and frames it in the canvas — the reliable way to reveal a freshly loaded graph, however large.
 
 ```ts
-editor.fitView()                                  // 64px padding, never zooms past 1×
-editor.fitView({ padding: 80, maxZoom: 1 })       // more margin
-editor.resetView()                                // back to identity
+editor.view.fitView()                                  // 64px padding, never zooms past 1×
+editor.view.fitView({ padding: 80, maxZoom: 1 })       // more margin
+editor.view.resetView()                                // back to identity
 ```
 
 | Option    | Default              | Meaning                                    |
@@ -101,7 +101,7 @@ Heavy first renders (large graphs) can be wrapped in a themeable blur-and-spinne
 ```ts
 await editor.withOverlay('Rendering…', () => {
   editor.loadJSON(bigGraph)
-  editor.fitView()
+  editor.view.fitView()
 })
 
 // Or drive it manually:

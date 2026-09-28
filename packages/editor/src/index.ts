@@ -148,12 +148,21 @@ import {
   serializeXenolithGraph,
   type XenolithGraphV1,
 } from './serialize.js'
+import { importFromReactFlow, type ImportReactFlowOptions, type ImportReport } from './import-reactflow.js'
 
 export {
   parseXenolithGraph,
   serializeXenolithGraph,
   XENOLITH_GRAPH_VERSION,
 } from './serialize.js'
+export { importFromReactFlow } from './import-reactflow.js'
+export type {
+  ReactFlowGraph,
+  ReactFlowNode,
+  ReactFlowEdge,
+  ImportReactFlowOptions,
+  ImportReport,
+} from './import-reactflow.js'
 export type {
   XenolithGraphV1,
   XenolithNodeV1,
@@ -3762,6 +3771,18 @@ export class XenolithEditor {
   /** Replace the editor's contents with the contents of an `xenolith.v1` payload. Wipes the
    *  existing graph, selection, and viewport before reloading. Throws on malformed input — the
    *  editor is left in its previous state in that case. */
+  /** Import a React Flow (xyflow) JSON export — `toObject()` output — replacing the current
+   *  graph. Pin refs, dropped fields and structural mismatches are fully accounted in the
+   *  returned {@link ImportReport}: nothing is lost silently. Pins are synthesized from the
+   *  handles edges use (typed via `inferType` or matching `schemas`); see `import-reactflow.ts`
+   *  for the exact mapping. Pure counterpart: `importFromReactFlow(json, opts)` if you want the
+   *  document without loading it. */
+  importReactFlow(json: unknown, opts?: ImportReactFlowOptions): ImportReport {
+    const { doc, report } = importFromReactFlow(json, opts)
+    this.loadJSON(doc)
+    return report
+  }
+
   loadJSON(data: unknown): void {
     // Pass the editor's registry into the parser so compact node JSON (no per-instance pins/widgets)
     // resolves shapes from registered schemas. Any `schemas[]` inline in the graph gets auto-
@@ -4902,10 +4923,17 @@ export class XenolithEditor {
   /** Update an edge's render options (label / arrowhead marker / animated flow / wire colour).
    *  Merges over the existing options, repaints, and persists through serialization. */
   setEdgeOptions(edgeId: EdgeId, opts: Partial<RenderEdgeOptions>): void {
+    if (!this.graph.getEdge(edgeId)) return
+    // Data-first: the opts map is the source of truth (it feeds toJSON and later re-materialise),
+    // so ALWAYS merge here — even when the edge has no rendered record yet. Bus-routed connects
+    // (the canonical path since E2) materialise in the scheduled microtask sync, and culled/
+    // virtualized edges have no record either; the old `if (!rec) return` silently DROPPED opts
+    // for both (observed as embed-gaps e2e: setEdgeOptions right after connect lost pathStyle).
+    const merged: RenderEdgeOptions = { ...(this.#edgeOpts.get(edgeId) ?? {}), ...opts }
+    this.#edgeOpts.set(edgeId, merged)
     const rec = this.#edgeRecords.get(edgeId)
-    if (!rec) return
-    rec.opts = { ...rec.opts, ...opts }
-    this.#edgeOpts.set(edgeId, rec.opts)
+    if (!rec) { this.#requestRender(); return }
+    rec.opts = { ...merged }
     if (rec.opts.animated) this.#animatedEdges.add(edgeId)
     else this.#animatedEdges.delete(edgeId)
     // Force a repaint even if endpoints are unchanged (label/marker/colour may have changed).

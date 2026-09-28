@@ -46,7 +46,7 @@ const doc = editor.toJSON()        // сериализовать ноды + св
 ```ts
 for (const schema of schemas) editor.registry.register(schema)  // чтобы Tab мог их создавать
 editor.loadJSON(graphDoc)
-editor.fitView()
+editor.view.fitView()
 ```
 
 ## Вписывание вида
@@ -54,9 +54,9 @@ editor.fitView()
 `fitView` считает общий bounding box всех нод и вписывает его в канвас — надёжный способ показать только что загруженный граф любого размера.
 
 ```ts
-editor.fitView()                                  // отступ 64px, не приближает больше 1×
-editor.fitView({ padding: 80, maxZoom: 1 })
-editor.resetView()                                // вернуться к единичному виду
+editor.view.fitView()                                  // отступ 64px, не приближает больше 1×
+editor.view.fitView({ padding: 80, maxZoom: 1 })
+editor.view.resetView()                                // вернуться к единичному виду
 ```
 
 | Опция     | По умолчанию              | Значение                                   |
@@ -102,7 +102,7 @@ editor.deleteEdge(edgeId)
 ```ts
 await editor.withOverlay('Rendering…', () => {
   editor.loadJSON(bigGraph)
-  editor.fitView()
+  editor.view.fitView()
 })
 
 // Или вручную:

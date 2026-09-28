@@ -77,7 +77,12 @@ test('adding + renaming an Input inside a dived template flows out to a new inst
     const inp = e.insertNode('$templateInput', { x: -40, y: 360 })!
     const inpNode = e.graph.getNode(inp.id)!
     const stepNode = e.graph.getNode('bk_compress')!
-    e.connect(inpNode, 0, stepNode, 0)
+    // Fixture wiring, not a connect() test: inside a just-dived definition the edge index may
+    // lag the graph swap (microtask sync), so the canonical gate can see stale capacity —
+    // addEdge is the documented raw escape hatch for exactly this kind of setup wire.
+    const outPin = String(inpNode.pins.find((p) => p.direction === 'out')!.id)
+    const anyIn = String(stepNode.pins.find((p) => p.direction === 'in')!.id)
+    e.addEdge({ id: 'spec-wire-' + Math.random().toString(36).slice(2, 8), from: { node: String(inpNode.id), pin: outPin }, to: { node: String(stepNode.id), pin: anyIn } })
     ;(inpNode.pins[0] as { label?: string }).label = 'Extra' // rename → interface pin label
     e.diveOut()
     const inst = e.graph.getNode('backup')!
@@ -122,7 +127,13 @@ test('instance node widens for a long pin label; a long title stays capped (elli
     e.diveInto('backup')
     const inp = e.insertNode('$templateInput', { x: -60, y: 360 })!
     const inpNode = e.graph.getNode(inp.id)!
-    e.connect(inpNode, 0, e.graph.getNode('bk_compress')!, 0)
+    const stepNode = e.graph.getNode('bk_compress')!
+    // Fixture wiring, not a connect() test: inside a just-dived definition the edge index may
+    // lag the graph swap (microtask sync), so the canonical gate can see stale capacity —
+    // addEdge is the documented raw escape hatch for exactly this kind of setup wire.
+    const outPin = String(inpNode.pins.find((p) => p.direction === 'out')!.id)
+    const anyIn = String(stepNode.pins.find((p) => p.direction === 'in')!.id)
+    e.addEdge({ id: 'spec-wire-' + Math.random().toString(36).slice(2, 8), from: { node: String(inpNode.id), pin: outPin }, to: { node: String(stepNode.id), pin: anyIn } })
     ;(inpNode.pins[0] as { label?: string }).label = 'a_really_long_interface_pin_label_xxxxxxxxxxxxxxxx'
     e.diveOut()
     const wideForPin = widthOf('backup')

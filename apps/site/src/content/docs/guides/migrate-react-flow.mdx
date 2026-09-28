@@ -1,0 +1,108 @@
+---
+title: Migrate from React Flow
+description: Bring a React Flow (xyflow) graph into XenolithGraph with the JSON importer, and translate the mental models — Handles, nodeTypes, controlled state — to typed pins, schemas and the command bus.
+---
+
+You have a React Flow app and want the WebGL canvas, typed pins or the MCP surface instead. Two
+parts: **mechanically import your graph** (one function call), and **translate the mental
+model** (where the two libraries genuinely differ). This page covers both — including an honest
+list of everything the importer cannot carry.
+
+## Import a graph
+
+React Flow's `toObject()` output is the input; no reactflow dependency is involved (the importer
+is dependency-free and accepts plain JSON):
+
+```ts
+import { importFromReactFlow } from '@xenolithengine/graph-editor'
+
+const rfJson = rfInstance.toObject()           // { nodes, edges, viewport }
+const { doc, report } = importFromReactFlow(rfJson, {
+  // optional: give synthesized pins real types
+  inferType: ({ nodeType, handle }) =>
+    nodeType === 'number' ? 'float' : undefined,   // undefined → 'any' wildcard
+  // optional: nodes whose type matches a schema use ITS pins instead
+  schemas: [myNodeSchemas],
+})
+
+editor.loadJSON(doc)   // or: const report = editor.importReactFlow(rfJson, opts) — one call
+```
+
+The mapping is near 1:1 where the models align:
+
+| React Flow | xenolith.v1 |
+|---|---|
+| `node.id` / `node.type` / `node.position` | verbatim (missing type → `'default'`) |
+| `node.data` | `node.state` verbatim; `data.label` additionally becomes the node title |
+| `edge.id` / `source` / `target` / handles | verbatim (missing edge ids synthesized) |
+| `edge.type`: `default`/`simplebezier` → `bezier`, `straight` → `linear`, `step`, `smoothstep` | `edge.opts.pathStyle` |
+| `edge.animated`, `edge.label`, arrow `markerEnd` | `edge.opts.animated` / `.label` / `.markerEnd` |
+| `viewport` | `viewport` |
+| Handles used by edges | **pins** — one per unique `(node, handle, direction)`; label = handle id, `multiple: true`, type from `inferType` or `'any'` |
+| Handles on a node with a matching `schemas[]` entry | the schema's typed pins; handles resolve by label (case-insensitive), numeric index, or pin id |
+
+## The loss report
+
+Nothing is dropped silently — the importer returns a full accounting:
+
+```ts
+interface ImportReport {
+  counts: { nodes: number; edges: number; pins: number }
+  unknownNodes: string[]                 // edge endpoints that reference missing nodes (edge dropped)
+  unknownHandles: { edgeId, side, nodeId, handle }[]  // handle matched no schema pin (edge dropped)
+  droppedFields: Record<string, number>  // 'node.width': 14, 'edge.style': 3, …
+  warnings: string[]                     // e.g. subflow parenting, synthesized 'any' pins
+}
+```
+
+The complete list of what does **not** survive:
+
+- **Subflow parenting** (`parentId` / group nodes). Children import as top-level nodes — group
+  them with macros afterwards (`editor.createMacroFromSelection`).
+- **RF-measured geometry** (`node.width` / `node.height`, `sourcePosition` / `targetPosition`).
+  Xenolith computes node size from the schema; declared pin geometry is one reason it stays fast
+  at 1000+ nodes.
+- **Presentation state** (`selected`, `dragging`, `hidden`, `style`, `className`, `zIndex`, …)
+  and edge styling beyond path style/label/arrow (`edge.style`, `markerStart`, custom marker
+  colors).
+- **Handles no edge references** — RF JSON does not declare handles at all (they live in your
+  components), so pins can only be synthesized from what edges actually use. Give `schemas[]`
+  for the full picture.
+- **Custom edge types** — anything outside `default`/`simplebezier`/`straight`/`step`/
+  `smoothstep` is counted under `edge.type` and falls back to bezier.
+
+## Mental-model translation
+
+The renderer and the state model are where the libraries genuinely differ.
+
+| React Flow concept | XenolithGraph equivalent |
+|---|---|
+| `<ReactFlow nodes={} edges={}>` (controlled props) | `editor.loadJSON(doc)` / `editor.toJSON()` — the document is the state. A commit-time change protocol is planned; today you read live snapshots via hooks and mutate through the editor. |
+| `useNodesState` / `applyNodeChanges` | `useNodes` / `useEdges` / `useSelection` / `useViewport` hooks (React adapter) — selective subscriptions instead of re-rendering the world per drag. |
+| `<Handle type="source">` in JSX | Typed pins declared once in a `NodeSchema` (`{ direction: 'out', type: 'float', label: 'Out' }`). Wiring enforces types; `any` is the explicit wildcard. |
+| `nodeTypes` + custom node component | Schema + **DOM widgets** (`reactWidget` wrappers, `freeFloating` in-node controls, sidebar). The node body is renderer-drawn — that's the WebGL moat; your HTML lives in widgets. |
+| `node.data` | `node.state` (widget values); the importer maps it verbatim. |
+| `onConnect` → `addEdge` | `editor.connect(from, 'Out', to, 'In')` — label-resolving, undoable, type-gated. |
+| `isValidConnection` | `editor.setIsValidConnection(predicate)` — same hook, plus built-in type compatibility. |
+| `onNodesChange` (drag updates) | Nothing per-frame — positions are renderer-owned until commit. Listen to `node:moved` / `graph:changed`-level events instead. |
+| `<Background>`, `<Controls>`, `<MiniMap>` | Built-in: `editor.chrome.setControls()`, minimap, grid — no components to mount. |
+| Theming via CSS | [Design tokens](/guides/theme/) (Xen, Daylight, Liquid Glass) — colour, geometry and typography as data. |
+| Testing with `@testing-library` + jsdom | [`@xenolithengine/graph-test-utils`](/guides/testing/) — the real editor boots under jsdom. |
+
+The deepest difference: React Flow re-renders your component tree on every drag frame;
+XenolithGraph's renderer owns the canvas and the DOM stays still. You keep React for panels,
+toolbars and app state — the editor surface is imperative + evented, like a map or an editor
+instance, not a props tree.
+
+## After the import
+
+```ts
+const report = editor.importReactFlow(rfJson, { schemas: mySchemas })
+if (report.unknownNodes.length) console.warn('dropped edges →', report.unknownNodes)
+editor.view.fitView({ padding: 80 })      // frame the imported layout
+editor.history.clear()                    // so the first Ctrl+Z doesn't unwind the import
+```
+
+Register schemas for your node types (palette search, widgets, real pin types), then re-import
+with `schemas` — or post-process `doc` before `loadJSON`. Your app keeps working against the
+same JSON you version-controlled for React Flow.

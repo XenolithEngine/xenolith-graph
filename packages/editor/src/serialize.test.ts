@@ -231,6 +231,30 @@ describe('serializeXenolithGraph', () => {
     expect(parsed.edgeOpts.get('e1')).toEqual({ label: 'A→B', markerEnd: 'arrow', animated: true })
   })
 
+  it('round-trips non-default pathStyle; bezier (the renderer default) is omitted for lean docs', () => {
+    const serialized = serializeXenolithGraph(input({
+      edges: [mkEdge('e1', 'n1', 'p1', 'n2', 'p2'), mkEdge('e2', 'n2', 'p2', 'n1', 'p1')],
+      edgeOpts: new Map([
+        ['e1', { pathStyle: 'smoothstep' as const }],
+        ['e2', { pathStyle: 'bezier' as const }],
+      ]),
+    }))
+    expect(serialized.edges[0]!.opts).toEqual({ pathStyle: 'smoothstep' })
+    expect(serialized.edges[1]!.opts).toBeUndefined()
+    const parsed = parseXenolithGraph(serialized as unknown)
+    expect(parsed.edgeOpts.get('e1')).toEqual({ pathStyle: 'smoothstep' })
+    expect(parsed.edgeOpts.get('e2')).toBeUndefined()
+  })
+
+  it('parse rejects unknown pathStyle literals (forward-compat: unknown values drop, not crash)', () => {
+    const parsed = parseXenolithGraph({
+      version: 'xenolith.v1',
+      nodes: [],
+      edges: [{ id: 'e1', from: { node: 'a', pin: 'p' }, to: { node: 'b', pin: 'p' }, opts: { pathStyle: 'wavy' } }],
+    })
+    expect(parsed.edgeOpts.get('e1')).toBeUndefined()
+  })
+
   it('includes viewport when provided', () => {
     const out = serializeXenolithGraph(input({ viewport: { x: 10, y: 20, zoom: 1.5 } }))
     expect(out.viewport).toEqual({ x: 10, y: 20, zoom: 1.5 })

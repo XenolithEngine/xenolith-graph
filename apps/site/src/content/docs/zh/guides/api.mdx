@@ -45,7 +45,7 @@ const doc = editor.toJSON()        // 序列化节点 + 连线 + 渲染选项 + 
 ```ts
 for (const schema of schemas) editor.registry.register(schema)  // 让 Tab 能生成它们
 editor.loadJSON(graphDoc)
-editor.fitView()
+editor.view.fitView()
 ```
 
 ## 自适应视图
@@ -53,9 +53,9 @@ editor.fitView()
 `fitView` 计算所有节点的包围盒并在画布中框住它——无论图多大，都能可靠地展示刚加载的图。
 
 ```ts
-editor.fitView()                                  // 64px 边距，不会放大超过 1×
-editor.fitView({ padding: 80, maxZoom: 1 })
-editor.resetView()                                // 回到单位视图
+editor.view.fitView()                                  // 64px 边距，不会放大超过 1×
+editor.view.fitView({ padding: 80, maxZoom: 1 })
+editor.view.resetView()                                // 回到单位视图
 ```
 
 | 选项      | 默认值          | 含义                                       |
@@ -101,7 +101,7 @@ editor.deleteEdge(edgeId)
 ```ts
 await editor.withOverlay('Rendering…', () => {
   editor.loadJSON(bigGraph)
-  editor.fitView()
+  editor.view.fitView()
 })
 
 // 或手动控制：

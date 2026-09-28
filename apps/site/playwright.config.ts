@@ -21,7 +21,10 @@ export default defineConfig({
     command: 'pnpm dev -- --port 4321',
     url: 'http://localhost:4321/',
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    // 120s: the Astro DEV server's cold boot competes with the four sibling e2e suites during
+    // the full `pnpm -w test:e2e` run and regularly exceeds 60s there (fine isolated). Not a
+    // product regression — same hardening rule as the canvas-visible timeout in the spec.
+    timeout: 120_000,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

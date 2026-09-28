@@ -52,6 +52,10 @@ interface Built {
 }
 
 function buildPrev(editor: XenolithEditor): Built {
+  // Idempotence guard: React StrictMode double-invokes this effect and some remount paths reuse
+  // the booted editor — either way the builder can run twice on ONE editor and the diff would
+  // see doubled graphs (observed as uuid-keyed noise in addedEdges). Always start from empty.
+  editor.clear()
   for (const s of SCHEMAS) editor.registry.register(s)
   const a    = editor.insertNode('Const',   { x: 0,   y: 0   })!
   const b    = editor.insertNode('Const',   { x: 0,   y: 140 })!
@@ -86,6 +90,7 @@ function buildPrev(editor: XenolithEditor): Built {
 }
 
 function buildNext(editor: XenolithEditor): Built {
+  editor.clear() // idempotence guard — see buildPrev
   for (const s of SCHEMAS) editor.registry.register(s)
   const a     = editor.insertNode('Const',    { x: 0,   y: 0   })!
   const b     = editor.insertNode('Const',    { x: 0,   y: 140 })!

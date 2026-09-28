@@ -11,11 +11,18 @@ import { test, expect } from '@playwright/test'
 // the gate: if it passes, the demo works. If it fails, we haven't fixed anything.
 
 test('auto-layout demo panel is interactive', async ({ page }) => {
+  // Dev-server page compile under the saturated full `pnpm -w test:e2e` run can exceed the
+  // config's 30s test timeout (ERR_ABORTED mid-navigation). 60s keeps the gate meaningful
+  // locally; in CI (beefier, less contended) it never gets close.
+  test.setTimeout(60_000)
   await page.goto('/examples/auto-layout/')
 
-  // Wait for the editor canvas to mount inside the demo preview.
+  // Wait for the editor canvas to mount inside the demo preview. 30s because the Astro DEV
+  // server compiles this page on first request — under the full `pnpm -w test:e2e` run four
+  // sibling suites compete for CPU and a cold compile regularly exceeds 15s (observed
+  // 2026-09-28: passes isolated in ~11s, flakes in parallel). Not a product regression.
   const canvas = page.locator('.dfr-preview canvas')
-  await expect(canvas).toBeVisible({ timeout: 15_000 })
+  await expect(canvas).toBeVisible({ timeout: 30_000 })
 
   // The three-button panel from the vanilla mount (auto-layout.ts).
   const arrange = page.getByRole('button', { name: /Auto-arrange/ })
