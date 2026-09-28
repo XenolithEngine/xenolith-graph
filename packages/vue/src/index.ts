@@ -1,6 +1,6 @@
 import {
-  defineComponent, h, inject, onMounted, onUnmounted, provide, ref, shallowRef, watch,
-  type InjectionKey, type ShallowRef,
+  defineComponent, h, inject, onMounted, onUnmounted, provide, ref, shallowRef, toValue, watch,
+  type InjectionKey, type MaybeRefOrGetter, type Ref, type ShallowRef,
 } from 'vue'
 import {
   createEditorBinding,
@@ -22,6 +22,40 @@ export function emitName(event: string): string {
   const [head, tail] = event.split(':')
   return tail ? head! + tail[0]!.toUpperCase() + tail.slice(1) : head!
 }
+
+/** camelCase emit name at the TYPE level — the compile-time mirror of {@link emitName}. */
+type EmitName<E extends keyof EditorEvents> =
+  E extends `${infer H}:${infer T}` ? `${H}${Capitalize<T & string>}` : E
+
+/** Typed emits of `<XenolithGraph>`: `@ready` (editor instance) plus one camelCase emit per
+ *  editor event with its payload signature. Declaring the component's emits in object form with
+ *  these validator signatures is what makes `vue-tsc`/Volar type the handler's payload in
+ *  templates — the old string-array emits gave template users `any`.
+ *
+ * Both this type (maps `EditorEvents`) and the runtime validator object (maps
+ * `EDITOR_EVENT_NAMES`) derive from sources that adapter-core locks together at compile time,
+ * so they cannot drift. */
+export type XenolithGraphEmits = {
+  ready: (editor: XenolithEditor) => true
+} & {
+  [E in keyof EditorEvents as EmitName<E>]: (payload: EditorEvents[E]) => true
+}
+
+// Object-form emits derived from EDITOR_EVENT_NAMES (runtime source of truth). The double cast
+// is safe: every EditorEvents key is covered by EDITOR_EVENT_NAMES (adapter-core exhaustiveness
+// gate), so the string-keyed build result does carry every property of the target shape.
+const EDITOR_EMIT_VALIDATORS = Object.fromEntries(
+  EDITOR_EVENT_NAMES.map((ev) => [emitName(ev), (): true => true]),
+) as unknown as { [E in keyof EditorEvents as EmitName<E>]: (payload: EditorEvents[E]) => true }
+
+// Compile-time: the exported type and the runtime validators describe the same name set.
+type _RuntimeEmits = keyof typeof EDITOR_EMIT_VALIDATORS
+type _MissingRuntime = Exclude<keyof XenolithGraphEmits, _RuntimeEmits | 'ready'>
+type _EmitsInSync = [_MissingRuntime] extends [never]
+  ? true
+  : ['ERROR — XenolithGraphEmits has names without runtime validators:', _MissingRuntime]
+const _emitsInSync: _EmitsInSync = true
+void _emitsInSync
 
 /** Injection key used by `<XenolithGraph>` to expose its editor instance to descendants. Imported
  *  by the composables below; hosts can also use it directly with `provide()`/`inject()` if they
@@ -107,6 +141,55 @@ export function useEditorEvent<E extends keyof EditorEvents>(
 }
 
 /**
+ * Mount an editor into any element WITHOUT `<XenolithGraph>` — the Vue counterpart of React's
+ * `useXenolith`. Use it when the host div lives in a third-party template or portal you don't
+ * control. Returns a `ShallowRef<XenolithEditor | null>` — `null` until the async mount resolves.
+ *
+ * `target` is a template ref (or a getter) to the host element. `props` is optional; reactive
+ * sources are watched — pass a `ref`/`computed`/getter that produces a NEW object when props
+ * change (reference-diffed inside the binding, same immutable-props semantics as
+ * `<XenolithGraph>`). The binding is destroyed on component unmount, and a target swap tears the
+ * old editor down before the new one mounts.
+ *
+ * @example
+ *   const host = ref<HTMLDivElement | null>(null)
+ *   const editor = useXenolithGraph(host, () => ({ snap: 8, minimap: true }))
+ */
+export function useXenolithGraph(
+  target: Ref<HTMLElement | null> | (() => HTMLElement | null),
+  props?: MaybeRefOrGetter<XenolithProps>,
+): ShallowRef<XenolithEditor | null> {
+  const editorRef: ShallowRef<XenolithEditor | null> = shallowRef(null)
+  let binding: EditorBinding | null = null
+
+  watch(() => toValue(target), (el, _, onCleanup) => {
+    // Per-cycle staleness token: if the target swaps (or unmount happens) while the async
+    // `createEditorBinding` for THIS element is still in flight, its resolution destroys itself.
+    let stale = false
+    onCleanup(() => {
+      stale = true
+      binding?.destroy()
+      binding = null
+      editorRef.value = null
+    })
+    if (!el) return
+    void createEditorBinding(el, { ...toValue(props) }).then((b) => {
+      if (stale) { b.destroy(); return }
+      binding = b
+      editorRef.value = b.editor
+    })
+  }, { immediate: true })
+
+  if (props !== undefined) {
+    watch(() => toValue(props), (p) => { binding?.setProps({ ...p }) })
+  }
+
+  onUnmounted(() => { binding?.destroy(); binding = null; editorRef.value = null })
+
+  return editorRef
+}
+
+/**
  * `<XenolithGraph>` — Vue 3 component. Props: `theme`, `graph`, `zoomBounds`, `minimap`,
  * `disable-grid`, `snap`, `fit-on-load`. Editor events are emitted as `@node-click`,
  * `@selection-changed`, `@edge-connected`, … Editor is WebGL/client-only.
@@ -125,11 +208,15 @@ export const XenolithGraph = defineComponent({
     snap: { type: Number, default: undefined },
     resizeToWindow: { type: Boolean, default: undefined },
     fitOnLoad: { type: Boolean, default: undefined },
+    // All nine XenolithProps keys must be declared (ADAPTER-CONTRACT §1) — an undeclared prop
+    // lands in $attrs and never reaches the binding.
+    isValidConnection: { type: null, default: undefined },
   },
   // `ready` fires once with the editor instance the moment it's mounted — Vue equivalent of
   // React's `onReady` prop. Use it for one-shot imperative setup (register schemas, loadJSON,
-  // fitView) without needing a child component / composable.
-  emits: ['ready' as const, ...EDITOR_EVENT_NAMES.map(emitName)],
+  // fitView) without needing a child component / composable. Object form + typed validator
+  // signatures give template users payload types (ADAPTER-CONTRACT §1).
+  emits: { ready: (_editor: XenolithEditor): true => true, ...EDITOR_EMIT_VALIDATORS },
   setup(props, { emit, expose, slots }) {
     const host = ref<HTMLDivElement | null>(null)
     const editorRef: ShallowRef<XenolithEditor | null> = shallowRef(null)
@@ -147,6 +234,7 @@ export const XenolithGraph = defineComponent({
       if (props.snap !== undefined) p.snap = props.snap
       if (props.resizeToWindow !== undefined) p.resizeToWindow = props.resizeToWindow
       if (props.fitOnLoad !== undefined) p.fitOnLoad = props.fitOnLoad
+      if (props.isValidConnection !== undefined) p.isValidConnection = props.isValidConnection as XenolithProps['isValidConnection']
       return p
     }
 
@@ -161,8 +249,16 @@ export const XenolithGraph = defineComponent({
       emit('ready', b.editor)
     })
 
+    // Every declared prop is watched (React-parity, ADAPTER-CONTRACT §1): `binding.setProps`
+    // receives the full object; adapter-core diffs and applies what has a runtime setter.
+    // `resizeToWindow`/`snap`/`disableGrid`/`zoomBounds` are mount-time config — forwarding keeps
+    // the contract uniform instead of silently dropping keys.
     watch(
-      [() => props.theme, () => props.graph, () => props.zoomBounds, () => props.minimap, () => props.disableGrid, () => props.snap, () => props.fitOnLoad],
+      [
+        () => props.theme, () => props.graph, () => props.zoomBounds, () => props.minimap,
+        () => props.disableGrid, () => props.snap, () => props.resizeToWindow, () => props.fitOnLoad,
+        () => props.isValidConnection,
+      ],
       () => binding?.setProps(pick()),
     )
 
