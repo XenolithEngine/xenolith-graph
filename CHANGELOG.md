@@ -10,8 +10,13 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ### Added
 
+- **Canonical `editor.connect(from, ref, to, ref, opts?)`** — one typed wire API with MCP-grade pin resolution (`PinSelector`: pin id → label case-insensitive → numeric index → `'in'`/`'out'` → `undefined` = single-pin default), extracted to `pin-resolve.ts` and shared with the MCP `connect_pins` tool. Errors list the node's available pins of the needed direction.
 - **New package `@xenolithengine/graph-test-utils`** — jsdom test kit for hosts: `mockPixi()` (canvas 2D/WebGL context stubs, ResizeObserver polyfill, deterministic manual rAF) boots the REAL editor under vitest+jsdom, `renderEditorToDOM()` is the one-call mount, `renderXenolithToDOM()` (subpath `/react`) mounts the real `<XenolithGraph>` adapter, and `/fake` exports a headless `FakeEditor` built on real core primitives (Graph/CommandBus/EventEmitter/NodeRegistry) for logic-level tests. Guide: [Testing your integration](https://graph.xenolith.studio/guides/testing/).
 - `editor.autoLayout({ direction, spacing, fit })` — the layered DAG layout that powered the MCP `auto_layout` tool is now a public host API (extracted to `layout-ops.ts`; identical results for hosts and agents).
+
+### Fixed
+
+- `editor.connect()` now actually honours the documented "every mutation goes through the bus, undoable" contract: the old direct-index implementation bypassed the command bus (not undoable, no `edge:connecting` veto, no type gate, no wire-colour seeding). The numeric call shape `connect(a, 0, b, 1)` still works — it now resolves through the same path (behaviour change: connects are undoable and can throw on incompatible pins / vetoes, matching `addEdge` and drag-dropped wires).
 
 ### Notes
 

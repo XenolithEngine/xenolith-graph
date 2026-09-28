@@ -141,6 +141,7 @@ import { EditorControls, type ControlsOptions } from './controls.js'
 import { createGraphEventBridge, firePreventable, type EditorEvents } from './events.js'
 import type { McpClient, McpEditorSurface } from './mcp.js'
 import { layeredLayout } from './layout-ops.js'
+import { resolvePin, type PinSelector } from './pin-resolve.js'
 import { PluginHost, type PluginContext, type XenolithPlugin } from './plugin.js'
 import {
   parseXenolithGraph,
@@ -2643,32 +2644,52 @@ export class XenolithEditor {
     return rectIntersects(nodeBounds(node, this.#theme.tokens), rect)
   }
 
+  /** THE canonical way to wire two nodes (E2). Pin refs resolve exactly like the MCP
+   *  `connect_pins` tool — see `pin-resolve.ts`: pin id → label (case-insensitive) → numeric
+   *  index → `'in'`/`'out'` keyword → `undefined` = the node's single pin of that direction.
+   *
+   *  Unlike the pre-0.7.5 direct-index `connect`, this routes through the command bus: the edge
+   *  is UNDOABLE (one `history.undo()` removes it), fires `edge:connecting` (vetoable — a veto
+   *  throws) and `edge:connected`, runs the built-in type-compatibility gate (`canConnect` +
+   *  the optional `isValidConnection` hook — same gate a drag-dropped wire passes), and seeds
+   *  the wire's render opts with the source pin's type so wire colours match pin colours.
+   *
+   *  Throws on: unresolvable ref (message lists the node's available pins of the needed
+   *  direction), incompatible pins, or an `edge:connecting` veto. For mirroring a controlled
+   *  `edges` prop with pre-existing ids, use `addEdge` instead.
+   *
+   *  @example editor.connect(src, 'Output', sink, 'In')
+   *  @example editor.connect(src, 0, sink, 0)            // index overload (legacy shape)
+   *  @example editor.connect(src, undefined, sink, undefined) // single-pin nodes */
   connect(
     fromNode: Node,
-    fromPinIndex: number,
+    fromRef: PinSelector,
     toNode: Node,
-    toPinIndex: number,
+    toRef: PinSelector,
     opts: RenderEdgeOptions = {},
   ): EdgeId {
-    const fromPinModel = fromNode.pins[fromPinIndex]!
-    const toPinModel = toNode.pins[toPinIndex]!
+    const fromPin = resolvePin<Pin>(fromNode, fromRef, 'out')
+    const toPin = resolvePin<Pin>(toNode, toRef, 'in')
+    if (!this.#connectionAllowed(fromNode, fromPin, toNode, toPin)) {
+      throw new Error(
+        `connect: incompatible pins — ${fromNode.type}.${fromPin.label ?? fromPin.id}(${fromPin.type}, ${fromPin.direction}) `
+        + `→ ${toNode.type}.${toPin.label ?? toPin.id}(${toPin.type}, ${toPin.direction}). `
+        + 'Wires need opposite directions, matching kinds and compatible types (or an `any` wildcard).',
+      )
+    }
     const edge: Edge = {
       id: createEdgeId(),
-      from: { node: fromNode.id, pin: fromPinModel.id },
-      to:   { node: toNode.id,   pin: toPinModel.id   },
+      from: { node: fromNode.id, pin: fromPin.id },
+      to:   { node: toNode.id,   pin: toPin.id   },
     }
-    this.graph._addEdge(edge)
-    this.#addEdgeToIndex(edge) // keep the index in sync, or the next cull would dispose this edge
-    this.#edgeOpts.set(edge.id, opts) // so a later #cullEdges re-materialise keeps the wire's opts
-    // Materialise now only at the full level and when (not virtualizing) or the edge touches a live
-    // node; otherwise it's data + index and #cullEdges draws it when an endpoint scrolls in.
-    const incident = this.#views.has(fromNode.id) || this.#views.has(toNode.id)
-    if (this.#lodLevel === 'full' && (!this.#virtualizeActive() || incident)) this.#materializeEdge(edge, opts)
-    // Direct-API connect bypasses the command bus (it isn't undoable), but listeners — including
-    // the endpoint-resize hook that grows/shrinks pin-bound widgets — still need to know an edge
-    // appeared. Drag-UI connect already fires this via the commandBus→events bridge.
-    this.#events.emit('edge:connected', { edge })
-    this.#requestRender()
+    if (!firePreventable(this.#events, 'edge:connecting', { edge })) {
+      throw new Error(`connect: edge vetoed by an 'edge:connecting' listener (${fromNode.type} → ${toNode.type})`)
+    }
+    // Default the wire's colour source to the OUT pin type (drag-path parity); caller opts win.
+    // Set BEFORE the command lands so the bridge's synchronous listeners (index sync, endpoint
+    // repaint) and a later #cullEdges re-materialise see the same opts.
+    this.#edgeOpts.set(edge.id, { sourceType: String(fromPin.type), ...opts })
+    this.commandBus.apply(new ConnectPins(edge))
     return edge.id
   }
 
@@ -2692,7 +2713,9 @@ export class XenolithEditor {
   /** Add a pre-built edge, preserving its id and pin endpoints (undoable). Unlike `connect`, which
    *  mints a fresh edge id, this keeps the caller's id — needed by the controlled layer to mirror an
    *  `edges` prop without id drift. No-op if an edge with that id already exists. Listeners on
-   *  `edge:connecting` may veto via `payload.cancel()`. */
+   *  `edge:connecting` may veto via `payload.cancel()` (returns false). For hand-building graphs
+   *  prefer the canonical `connect(from, ref, to, ref)` — it resolves pin labels/indices, gates
+   *  on compatibility and throws loudly; this method is the mirroring/low-level escape hatch. */
   addEdge(edge: Edge): boolean {
     if (this.graph.getEdge(edge.id)) return false
     if (!firePreventable(this.#events, 'edge:connecting', { edge })) return false

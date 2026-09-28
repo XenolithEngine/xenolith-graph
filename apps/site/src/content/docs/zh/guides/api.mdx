@@ -16,9 +16,18 @@ English is the canonical source. If something contradicts the [English version](
 // 添加你自己构造的节点。
 editor.addNode(node, { category: 'logic', title: 'Source', collapsed: false })
 
-// 连接输出引脚到输入引脚（节点 `pins` 数组的索引）。
-editor.connect(source, 0, sink, 1, { sourceType: 'float' })
+// 连接两个节点 —— 规范的 connect。引脚引用解析顺序：
+// id → label（忽略大小写）→ 数字索引 → 'in'/'out' → undefined = 该方向唯一的引脚。
+const edgeId = editor.connect(source, 'Output', sink, 'In')
+
+// 索引形式依然可用（旧形态），opts 用于定制连线样式：
+editor.connect(source, 0, sink, 1, { animated: true })
 ```
+
+`connect` 可撤销（一次 `history.undo()` 移除连线），触发 `edge:connecting`（否决会抛错）
+和 `edge:connected`，并拒绝不兼容的引脚 —— 错误信息会列出该节点可用引脚。解析规则与
+兼容性门控同 MCP `connect_pins` 工具和拖拽连线完全一致。镜像 controlled `edges` prop 的
+既有 id 时请使用 `addEdge`。
 
 不过大多数应用不会手动构造节点——它们加载一个文档。
 

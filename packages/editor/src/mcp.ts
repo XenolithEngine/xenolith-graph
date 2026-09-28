@@ -1,5 +1,6 @@
 import type { Edge, NodeId, PinId } from '@xenolithengine/graph-core'
 import { createEdgeId } from '@xenolithengine/graph-core'
+import { resolvePin } from './pin-resolve.js'
 import { layeredLayout, nextFreeSpot } from './layout-ops.js'
 import { BUILTIN_RECIPES, instantiateRecipe, type RecipeDef, type RecipeRegistry, createRecipeRegistry } from './recipes.js'
 
@@ -119,8 +120,8 @@ export function buildHandlers(editor: McpEditorSurface): Record<string, ToolHand
       if (!fromNode) throw new Error(`connect_pins: source node '${a.from.node}' not found`)
       const toNode = editor.graph.getNode(a.to.node as NodeId)
       if (!toNode) throw new Error(`connect_pins: target node '${a.to.node}' not found`)
-      const fromPin = resolvePin(fromNode, a.from.pin, 'out')
-      const toPin   = resolvePin(toNode,   a.to.pin,   'in')
+      const fromPin = resolvePin<PinLike>(fromNode, a.from.pin, 'out')
+      const toPin   = resolvePin<PinLike>(toNode,   a.to.pin,   'in')
       const edge: Edge = {
         id: createEdgeId(),
         from: { node: fromNode.id, pin: fromPin.id },
@@ -354,33 +355,8 @@ function resolveWidgetId(node: NodeLike & { widgets?: Array<{ id: string; key?: 
   throw new Error(`widget '${ref}' not found on node '${node.id}'. available: [${list}]`)
 }
 
-/** Resolve a pin reference flexibly. LLMs almost never know the real pin uuid; they pass a label
- *  ("Output"), a numeric index, or "in"/"out" + direction. Resolution order: exact id → label
- *  (case-insensitive) → numeric index → first pin matching `direction`. Throws with a helpful
- *  list of available pins if nothing matches, so the LLM can retry with a correct name. */
-function resolvePin(node: NodeLike, ref: string | number, expectedDir: 'in' | 'out'): PinLike {
-  const pins = node.pins
-  const byId = pins.find((p) => p.id === ref)
-  if (byId) return byId
-  const refStr = String(ref).trim()
-  const byLabel = pins.find((p) => (p.label ?? '').toLowerCase() === refStr.toLowerCase())
-  if (byLabel) return byLabel
-  if (/^\d+$/.test(refStr)) {
-    const idx = Number(refStr)
-    if (idx >= 0 && idx < pins.length) return pins[idx]!
-  }
-  // "in"/"out" → first pin of that direction (works for single-in/single-out simple nodes).
-  if (refStr.toLowerCase() === 'in' || refStr.toLowerCase() === 'out') {
-    const dir = refStr.toLowerCase() as 'in' | 'out'
-    const byDir = pins.find((p) => p.direction === dir)
-    if (byDir) return byDir
-  }
-  const available = pins
-    .filter((p) => p.direction === expectedDir)
-    .map((p, i) => `${i}:${p.label ?? p.id}(${p.type})`)
-    .join(', ')
-  throw new Error(`pin '${refStr}' not found on node '${node.type}' (${node.id}). available ${expectedDir} pins: [${available || 'none'}]`)
-}
+// Pin resolution lives in './pin-resolve.js' — extracted (E2) so hosts get the same
+// id → label → index → direction resolution via editor.connect(from, ref, to, ref).
 
 /** Lightweight WebSocket-like contract so unit tests can drive a mock without `ws` or browser WS. */
 export interface McpSocketLike {

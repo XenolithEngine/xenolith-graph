@@ -11,9 +11,19 @@ Everything below is a method on the `editor` returned by `XenolithEditor.init(..
 // Add a node you constructed yourself.
 editor.addNode(node, { category: 'logic', title: 'Source', collapsed: false })
 
-// Connect an output pin to an input pin (indices into each node's `pins`).
-editor.connect(source, 0, sink, 1, { sourceType: 'float' })
+// Wire two nodes — THE canonical connect. Pin refs resolve by id → label
+// (case-insensitive) → numeric index → 'in'/'out' → undefined = the single pin.
+const edgeId = editor.connect(source, 'Output', sink, 'In')
+
+// Index form still works (legacy shape), and opts style the wire:
+editor.connect(source, 0, sink, 1, { animated: true })
 ```
+
+`connect` is undoable (one `history.undo()` removes the wire), fires `edge:connecting`
+(vetoable — a veto throws) and `edge:connected`, and refuses incompatible pins with an error
+that lists the node's available pins — the same resolution and the same compatibility gate the
+MCP `connect_pins` tool and drag-dropped wires use. For mirroring a controlled `edges` prop
+with pre-existing ids, use `addEdge`.
 
 Most apps don't hand-build nodes, though — they load a document.
 
