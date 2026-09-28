@@ -215,7 +215,7 @@ export { PluginHost } from './plugin.js'
 export type { XenolithPlugin, PluginContext } from './plugin.js'
 export type { FlattenedTemplate, PinRef } from '@xenolithengine/graph-core'
 
-export const VERSION = '0.7.0-beta.5'
+export const VERSION = '0.7.0-beta.6'
 
 
 export interface XenolithEditorOptions {

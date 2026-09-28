@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-theme-daylight",
-  "version": "0.7.0-beta.5",
+  "version": "0.7.0-beta.6",
   "description": "Daylight — original light-mode design language for XenolithGraph. Soft grey canvas, protruding pin halos, Helvetica typography.",
   "license": "MIT",
   "type": "module",

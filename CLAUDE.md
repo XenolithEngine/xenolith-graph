@@ -2,7 +2,7 @@
 
 Open-source embeddable node-graph editor for the web with **a polished, opinionated node-editor design system as first-class** — not a theme layered on top of a generic flowchart library. The default theme is **Xen**, an original dark/gold design language defined in Figma.
 
-Working name: **XenolithGraph**. Current release: **v0.7.0-beta.5**.
+Working name: **XenolithGraph**. Current release: **v0.7.0-beta.6**.
 
 ---
 
@@ -52,7 +52,7 @@ Primary target users: AI/LLM workflow builders, audio/DSP graph editors, shader/
 
 ## Architecture
 
-Shipped at v0.7.0-beta.5. The live package map is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The table below is the original sketch: minimap, palette, undo, serialize, and clipboard live inside `@xenolithengine/graph-editor`, not as separate plugins. `@xenolithengine/graph-core` does not import PIXI. `@xenolithengine/graph-editor` does — `XenolithEditor` owns the PIXI scene. See ADR-0001.
+Shipped at v0.7.0-beta.6. The live package map is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The table below is the original sketch: minimap, palette, undo, serialize, and clipboard live inside `@xenolithengine/graph-editor`, not as separate plugins. `@xenolithengine/graph-core` does not import PIXI. `@xenolithengine/graph-editor` does — `XenolithEditor` owns the PIXI scene. See ADR-0001.
 
 Layered, headless-first:
 
@@ -137,7 +137,7 @@ All mutations flow through a `CommandBus` (every change is an `apply/undo` pair)
 
 ## Roadmap
 
-v0.1 through the v0.7.0-beta.5 public beta are shipped: core, PIXI renderer, editor, themes (Xen, Daylight, Liquid Glass), React and Vue adapters, thin Svelte / Solid / Angular / web-component mounts, MCP, auto-layout. v1.0 is the API and `xenolith.v1` freeze. Detail lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §12 and the README.
+v0.1 through the v0.7.0-beta.6 public beta are shipped: core, PIXI renderer, editor, themes (Xen, Daylight, Liquid Glass), React and Vue adapters, thin Svelte / Solid / Angular / web-component mounts, MCP, auto-layout. v1.0 is the API and `xenolith.v1` freeze. Detail lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §12 and the README.
 
 ## Conventions for contributors (and Claude)
 
@@ -151,4 +151,4 @@ v0.1 through the v0.7.0-beta.5 public beta are shipped: core, PIXI renderer, edi
 
 ## Status
 
-v0.7.0-beta.5 public beta. The library is implemented. The public API in [`STABLE-API.md`](STABLE-API.md) is not frozen. Live architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Decisions: [`docs/adr/`](docs/adr/).
+v0.7.0-beta.6 public beta. The library is implemented. The public API in [`STABLE-API.md`](STABLE-API.md) is not frozen. Live architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Decisions: [`docs/adr/`](docs/adr/).

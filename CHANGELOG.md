@@ -8,6 +8,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+## [0.7.0-beta.6] — 2026-09-29
+
+Summary in [docs/release-notes/v0.7.0-beta.6.md](docs/release-notes/v0.7.0-beta.6.md).
+
 ### Fixed
 
 - **Docs truth pass (F3)** — MCP README rewrote its tool table to reality (26 tools in three categories, 3 resources incl. `audit://recent`, a proposal-mode section with the honest limits); stale counts corrected everywhere: 26 tools · 3 resources (was 25/2), 25 events / 7 preventable (was 24/4), `EDITOR_EVENT_NAMES` 25 (was 24). README test counts regenerated from the actual suites via the new `scripts/update-test-counts.mjs` (1259 unit · 112 e2e — the badge had drifted to 1012/142). Human-in-the-loop guide (EN/RU/ZH) documents the built-in review panel + `<XenolithProposalQueue>`; `/agents.md` explains proposal receipts to agents.
@@ -75,5 +79,6 @@ Summary in [docs/release-notes/v0.7.0-beta.5.md](docs/release-notes/v0.7.0-beta.
 First public beta. What shipped is summarised in [docs/release-notes/v0.7.0-beta.4.md](docs/release-notes/v0.7.0-beta.4.md). [`STABLE-API.md`](STABLE-API.md) is the surface intended to freeze at v1.0. It is not frozen.
 
 [Unreleased]: https://github.com/XenolithEngine/xenolith-graph/commits/main
+[0.7.0-beta.6]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.5...v0.7.0-beta.6
 [0.7.0-beta.5]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.4...v0.7.0-beta.5
 [0.7.0-beta.4]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.3...v0.7.0-beta.4
