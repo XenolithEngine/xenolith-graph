@@ -41,13 +41,17 @@ export function Editor() {
 
 Editor events are re-dispatched as same-named `CustomEvent`s — Solid's `on:` binds colon names directly.
 
+Editor events are re-dispatched as same-named `CustomEvent`s — Solid's `on:` binds colon names directly. `on:ready` (detail: the live `XenolithEditor`) fires once on mount.
+
 ## What's exported
 
-- `xenolith` — the Solid directive (`use:xenolith={props}`)
+- `xenolith` — the Solid directive (`use:xenolith={props}`); typed via `JSX.Directives` augmentation, dispatches `on:ready` + every editor event as colon-named CustomEvents
+- `createXenolithStores()` — per-editor bag of signal-backed accessors: `setEditor`/`editor`, `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo` (`canUndo`/`canRedo`/`undo`/`redo`), and the controlled triple `nodesState()` (commit-time mirror + one-undo-step `setNodes`); disposal rides the owning root's cleanup
 - `createXenolithGraph(el, props)` — imperative primitive returning an `EditorBinding`
 
 ## Docs
 
+- [Solid guide](https://graph.xenolith.studio/guides/solid/) — directive, stores, controlled state
 - [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 

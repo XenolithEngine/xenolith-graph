@@ -1,0 +1,126 @@
+---
+title: Solid adapter
+description: Mount XenolithGraph in Solid with the use:xenolith directive, colon-named typed events, and a signal-backed store set — including the controlled-state triple.
+---
+
+The Solid adapter ships as `@xenolithengine/graph-solid`. Where React/Vue get components, Solid
+gets its own idiom: a **mount directive** (`use:xenolith`) and a **bag of signals**
+(`createXenolithStores()`). Solid's reactive primitives are runtime-only, so this whole adapter
+is compiler-free — it works in any Solid 1.8+ setup with zero build configuration.
+
+The editor is WebGL/client-only; render it only in the browser (`isServer` guard / client-only
+island).
+
+## Install
+
+```bash
+pnpm add @xenolithengine/graph-solid pixi.js
+```
+
+Peer deps: `solid-js >= 1.8`, `pixi.js@^8.6.0`.
+
+## Mount the editor
+
+```tsx
+import { createSignal, Show } from 'solid-js'
+import { xenolith, createXenolithStores } from '@xenolithengine/graph-solid'
+import type { XenolithEditor } from '@xenolithengine/graph-editor'
+
+const stores = createXenolithStores()
+const [props, setProps] = createSignal({ resizeToWindow: false, snap: 8 })
+
+<div
+  use:xenolith={props()}
+  on:ready={(e: CustomEvent<XenolithEditor>) => {
+    stores.setEditor(e.detail) // wire the reactive store bag
+    e.detail.registry.register(mySchema)
+    e.detail.view.fitView({ padding: 80 })
+  }}
+  on:node:click={(e) => console.log('clicked', e.detail.nodeId)}
+  on:node:removing={(e) => { if (e.detail.nodeId === lockedId) e.detail.cancel() }}
+  style="position:absolute;inset:0"
+/>
+```
+
+The bound expression is tracked — a new props object reference flows to the editor
+automatically (reference-diffed, same immutable-props semantics as every adapter). The
+directive's value type comes with the package (`JSX.Directives` augmentation), so
+`use:xenolith={props}` typechecks out of the box.
+
+### Directive props
+
+The full `XenolithProps` surface (nine keys, ADAPTER-CONTRACT §1): `theme`, `graph`,
+`zoomBounds`, `minimap`, `disableGrid`, `snap`, `resizeToWindow`, `fitOnLoad`,
+`isValidConnection`.
+
+### Directive events
+
+`ready` (detail: the `XenolithEditor` — fires once when mounted) plus every editor event under
+its own colon name — Solid binds colon names directly, so the editor's surface maps 1:1:
+`on:node:click`, `on:selection:changed`, `on:edge:connecting`, … (all 25; the four preventable
+`-ing` events expose `e.detail.cancel()`). Payloads ride `event.detail`; the shapes are the
+`EditorEvents` map from `@xenolithengine/graph-editor` — see the
+[events reference](../events-commands/).
+
+## Signal stores
+
+`createXenolithStores()` builds a per-editor accessor bag. Call it inside a component (setup is
+a reactive root — every subscription rides the component's `onCleanup`, disposal is automatic);
+wire the editor in from `on:ready`. Swapping the editor re-binds everything.
+
+```tsx
+const s = createXenolithStores()
+// in on:ready: s.setEditor(e.detail)
+
+<For each={s.nodes()}>{(n) => <Chip node={n} />}</For>
+<span>zoom {s.viewport().zoom.toFixed(2)}</span>
+<button disabled={!s.undoRedo.canUndo()} onClick={() => s.undoRedo.undo()}>Undo</button>
+```
+
+| Accessor | Type | Re-fires on |
+|---|---|---|
+| `editor()` | `XenolithEditor \| null` | `setEditor()` — you drive it from `on:ready`. |
+| `nodes()` | `readonly Node[]` | add/remove/move, load, undo/redo. |
+| `edges()` | `readonly Edge[]` | connect/disconnect, node removal, load, undo/redo. |
+| `selection()` | `readonly NodeId[]` | `selection:changed`. |
+| `viewport()` | `ViewportState` | pan/zoom. |
+| `graphJSON()` | `XenolithGraphV1 \| null` | any mutation, load, undo/redo. |
+| `undoRedo.canUndo()` / `canRedo()` | `boolean` | `history:changed`. |
+| `nodesState()` | the controlled triple — below | commit-time `graph:changed`. |
+
+Event bursts are coalesced into one microtask recompute per store — a 1000-node transaction
+costs ONE rebuild, not 1000 (same budget as the React/Vue/Svelte/Angular adapters).
+
+## Controlled state (commit-time)
+
+React Flow migrants: `stores.nodesState()` gives you the controlled triple — `nodes`, `edges`
+(accessors), `applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+Same semantics as every adapter; each call creates an independent mirror. One deliberate
+difference from React Flow: positions arrive when a drag COMMITS, never per frame.
+
+`setNodes(next)` — pass the next nodes array or an updater over the live mirror; adds, removes,
+position and state deltas land on the editor as **one undo step** (shallow diff: position by
+coordinates, state by reference); the `graph:changed` echo converges the mirror.
+`applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
+
+## Imperative primitive
+
+`createXenolithGraph(el, props?)` — the raw `createEditorBinding` pass-through for hosts that
+mount outside a directive (the caller owns teardown via `onCleanup`). The site's Solid examples
+use this path.
+
+## What's NOT in this adapter
+
+- **No in-editor panel components** — overlay UI via `editor.chrome.*` (`setControls`,
+  `setMinimapVisible`, `showProposals`) or your own DOM portalled into `editor.chrome.overlayRoot`.
+- **No `solidWidget` bridge** for custom Solid node-widgets (would need the Solid compiler in
+  tests, like the Svelte panels slice — pending).
+- **No SSR.** WebGL only.
+
+## Related
+
+- [`@xenolithengine/graph-editor` API reference](../api/) — every method on the editor `on:ready` delivers
+- [Events](../events-commands/) — the full 25-event surface and which are preventable
+- [ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md) — the commit-time controlled protocol
+- [React](../react/) / [Vue](../vue/) / [Svelte](../svelte/) / [Angular](../angular/) adapters for comparison

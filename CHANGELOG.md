@@ -14,6 +14,11 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ### Added
 
+- **Solid adapter — runtime parity (A5)** — `@xenolithengine/graph-solid` grows from a mount-only directive to the contract §1–§2 + §5–§6 surface (compiler-free, works on solid-js 1.8+):
+  - `on:ready` — the directive dispatches `ready` (detail: the live `XenolithEditor`) once mounted; editor events keep their colon names (`on:node:click`) with payloads in `event.detail`. Directive typing ships via `JSX.Directives` augmentation — `use:xenolith={props}` typechecks out of the box.
+  - `createXenolithStores()` — per-editor bag of signal-backed accessors (`setEditor`/`editor`, `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`) and `nodesState()` — the controlled triple (E5 / ADR 0006) on the shared `diffNodesToChanges`. The rebind effect's `onCleanup` releases previous-editor subscriptions automatically (disposal rides the owning root); bursts coalesce into one microtask recompute. Identity-compared editor signal: swap = rebind.
+  - Test-infra fix discovered en route: the package's vitest config now resolves solid-js with `browser` conditions — in the default node condition, `createEffect` resolves to the SERVER build's no-op, so the directive's reactive prop-sync effect silently never ran in tests (the old test passed only because `setProps` was also called imperatively).
+  - Learn page `guides/solid` (EN canonical + RU/ZH stubs), sidebar entry, README, contract matrix row, STABLE-API row. Package tests 4 → 14.
 - **Angular adapter — runtime parity (A4)** — `@xenolithengine/graph-angular` rebuilt around `XenolithGraphService`:
   - Decorator-free plain class: `providers: [XenolithGraphService]` + `inject()` with no library compilation on our side; `mount(host, props)` / `destroy()` lifecycle (remount rebinds), `editor` sync accessor, `editor$` observable.
   - RxJS reactive surface (the fabric every Angular app already has): `nodes$`, `edges$`, `selection$`, `viewport$`, `graphJSON$`, `canUndo$`/`canRedo$` + `undo()`/`redo()`, typed `on$('node:click')` for all 25 editor events, and `nodesState()` — the controlled triple (E5 / ADR 0006) with the shared `diffNodesToChanges` write side. BehaviorSubject-backed (`| async`/`toSignal` see the current value), microtask-coalesced bursts — same budget as React/Vue/Svelte.

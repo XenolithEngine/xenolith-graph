@@ -44,4 +44,13 @@ describe('xenolith directive (Solid)', () => {
     dispose()
     expect(binding.destroy).toHaveBeenCalledTimes(1)
   })
+
+  it('dispatches ready with the editor instance once mounted', async () => {
+    const el = document.createElement('div')
+    const readies: unknown[] = []
+    el.addEventListener('ready', (e) => readies.push((e as CustomEvent).detail))
+    createRoot((d) => { xenolith(el, () => ({})); return d })
+    await flush()
+    expect(readies).toEqual([binding.editor])
+  })
 })

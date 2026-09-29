@@ -1,0 +1,16 @@
+---
+title: "Solid-адаптер"
+description: "XenolithGraph в Solid: директива use:xenolith, типизированные события с двоеточиями и набор сигналов, включая контролируемый триплет."
+---
+
+:::caution[Перевод может отставать]
+{/* EN-canonical-banner */}
+Английская версия — канонический источник. Если что-то противоречит [английской странице](../../../guides/solid/) — доверяй ей. Переводы будем пересинхронизировать периодически до v1.0.
+:::
+
+См. [англоязычную версию](../../../guides/solid/) — там полное API адаптера
+`@xenolithengine/graph-solid`: директива `use:xenolith={props}` (`on:ready` с инстансом
+редактора, события с двоеточиями `on:node:click` с payload в `event.detail`), сигналы через
+`createXenolithStores()` (`nodes` / `edges` / `selection` / `viewport` / `graphJSON` /
+`undoRedo`, контролируемый триплет `nodesState()`), императивный примитив
+`createXenolithGraph(el, props)`.

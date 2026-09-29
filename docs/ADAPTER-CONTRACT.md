@@ -128,7 +128,8 @@ theme's `--xeno-*` vars:
 | Vue | ✅ | ✅ (A2 done) | ✅ typed emits (A2) | ✅ full (A2: `useXenolithGraph`) | ✅ (A2) | ✅ ×4 + Queue | ✅ | ✅ (A2: controlled pattern + mount composable) |
 | Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ⏳ next slice (.svelte source + compiler devDep) | ⏳ same slice | ✅ (A3) |
 | Angular | ✅ BYO host component (A4) | ✅ mount(props) (A4) | ✅ typed `on$()` (A4) | ✅ service observables (A4) | ✅ `nodesState()` (A4) | ✗ via `editor.chrome` (by design) | ✗ | ✅ (A4) |
-| Solid / WC | stubs | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Solid | ✅ directive (A5) | ✅ via bound accessor (A5) | ✅ colon `on:` + `JSX.Directives` typing (A5) | ✅ signal bag (A5) | ✅ `nodesState()` (A5) | ✗ via `editor.chrome` | ✗ | ✅ (A5) |
+| WC | stub | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
 
 Svelte's "components + widget" slice requires shipping `.svelte` source and compiling components
 in tests (`@sveltejs/vite-plugin-svelte` as a test-only devDep — pending owner approval per the

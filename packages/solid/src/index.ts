@@ -6,10 +6,28 @@ import {
   type XenolithProps,
 } from '@xenolithengine/graph-adapter-core'
 
+export { createXenolithStores, type XenolithStores, type XenolithNodesState } from './stores.js'
+
+// Typing for `use:xenolith={props}` — the documented way Solid libraries type their directives.
+// Importing this module teaches the language tools the directive's value type project-wide.
+// eslint-disable-next-line @typescript-eslint/no-namespace -- module augmentation is Solid's documented directive-typing pattern
+declare module 'solid-js' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- JSX lives in a namespace by design
+  namespace JSX {
+    interface Directives {
+      xenolith: XenolithProps
+    }
+  }
+}
+
 /**
- * Solid directive: `<div use:xenolith={props} on:node:click={…} on:selection:changed={…} />`.
- * Mounts the editor into the element, syncs props reactively, and re-dispatches every editor event
- * off the element as a same-named CustomEvent (Solid's `on:` binds colon names). Client-only (WebGL).
+ * Solid directive: `<div use:xenolith={props} on:ready on:node:click on:selection:changed … />`.
+ * Mounts the editor into the element, syncs props reactively (the bound expression is tracked),
+ * dispatches `ready` (detail: the live `XenolithEditor`) once mounted, and re-dispatches every
+ * editor event off the element as a same-named CustomEvent — Solid's `on:` binds colon names,
+ * so `on:node:click` / `on:selection:changed` map 1:1 to the editor's event surface with their
+ * payloads in `event.detail`. Client-only (WebGL). Wire reactive stores from `on:ready`:
+ * `stores.setEditor(e.detail)` — see `createXenolithStores`.
  *
  * Solid calls a directive as `xenolith(el, accessor)`, where `accessor()` is the bound value.
  */
@@ -25,6 +43,7 @@ export function xenolith(el: HTMLElement, accessor: () => XenolithProps | undefi
       offs.push(b.on(ev, (detail) => el.dispatchEvent(new CustomEvent(ev, { detail }))))
     }
     b.setProps(accessor() ?? {})
+    el.dispatchEvent(new CustomEvent('ready', { detail: b.editor }))
   })
 
   // Re-run whenever the bound props signal changes.
