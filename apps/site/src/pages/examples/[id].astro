@@ -22,6 +22,8 @@ const SHARED_RAW  = import.meta.glob('../../../../shared/**/*.{ts,tsx,json}',   
 const VANILLA_RAW = import.meta.glob('../../examples/vanilla/**/*.{ts,tsx,css}',     { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const VUE_RAW     = import.meta.glob('../../examples/vue/**/*.{vue,ts}',             { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const ANGULAR_RAW = import.meta.glob('../../examples/angular/**/*.{ts,html}',        { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const SVELTE_RAW  = import.meta.glob('../../examples/svelte/**/*.svelte',              { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const SOLID_RAW   = import.meta.glob('../../examples/solid/**/*.tsx',                  { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const codeFor = (rel: string): string => {
   const raw = rel.startsWith('shared/')
     ? SHARED_RAW[`../../../../shared/${rel.slice('shared/'.length)}`]
@@ -31,12 +33,16 @@ const codeFor = (rel: string): string => {
         ? VUE_RAW[`../../examples/vue/${rel.slice('vue/'.length)}`]
         : rel.startsWith('angular/')
           ? ANGULAR_RAW[`../../examples/angular/${rel.slice('angular/'.length)}`]
-          : REACT_RAW[`../../../../demo-react/src/${rel}`]
+          : rel.startsWith('svelte/')
+            ? SVELTE_RAW[`../../examples/svelte/${rel.slice('svelte/'.length)}`]
+            : rel.startsWith('solid/')
+              ? SOLID_RAW[`../../examples/solid/${rel.slice('solid/'.length)}`]
+              : REACT_RAW[`../../../../demo-react/src/${rel}`]
   return (raw ?? `// missing: ${rel}`).trimEnd()
 }
 const langOf = (rel: string): string => {
   const ext = rel.split('.').pop()
-  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : ext === 'vue' ? 'vue' : 'tsx'
+  return ext === 'tsx' ? 'tsx' : ext === 'ts' ? 'ts' : ext === 'css' ? 'css' : ext === 'json' ? 'json' : ext === 'vue' ? 'vue' : ext === 'svelte' ? 'svelte' : 'tsx'
 }
 const files = Object.entries(example.impls).flatMap(([fw, impl]) =>
   impl!.files.map((rel) => ({

@@ -34,10 +34,10 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
               <svg class="dfr-fwi" viewBox="0 0 24 24" aria-hidden="true"><path d={FW_ICON[f.key].path} fill={FW_ICON[f.key].color} /></svg>
               {f.label}
             </button>
-          : <button class="dfr-chip" disabled title={`${f.label} — coming soon`}>
+          : <button class="dfr-chip" disabled title={`${f.label} — this example has no ${f.label} implementation yet (the ${f.label} adapter itself is complete — see its guide)`}>
               <svg class="dfr-fwi" viewBox="0 0 24 24" aria-hidden="true"><path d={FW_ICON[f.key].path} fill={FW_ICON[f.key].color} /></svg>
               <span>{f.label}</span>
-              <span class="dfr-soon">soon</span>
+              <span class="dfr-soon">n/a</span>
             </button>
       ))}
     </div>

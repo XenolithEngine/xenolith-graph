@@ -1,8 +1,10 @@
 // The examples gallery manifest — ONE entry per example, with per-framework implementations.
 // Each example page (/examples/<id>) has a framework switcher that swaps the LIVE demo + the
-// "Show code" tabs between React / Vue / Svelte / Solid / Angular. React ships first; the others
-// are disabled ("soon") in the switcher until their demos land — kept per-framework so the page
-// shows one framework at a time and never becomes a jumble.
+// "Show code" tabs between JS / React / Vue / Svelte / Solid / Angular. ALL adapters exist (see
+// the framework guides); not every EXAMPLE has an implementation in every framework — the
+// switcher marks those "n/a" honestly. Svelte/Solid sources are idiomatic action/directive +
+// store-bag snippets; their LIVE previews still mount through the vanilla router (one PIXI app
+// per page — see [id].astro).
 
 export type Framework = 'vanilla' | 'react' | 'vue' | 'svelte' | 'solid' | 'angular'
 
@@ -62,8 +64,8 @@ export const EXAMPLES: ExampleDef[] = [
     impls: {
       react:   { files: ['demos/SaveRestoreDemo.tsx', 'shared/save-restore.ts'] },
       vue:     { files: ['vue/SaveRestoreDemo.vue', 'vue/SavePanel.vue', 'shared/save-restore.ts'] },
-      svelte:  { files: ['vanilla/svelte-save-restore.ts', 'shared/save-restore.ts'] },
-      solid:   { files: ['vanilla/solid-save-restore.ts', 'shared/save-restore.ts'] },
+      svelte:  { files: ['svelte/SaveRestoreDemo.svelte', 'shared/save-restore.ts'] },
+      solid:   { files: ['solid/SaveRestoreDemo.tsx', 'shared/save-restore.ts'] },
       angular: { files: ['angular/SaveRestoreDemo.component.ts', 'shared/save-restore.ts'] },
     } },
   { id: 'image-pipeline', title: 'Image pipeline (WebGL)', category: 'Showcases',
@@ -74,8 +76,8 @@ export const EXAMPLES: ExampleDef[] = [
     impls: {
       react:   { files: ['shared/mount.json', 'demos/MountDemo.tsx', 'shared/mount.ts'] },
       vue:     { files: ['vue/MountDemo.vue', 'shared/mount.ts'] },
-      svelte:  { files: ['vanilla/svelte-mount.ts', 'shared/mount.ts'] },
-      solid:   { files: ['vanilla/solid-mount.ts', 'shared/mount.ts'] },
+      svelte:  { files: ['svelte/MountDemo.svelte', 'shared/mount.ts'] },
+      solid:   { files: ['solid/MountDemo.tsx', 'shared/mount.ts'] },
       angular: { files: ['angular/MountDemo.component.ts', 'shared/mount.ts'] },
     } },
   { id: 'load', title: 'Load a graph', category: 'Nodes',
@@ -98,8 +100,8 @@ export const EXAMPLES: ExampleDef[] = [
     impls: {
       react:   { files: ['demos/EventsDemo.tsx'] },
       vue:     { files: ['vue/EventsDemo.vue', 'vue/EventsPanel.vue'] },
-      svelte:  { files: ['vanilla/svelte-events.ts'] },
-      solid:   { files: ['vanilla/solid-events.ts'] },
+      svelte:  { files: ['svelte/EventsDemo.svelte'] },
+      solid:   { files: ['solid/EventsDemo.tsx'] },
       angular: { files: ['angular/EventsDemo.component.ts'] },
     } },
   { id: 'mobile-touch', title: 'Mobile / tablet (touch demo)', category: 'Interaction',
@@ -117,8 +119,8 @@ export const EXAMPLES: ExampleDef[] = [
       vanilla: { files: ['vanilla/properties-sidebar.ts', 'shared/properties-sidebar.ts'] },
       react:   { files: ['demos/PropertiesSidebarDemo.tsx', 'shared/properties-sidebar.ts'] },
       vue:     { files: ['vue/PropertiesSidebarDemo.vue', 'vue/SidebarTogglePanel.vue', 'shared/properties-sidebar.ts'] },
-      svelte:  { files: ['vanilla/svelte-properties-sidebar.ts', 'shared/properties-sidebar.ts'] },
-      solid:   { files: ['vanilla/solid-properties-sidebar.ts', 'shared/properties-sidebar.ts'] },
+      svelte:  { files: ['svelte/PropertiesSidebarDemo.svelte', 'shared/properties-sidebar.ts'] },
+      solid:   { files: ['solid/PropertiesSidebarDemo.tsx', 'shared/properties-sidebar.ts'] },
       angular: { files: ['angular/PropertiesSidebarDemo.component.ts', 'shared/properties-sidebar.ts'] },
     } },
   { id: 'two-way', title: 'Two-way data binding', category: 'Interaction',
@@ -145,8 +147,8 @@ export const EXAMPLES: ExampleDef[] = [
       vanilla: { files: ['vanilla/palette-sidebar.ts', 'shared/palette-sidebar.ts'] },
       react:   { files: ['demos/PaletteSidebarDemo.tsx', 'shared/palette-sidebar.ts'] },
       vue:     { files: ['vue/PaletteSidebarDemo.vue', 'shared/palette-sidebar.ts'] },
-      svelte:  { files: ['vanilla/svelte-palette-sidebar.ts', 'shared/palette-sidebar.ts'] },
-      solid:   { files: ['vanilla/solid-palette-sidebar.ts', 'shared/palette-sidebar.ts'] },
+      svelte:  { files: ['svelte/PaletteSidebarDemo.svelte', 'shared/palette-sidebar.ts'] },
+      solid:   { files: ['solid/PaletteSidebarDemo.tsx', 'shared/palette-sidebar.ts'] },
       angular: { files: ['angular/PaletteSidebarDemo.component.ts', 'shared/palette-sidebar.ts'] },
     } },
   { id: 'connection-validation', title: 'Connection validation', category: 'Interaction',
