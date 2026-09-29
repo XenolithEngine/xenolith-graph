@@ -123,6 +123,7 @@ import { CommentController } from './comments-controller.js'
 import { Subgraph } from './subgraph.js'
 import { PointerController } from './pointer-controller.js'
 import { DomWidgetLayer } from './dom-widgets.js'
+import { ExportController } from './export.js'
 import { PaletteSidebar, type PaletteSidebarOpts } from './palette-sidebar.js'
 import { computeRerouteBridges } from './reroute-bridge.js'
 import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
@@ -856,6 +857,25 @@ export class XenolithEditor {
       widgetThemeColors: (spec) => ptrSelf.#widgetThemeColors(spec),
       setWidgetValue: (nodeId, widgetId, v) => ptrSelf.setWidgetValue(nodeId, widgetId, v),
       openSidebar: (nodeId) => ptrSelf.openSidebar(nodeId),
+    })
+    this.#export = new ExportController({
+      get graph() { return ptrSelf.graph },
+      get theme() { return ptrSelf.#theme },
+      get world() { return ptrSelf.#world },
+      get app() { return ptrSelf.#app },
+      get views() { return ptrSelf.#views },
+      get frozen() { return ptrSelf.#frozen },
+      get lodLevel() { return ptrSelf.#lodLevel },
+      endFreeze: () => ptrSelf.#endFreeze(),
+      applyLODLevel: (level) => ptrSelf.#applyLODLevel(level),
+      ensureView: (n) => ptrSelf.#ensureView(n),
+      materializeEdgeIfAbsent: (e) => {
+        if (!ptrSelf.#edgeRecords.has(e.id)) ptrSelf.#materializeEdge(e, ptrSelf.#edgeOpts.get(e.id) ?? {})
+      },
+      applyMacroVisibility: () => ptrSelf.#applyMacroVisibility(),
+      virtualizeActive: () => ptrSelf.#virtualizeActive(),
+      cullToViewport: () => ptrSelf.#cullToViewport(),
+      requestRender: () => ptrSelf.#requestRender(),
     })
     this.#pointer = new PointerController({
       ed: ptrSelf,
@@ -2879,6 +2899,7 @@ export class XenolithEditor {
   // Screen-space layer over the canvas hosting framework/HTML widgets, glued to their nodes'
   // on-screen widget rects every painted frame. The layer object owns the div + mounted map.
   #domWidgets!: DomWidgetLayer
+  #export!: ExportController
 
   /** True when the data IN-pin identified by `pinKey` (matched against pin label, then id) has
    *  ≥1 incoming edge. Drives pin-bound widget visibility — a widget bound to a connected pin is
@@ -3549,70 +3570,6 @@ export class XenolithEditor {
 
   isProposalsVisible(): boolean { return this.#proposalsPanel?.isOpen() ?? false }
 
-  /** World-space bounding box of all nodes, or null when the graph is empty. */
-  #graphBounds(): { x: number; y: number; w: number; h: number } | null {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    for (const n of this.graph.nodes()) {
-      const size = n.size ?? { x: this.#theme.tokens.geometry.node.minWidth, y: 40 }
-      minX = Math.min(minX, n.position.x); minY = Math.min(minY, n.position.y)
-      maxX = Math.max(maxX, n.position.x + size.x); maxY = Math.max(maxY, n.position.y + size.y)
-    }
-    if (!Number.isFinite(minX)) return null
-    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
-  }
-
-  /** Run `fn` with the WHOLE graph materialized and visible in `#world`, then restore the live
-   *  (viewport-culled, LOD-appropriate) state. Used by `exportImage` so a render of `#world` captures
-   *  every node/edge at full detail regardless of culling, virtualization, LOD batches or the
-   *  pan/zoom freeze — any of which otherwise leaves `#world` holding only a slice of the graph.
-   *
-   *  Setup: drop the freeze (it hides live nodes behind baked sprites), force LOD back to 'full'
-   *  (sprite/flat replace real nodes with baked stand-ins or hide #nodesLayer), materialize a live
-   *  view for every node and every edge, then reapply macro visibility so collapsed-macro members
-   *  stay hidden and expanded-macro frames/overlay reparenting is correct.
-   *
-   *  Teardown (in `finally`, via the same reconciliation the live view uses): reapply macro
-   *  visibility, restore the prior LOD level (disposing the export-time views its swap removes), and
-   *  re-cull to the viewport so off-screen nodes lose their views again. No manual per-view bookkeeping.
-   *
-   *  NOTE: DOM-mounted custom widgets are HTML-overlay only and are NOT part of `#world`, so they
-   *  remain absent from any render done inside `fn` — see `exportImage`. */
-  #withFullGraphVisible<T>(fn: () => T): T {
-    // Freeze hides live nodes behind baked sprites captured for the CURRENT viewport — drop it first
-    // (also restores visible=true on every view and reapplies macro visibility).
-    if (this.#frozen) this.#endFreeze()
-    const prevLod = this.#lodLevel
-    if (prevLod !== 'full') this.#applyLODLevel('full')
-    // The graph model (not #views) is the source of truth for what exists; materialize every node so
-    // off-screen / virtualized nodes get a real container in #nodesLayer.
-    for (const n of this.graph.nodes()) this.#ensureView(n as Node)
-    // Edges follow live nodes (#cullEdges only materializes edges incident to a live view), so wire
-    // up every edge too. Guard against duplicates — #materializeEdge leaks an orphan Graphics if a
-    // record already exists.
-    for (const e of this.graph.edges()) {
-      if (!this.#edgeRecords.has(e.id)) this.#materializeEdge(e as Edge, this.#edgeOpts.get(e.id) ?? {})
-    }
-    // Correct visibility for macro state: collapsed members hidden, expanded macros framed. Idempotent
-    // (rebuilds frames + reparents from scratch), so it's also the restore call below.
-    this.#applyMacroVisibility()
-    try {
-      return fn()
-    } finally {
-      // Restore the live scene through the same reconciliation paths that build it normally — no
-      // hand-rolled per-view snapshot/restore to drift out of sync.
-      this.#applyMacroVisibility()
-      if (prevLod !== 'full') this.#applyLODLevel(prevLod)
-      // Re-cull to the viewport: virtualization disposes the off-screen views we just materialized
-      // (and rebuilds the right LOD batch if prevLod wasn't 'full'). A no-op when virtualization is
-      // inert (graph under the threshold keeps every view live anyway).
-      if (this.#virtualizeActive()) this.#cullToViewport()
-      this.#requestRender()
-    }
-  }
-
-  /** Render the WHOLE graph (independent of the current viewport) to a high-resolution image Blob.
-   *  PNG is transparent; JPEG fills the theme's canvas colour. Heavy on big graphs — pair with the
-   *  busy overlay (`withOverlay`). Follows the editor's existing RenderTexture pattern. */
   /** Replace the category → colour map and re-render every node so the new palette is visible
    *  immediately. Loading a graph already sets this from the document's `categories` field; this
    *  setter is for runtime changes (theme tooling, MCP `set_category_palette`, …). Pass an empty
@@ -3648,30 +3605,7 @@ export class XenolithEditor {
    *  Renders the live container — NOT the bake-cache "blank" texture — so AI clients calling MCP
    *  `node_screenshot` see exactly what the user sees, not a default-state stand-in. */
   async exportNodeImage(nodeId: NodeId, opts: { format?: 'png' | 'jpeg'; quality?: number; scale?: number; padding?: number; background?: string | null } = {}): Promise<Blob> {
-    const view = this.#views.get(nodeId)
-    const node = this.graph.getNode(nodeId)
-    if (!view || !node) throw new Error(`exportNodeImage: no live view for node '${nodeId}'`)
-    const format = opts.format ?? 'png'
-    const scale = opts.scale ?? 2
-    const padding = opts.padding ?? 8
-    const w = Math.max(1, Math.ceil((node.size?.x ?? this.#theme.tokens.geometry.node.minWidth) + padding * 2))
-    const h = Math.max(1, Math.ceil((node.size?.y ?? this.#theme.tokens.geometry.node.headerHeight) + padding * 2))
-    const rt = RenderTexture.create({ width: w, height: h, resolution: scale })
-    // Render the node's container at identity into rt, offset by padding so there's a small bleed.
-    const savedPos = { x: view.container.position.x, y: view.container.position.y }
-    view.container.position.set(padding, padding)
-    // Opaque canvas colour by default (looks like the editor); `background: null` → transparent.
-    const clearColor = opts.background === null ? [0, 0, 0, 0] : (opts.background ?? this.#theme.tokens.color.surface.canvas)
-    this.#app.renderer.render({ container: view.container, target: rt, clearColor: clearColor as never })
-    view.container.position.set(savedPos.x, savedPos.y)
-    this.#requestRender()
-    const canvas = this.#app.renderer.extract.canvas(rt) as HTMLCanvasElement
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((b) => resolve(b), `image/${format}`, opts.quality ?? 0.92),
-    )
-    rt.destroy(true)
-    if (!blob) throw new Error('exportNodeImage: canvas.toBlob returned null')
-    return blob
+    return this.#export.nodeImage(nodeId, opts)
   }
 
   /** Render the whole graph to an image Blob. The clear colour defaults to the theme's canvas
@@ -3682,7 +3616,8 @@ export class XenolithEditor {
    *  virtualization, LOD batches and the pan/zoom freeze all leave `#world` holding only a slice of
    *  the graph (off-screen nodes have no view, low zoom swaps in flat/sprite batches, the freeze
    *  hides live nodes behind baked sprites). Rendering `#world` as-is in any of those states yields a
-   *  blank or wrong-detail export, so the render runs inside `#withFullGraphVisible`, which
+   *  blank or wrong-detail export, so the render runs inside the export controller's
+   *  with-full-graph-visible juggling, which
    *  materializes every node/edge and un-hides the LOD/freeze layers for the duration of the render,
    *  then restores the culled live state.
    *
@@ -3690,90 +3625,7 @@ export class XenolithEditor {
    *  in an HTML overlay outside the WebGL scene graph, so they cannot appear in this render path —
    *  only canvas/custom-draw widgets (drawn into the PIXI scene) are captured. */
   async exportImage(opts: { format?: 'png' | 'jpeg'; quality?: number; padding?: number; scale?: number; background?: string | null } = {}): Promise<Blob> {
-    const format = opts.format ?? 'png'
-    const padding = opts.padding ?? 48
-    const scale = opts.scale ?? 2
-    const b = this.#graphBounds() ?? { x: 0, y: 0, w: 1, h: 1 }
-    const width = Math.ceil(b.w + padding * 2)
-    const height = Math.ceil(b.h + padding * 2)
-
-    // Opaque canvas colour by default (looks like the editor); `background: null` → transparent.
-    const clearColor = opts.background === null ? [0, 0, 0, 0] : (opts.background ?? this.#theme.tokens.color.surface.canvas)
-
-    // The export target's pixel size is width × scale × height × scale. A wide graph at a high scale
-    // blows past the GPU's MAX_TEXTURE_SIZE (8192 on weak/headless contexts, up to 16384 elsewhere),
-    // and a RenderTexture over the limit renders as a silently empty (fully transparent) sheet — so
-    // the PNG comes out blank regardless of viewport state. Tile the render so every RenderTexture
-    // stays under the limit, then stitch the tiles into one 2D canvas.
-    const maxTex = this.#maxRenderTextureSize()
-    // Tile size in EXPORT pixels, with headroom so a tile never grazes the cap.
-    const tilePx = Math.max(64, Math.floor(maxTex * 0.5))
-    // Tile size in WORLD pixels (the render is at scale 1; `scale` only raises the texture resolution).
-    const tileW = Math.max(1, Math.floor(tilePx / scale))
-    const tileH = Math.max(1, Math.floor(tilePx / scale))
-
-    // Compose the final image on a plain 2D canvas — the tiles are drawn into it, then it's encoded.
-    // 2D canvases have no GPU texture cap, so arbitrarily large exports are fine here.
-    const canvas2d = document.createElement('canvas')
-    canvas2d.width = Math.ceil(width * scale)
-    canvas2d.height = Math.ceil(height * scale)
-    const ctx2d = canvas2d.getContext('2d')!
-    // For an opaque export, prime the whole canvas with the clear colour so seams between tiles
-    // (and any sub-pixel gaps) are the background, not transparent black. Transparent exports skip
-    // this so the alpha channel stays clean.
-    if (opts.background !== null) {
-      ctx2d.fillStyle = typeof clearColor === 'string' ? clearColor : this.#theme.tokens.color.surface.canvas as string
-      ctx2d.fillRect(0, 0, canvas2d.width, canvas2d.height)
-    }
-
-    // Save the live viewport transform; the tile renders move #world to aim each tile at its region.
-    const savedPos = { x: this.#world.x, y: this.#world.y }
-    const savedScale = { x: this.#world.scale.x, y: this.#world.scale.y }
-    this.#world.scale.set(1)
-    // The whole-graph render must run with every node/edge visible (see #withFullGraphVisible); wrap
-    // the full tile loop so the materialization pays once, not per tile.
-    this.#withFullGraphVisible(() => {
-      for (let ty = 0; ty < height; ty += tileH) {
-        const th = Math.min(tileH, height - ty)
-        for (let tx = 0; tx < width; tx += tileW) {
-          const tw = Math.min(tileW, width - tx)
-          const rt = RenderTexture.create({ width: tw, height: th, resolution: scale })
-          // Place #world so the tile's top-left world corner (b.x - padding + tx, b.y - padding + ty)
-          // maps to the texture origin (0,0). Generalises the single-shot offset (padding - b.x).
-          this.#world.position.set((padding - b.x) - tx, (padding - b.y) - ty)
-          this.#app.renderer.render({ container: this.#world, target: rt, clearColor: clearColor as never })
-          const tileCanvas = this.#app.renderer.extract.canvas(rt) as HTMLCanvasElement
-          ctx2d.drawImage(tileCanvas, Math.round(tx * scale), Math.round(ty * scale), Math.ceil(tw * scale), Math.ceil(th * scale))
-          rt.destroy(true)
-        }
-      }
-    })
-
-    // Restore the live view.
-    this.#world.position.set(savedPos.x, savedPos.y)
-    this.#world.scale.set(savedScale.x, savedScale.y)
-    this.#requestRender()
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas2d.toBlob((b2) => resolve(b2), `image/${format}`, opts.quality ?? 0.92),
-    )
-    if (!blob) throw new Error('exportImage: canvas.toBlob returned null')
-    return blob
-  }
-
-  /** Largest square RenderTexture edge (in texture pixels) the current renderer will accept. WebGL
-   *  reports it via `gl.MAX_TEXTURE_SIZE`; WebGPU / unavailable contexts fall back to a conservative
-   *  4096 (a safe floor across mobile and headless software rasterizers). Tiling in `exportImage`
-   *  keeps every tile under this so the GPU never silently drops an over-limit texture. */
-  #maxRenderTextureSize(): number {
-    const gl = (this.#app.renderer as unknown as { gl?: WebGL2RenderingContext }).gl
-    if (gl) {
-      try {
-        const v = gl.getParameter(gl.MAX_TEXTURE_SIZE)
-        if (typeof v === 'number' && v > 0) return v
-      } catch { /* swallow — renderer context not ready, use fallback */ }
-    }
-    return 4096
+    return this.#export.image(opts)
   }
 
   /** Replace the editor's contents with the contents of an `xenolith.v1` payload. Wipes the
