@@ -50,7 +50,7 @@ describe('createMcpServer smoke (tools/list + resources/list)', () => {
   it('identifies itself with the package name and version', async () => {
     const version = client.getServerVersion()
     expect(version?.name).toBe('xenolith-graph')
-    expect(version?.version).toBe('0.7.0-beta.5')
+    expect(version?.version).toBe('0.7.0-beta.8')
   })
 
   it('advertises audit://recent in resources/list (C-Bet1a)', async () => {

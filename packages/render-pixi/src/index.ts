@@ -1,4 +1,4 @@
-export const VERSION = '0.7.0-beta.5'
+export const VERSION = '0.7.0-beta.8'
 
 export { computeNodeLayout, measureNodeSize, findPinByKey, pinRowIndexFor, effectivePinRowHeight } from './layout.js'
 export type { LayoutTokens, NodeLayout, PinLayout, Rect, NodeSizeTokens, TextMeasurer } from './layout.js'
