@@ -4,10 +4,10 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
 [![Tests](https://img.shields.io/badge/tests-1369%20unit%20%C2%B7%20118%20e2e-39d98a?style=flat-square)](#tests)
-[![Bundle: core](https://img.shields.io/badge/@xenolithengine%2Fgraph--core-8.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![Bundle: render-pixi](https://img.shields.io/badge/@xenolithengine%2Fgraph--render--pixi-17.4KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-74.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![Bundle: react](https://img.shields.io/badge/@xenolithengine%2Fgraph--react-2.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: core](https://img.shields.io/badge/@xenolithengine%2Fgraph--core-8.7KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: render-pixi](https://img.shields.io/badge/@xenolithengine%2Fgraph--render--pixi-18.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-91.8KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: react](https://img.shields.io/badge/@xenolithengine%2Fgraph--react-2.8KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![MCP Server](https://img.shields.io/badge/MCP-26%20tools%20%C2%B7%203%20resources-a855f7?style=flat-square)](packages/mcp-server/TESTING.md)
 [![Discussions](https://img.shields.io/badge/community-Discussions-181717?style=flat-square&logo=github)](https://github.com/XenolithEngine/xenolith-graph/discussions)
 
@@ -78,7 +78,7 @@ One call (or one component) boots: fonts, PIXI v8 renderer, viewport, grid, pan/
 - **Blueprint-first.** Typed pins (`exec` vs `data`), per-type colour and shape (`circle` / `arrow` / `diamond`), registerable type **conversions** (`editor.types.registerConversion('number', 'text', String)`). Exec pins hoist onto the node header line (UE-Blueprint layout). Header glyphs from a Feather icon set or your own SVG.
 - **Live templates + macros.** Reusable subgraphs with one shared definition + many instances; double-click to dive in, a breadcrumb tracks the path (`Root › Pipeline › Stage`). One-off inline grouping via macros — convert macro ↔ template either direction. `unpackTemplateInstance()` inlines a copy.
 - **Comments.** Drag a coloured rectangle behind nodes; spatial group-drag moves everything inside it. Tab → "Comment" or context menu.
-- **In-node widgets.** Declarative `number` / `slider` / `combo` / `text` / `toggle` / `color` / `button`, plus custom canvas-draw or DOM-mount widgets (React/Vue/Svelte via `registerWidget(name, controller)`). Conditional visibility on widget state (`displayOptions.show`), free-floating widgets (`freeFloating: true`), live values on display widgets, properties sidebar.
+- **In-node widgets.** Declarative `number` / `slider` / `combo` / `text` / `toggle` / `color` / `button`, plus custom canvas-draw or DOM-mount widgets (`reactWidget`, `vueWidget`, `svelteWidget` via `registerWidget(name, controller)`). Conditional visibility on widget state (`displayOptions.show`), free-floating widgets (`freeFloating: true`), live values on display widgets, properties sidebar. Solid and Angular have no widget bridge — use canvas widgets or `editor.chrome`.
 - **Named commands + hotkeys.** Register actions through `editor.commands` with typed `Commands.Undo`/`Commands.Redo`/… constants; cross-platform hotkey grammar (`Mod+Z` resolves to Cmd on macOS, Ctrl elsewhere). Built-in shortcuts are overridable.
 - **Events + history.** Listen with `editor.on(event, fn)` — including **cancellable** variants (`edge:connecting`, `edge:disconnecting`, `node:removing`, `node:clicking` with a `cancel()` closure). Group many mutations into one undo entry via `editor.transaction(fn)` (or `beginGroup({ idleTimeoutMs })` / `endGroup()` for keystroke coalescing).
 - **Save · restore · migrate · export.** Versioned `xenolith.v1` JSON (ID-sorted for clean git diffs) with per-schema `migrate(oldNode, fromVersion)` hooks — old graphs upgrade automatically. ComfyUI workflow importer. Export the **whole graph** (not the viewport) to PNG or JPEG at any resolution.
@@ -88,8 +88,8 @@ One call (or one component) boots: fonts, PIXI v8 renderer, viewport, grid, pan/
 - **Three themes shipped.** Xen (dark/gold, original design system), Daylight (light-mode, protruding pin halos, Helvetica typography), and Liquid Glass (shader-based refraction + rim lighting via PIXI Mesh+Shader). Swap at runtime with `editor.setTheme(theme)`.
 - **Live Mode.** `editor.setLiveMode(true)` hides editor chrome (palette, breadcrumb, controls) — perfect for read-only previews and demos.
 - **Perf for real graphs.** Viewport virtualization + 3-tier LOD (full → sprite-baked → flat-batch). Render-on-demand (static graphs idle at 0 fps cost). BitmapText glyph atlas for node/widget text. Shared GPU texture caches.
-- **Framework adapters.** First-class **React** (`@xenolithengine/graph-react`) and **Vue 3** (`@xenolithengine/graph-vue`) — both ship `<XenolithPanel>`/`<XenolithControls>`/`<XenolithMiniMap>`/`<XenolithButton>` with reactive selector hooks/composables, custom-widget wrappers (`reactWidget` / `vueWidget`), and full Learn pages. Thin starter packages also ship for **Svelte**, **Solid**, **Angular**, and **Web Components** (`@xenolithengine/graph-wc`) — they mount the editor and expose a typed handle. Idiomatic hooks and panel components for those four are not scheduled.
-- **AI-native via MCP.** Ships its own [Model Context Protocol](https://modelcontextprotocol.io) server (`@xenolithengine/graph-mcp-server`). Start the CLI, click Connect in the editor, and Claude Desktop / Cursor can build graphs directly — `list_node_types` → `add_node` → `connect_pins` → `auto_layout`. Twenty-five tools + two resources (`graph://current`, `schema://types`). Every mutation flows through the command bus so undo and the live event stream just work. Token-auth + read-only mode supported. **Propose mode** (`connectMCP(url, { mode: 'propose' })`) is the trust boundary: agent edits queue for human approval in the built-in review panel and land as one undo step.
+- **Framework adapters.** Six packages, each with a Learn page. **React** and **Vue 3** ship panel components (`XenolithPanel`, `Controls`, `MiniMap`, `Button`, `ProposalQueue`), a hook/composable set including the controlled triple `useNodesState()`, and `reactWidget` / `vueWidget`. **Svelte** ships a `use:xenolith` action and `createXenolithStores()` (including `nodesState()`); panel components and `svelteWidget` live on the `@xenolithengine/graph-svelte/components` subpath and need Svelte 5, while the package root stays pure TypeScript and runs on Svelte 4. **Solid** ships a `use:xenolith` directive and `createXenolithStores()` / `nodesState()` — panels and a widget bridge are absent there, use `editor.chrome`. **Angular** ships a decorator-free `XenolithGraphService` (RxJS, including `nodesState()`); there is no library component, because an AOT consumer cannot compile a raw decorator class. **Web Components** (`<xenolith-graph>`) ship the attribute dictionary and all 25 editor events plus `ready`; reactive stores belong to the host framework, which receives the editor on `ready`.
+- **AI-native via MCP.** Ships its own [Model Context Protocol](https://modelcontextprotocol.io) server (`@xenolithengine/graph-mcp-server`). Start the CLI, click Connect in the editor, and Claude Desktop / Cursor can build graphs directly — `list_node_types` → `add_node` → `connect_pins` → `auto_layout`. Twenty-six tools + three resources (`graph://current`, `schema://types`, `audit://recent`). Every mutation flows through the command bus so undo and the live event stream just work. Token-auth + read-only mode supported. **Propose mode** (`connectMCP(url, { mode: 'propose' })`) is the trust boundary: agent edits queue for human approval in the built-in review panel and land as one undo step.
 - **Visual stepping debugger.** `StepDebugger` is part of `@xenolithengine/graph-editor` — wrap any executor (`StepExecutor`), and you get pause/step/continue, breakpoints, per-node timing, and a live trace. The Step debugger / Time-travel scrubber / Per-node cost heatmap / Graph diff for PR-review showcases all ride this primitive — drop-in observability for any graph runtime.
 
 ## Bundle size
@@ -98,16 +98,16 @@ Honest numbers, measured by [size-limit](https://github.com/ai/size-limit) on th
 
 | Package | Gzip | Notes |
 |---|---|---|
-| `@xenolithengine/graph-core` | **8.4 KB** | Headless graph model — zero deps |
-| `@xenolithengine/graph-render-pixi` | **17.4 KB** | (excl. PIXI peer dep) |
-| `@xenolithengine/graph-editor` | **74.3 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
-| `@xenolithengine/graph-react` | **2.3 KB** | Adapter on top of `@xenolithengine/graph-editor` |
-| `@xenolithengine/graph-theme-xen` | **2.3 KB** | Default theme tokens + bundled Inter |
+| `@xenolithengine/graph-core` | **8.7 KB** | Headless graph model — zero deps |
+| `@xenolithengine/graph-render-pixi` | **18.3 KB** | (excl. PIXI peer dep) |
+| `@xenolithengine/graph-editor` | **91.8 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
+| `@xenolithengine/graph-react` | **2.8 KB** | Adapter on top of `@xenolithengine/graph-editor` |
+| `@xenolithengine/graph-theme-xen` | **2.0 KB** | Default theme tokens + bundled Inter |
 | `@xenolithengine/graph-theme-daylight` | **5.0 KB** | Light-mode theme, custom pin-halo renderer |
-| `@xenolithengine/graph-theme-liquid-glass` | **7.9 KB** | Shader-based frosted-glass theme |
+| `@xenolithengine/graph-theme-liquid-glass` | **8.0 KB** | Shader-based frosted-glass theme |
 | `@xenolithengine/graph-plugin-autolayout` (dagre adapter) | **0.8 KB** | (excl. `dagre` peer dep — ~30 KB if you opt in) |
 | **`pixi.js` (peer dep)** | **~250 KB** | The WebGL renderer we ship on top of |
-| **Realistic React app load** | **~330 KB** | Our code + PIXI |
+| **Realistic React app load** | **~340 KB** | Our code + PIXI |
 
 ### How we compare
 
@@ -120,11 +120,11 @@ Tested against the published bundles of competitors (2025 data via [bundlephobia
 | Rete.js (+ react plugin) | 55 KB | DOM |
 | Baklava (Vue) | ~95 KB | DOM |
 | **React Flow / @xyflow/react** | **130 KB** | SVG |
-| **XenolithGraph (with PIXI)** | **~330 KB** | **WebGL via PIXI** |
+| **XenolithGraph (with PIXI)** | **~340 KB** | **WebGL via PIXI** |
 
-We are the heaviest. PIXI accounts for ~75% of the weight — and it's also what makes the WebGL renderer + viewport virtualization possible. Without PIXI we ship ~80 KB, in line with the alternatives.
+We are the heaviest. PIXI accounts for ~75% of the weight — and it's also what makes the WebGL renderer + viewport virtualization possible. Without PIXI we ship ~92 KB, in line with the alternatives.
 
-**Pick something lighter** if mobile-first SaaS where every kB matters (Drawflow / Rete), or Vue-only projects where the editor is one feature (Baklava). **Pick us** when the editor IS the product (AI workflow builders, ComfyUI-class tools, visual debuggers) and you'd rather ship 330 KB once than refactor renderers later.
+**Pick something lighter** if mobile-first SaaS where every kB matters (Drawflow / Rete), or Vue-only projects where the editor is one feature (Baklava). **Pick us** when the editor IS the product (AI workflow builders, ComfyUI-class tools, visual debuggers) and you'd rather ship 340 KB once than refactor renderers later.
 
 ## Theming
 
@@ -147,9 +147,9 @@ The shader-heavy backdrop pass is **opt-in per theme** (`theme.needsBackdrop`) �
 - **Core** — `@xenolithengine/graph-core` headless model, command bus, typed pins, type registry with conversions, `evaluateGraph` for a host data pass
 - **Renderer** — `@xenolithengine/graph-render-pixi` WebGL editor, viewport virtualization + LOD past 300 nodes
 - **Editor** — `@xenolithengine/graph-editor` namespaces (`view` / `history` / `chrome` / `clipboard`), 25 typed events (7 preventable), context-menu plugin API
-- **Adapters** — React (`@xenolithengine/graph-react`) and Vue 3 (`@xenolithengine/graph-vue`) with full hook / composable parity, panel components, and `reactWidget` / `vueWidget` wrappers. Thin starter adapters for Svelte, Solid, Angular, and Web Components (`@xenolithengine/graph-wc`). Idiomatic hooks for those four are not scheduled
+- **Adapters** — React and Vue 3 at full parity (hooks/composables, panel components, `useNodesState()`, `reactWidget` / `vueWidget`). Svelte action + stores + `nodesState()`, with panels and `svelteWidget` on the `./components` subpath (Svelte 5). Solid directive + signal stores + `nodesState()`. Angular `XenolithGraphService` (RxJS, `nodesState()`), no library component. Web Component `<xenolith-graph>` with the full event dictionary and a `ready` event. Solid, Angular, and the Web Component have no panel-component package and no widget bridge.
 - **Themes** — Xen (default, original design system) + Daylight (light-mode) + Liquid Glass (refraction-based glass), runtime `setTheme()` swap
-- **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` ports)
+- **In-node widgets** — number / slider / combo / text / toggle / color / button + custom canvas + custom DOM (`reactWidget` / `vueWidget` / `svelteWidget`)
 - **Header icons** — 13 built-in Feather glyphs, `editor.icons.register(name, svgInner)` for custom
 - **Macros & templates** — group selection inline, extract as reusable template, dive-in with breadcrumb, convert either direction
 - **Save / export** — versioned `xenolith.v1` JSON with `migrate` hooks, ComfyUI workflow importer, full-graph PNG / JPEG export
@@ -165,7 +165,7 @@ v1.0 is a freeze of the API in [`STABLE-API.md`](STABLE-API.md) and of the `xeno
 
 Still open, and only if a real host needs them:
 
-- Canvas accessibility: ARIA and keyboard navigation of nodes. The canvas itself is not exposed to a screen reader.
+- Screen-reader traversal of the canvas. Keyboard node navigation (arrows, Enter, Esc), `role="application"`, and an aria-live selection announcement already ship. A screen-reader walk of every node is a later slice, and only if a host is actually blocked.
 - Touch polish past the gestures already shipped: virtual keyboard, marquee with a finger, drawer behaviour.
 
 ### Not scheduled

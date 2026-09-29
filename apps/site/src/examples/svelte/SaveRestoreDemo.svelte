@@ -2,7 +2,7 @@
      snapshots), download/upload/restore through the shared helpers; the panel is the real
      XenolithPanel portalled into the editor overlay. -->
 <script lang="ts">
-  import { xenolith, createXenolithStores } from '@xenolithengine/graph-svelte'
+  import { xenolith, createXenolithStores, createXenolithEditorContext } from '@xenolithengine/graph-svelte'
   import { XenolithPanel, XenolithButton } from '@xenolithengine/graph-svelte/components'
   import type { XenolithEditor } from '@xenolithengine/graph-editor'
   import {
@@ -10,6 +10,7 @@
   } from '@xenolithengine/demo/save-restore'
 
   const stores = createXenolithStores()
+  const panelEditor = createXenolithEditorContext()
   const graphJSON = stores.graphJSON // destructure for the $-auto-subscription
   let editor = $state<XenolithEditor | null>(null)
   let savedAt = $state<number | null>(null)
@@ -30,7 +31,7 @@
 
 <div
   use:xenolith={{ resizeToWindow: false }}
-  on:ready={(e) => { editor = e.detail; stores.editor.set(e.detail); initSaveRestore(e.detail) }}
+  onready={(e) => { editor = e.detail; panelEditor.set(e.detail); stores.editor.set(e.detail); initSaveRestore(e.detail) }}
   style="position:absolute;inset:0"
 ></div>
 

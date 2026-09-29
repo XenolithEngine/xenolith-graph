@@ -77,14 +77,14 @@ The renderer and the state model are where the libraries genuinely differ.
 
 | React Flow concept | XenolithGraph equivalent |
 |---|---|
-| `<ReactFlow nodes={} edges={}>` (controlled props) | `editor.loadJSON(doc)` / `editor.toJSON()` — the document is the state. A commit-time change protocol is planned; today you read live snapshots via hooks and mutate through the editor. |
-| `useNodesState` / `applyNodeChanges` | `useNodes` / `useEdges` / `useSelection` / `useViewport` hooks (React adapter) — selective subscriptions instead of re-rendering the world per drag. |
+| `<ReactFlow nodes={} edges={}>` (controlled props) | The document lives in the editor. Read it with `editor.toJSON()` / `useGraphJSON()`. Replace it with `editor.loadJSON(doc)`, or apply a diff with `editor.applyChanges(changes)` (one undo step). `graph:changed` delivers a coalesced change array when a transaction, an undo group, or an undo/redo step commits — never on a drag frame. |
+| `useNodesState` / `applyNodeChanges` | `useNodesState()` in `@xenolithengine/graph-react` and `@xenolithengine/graph-vue` returns `{ nodes, edges, applyChanges, setNodes }`. `setNodes(next)` diffs onto the editor as one undo step. Svelte and Solid expose the same triple as `nodesState()`; Angular exposes it on `XenolithGraphService`. `useNodes` / `useEdges` / `useSelection` / `useViewport` remain the read-only subscriptions. |
 | `<Handle type="source">` in JSX | Typed pins declared once in a `NodeSchema` (`{ direction: 'out', type: 'float', label: 'Out' }`). Wiring enforces types; `any` is the explicit wildcard. |
 | `nodeTypes` + custom node component | Schema + **DOM widgets** (`reactWidget` wrappers, `freeFloating` in-node controls, sidebar). The node body is renderer-drawn — that's the WebGL moat; your HTML lives in widgets. |
 | `node.data` | `node.state` (widget values); the importer maps it verbatim. |
 | `onConnect` → `addEdge` | `editor.connect(from, 'Out', to, 'In')` — label-resolving, undoable, type-gated. |
 | `isValidConnection` | `editor.setIsValidConnection(predicate)` — same hook, plus built-in type compatibility. |
-| `onNodesChange` (drag updates) | Nothing per-frame — positions are renderer-owned until commit. Listen to `node:moved` / `graph:changed`-level events instead. |
+| `onNodesChange` (drag updates) | Nothing per drag frame — the renderer owns positions until the gesture commits. The commit arrives as `node:moved` and as one entry in the `graph:changed` array. |
 | `<Background>`, `<Controls>`, `<MiniMap>` | Built-in: `editor.chrome.setControls()`, minimap, grid — no components to mount. |
 | Theming via CSS | [Design tokens](/guides/theme/) (Xen, Daylight, Liquid Glass) — colour, geometry and typography as data. |
 | Testing with `@testing-library` + jsdom | [`@xenolithengine/graph-test-utils`](/guides/testing/) — the real editor boots under jsdom. |

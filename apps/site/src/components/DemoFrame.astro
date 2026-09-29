@@ -37,7 +37,7 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
           : <button class="dfr-chip" disabled title={`${f.label} — this example has no ${f.label} implementation yet (the ${f.label} adapter itself is complete — see its guide)`}>
               <svg class="dfr-fwi" viewBox="0 0 24 24" aria-hidden="true"><path d={FW_ICON[f.key].path} fill={FW_ICON[f.key].color} /></svg>
               <span>{f.label}</span>
-              <span class="dfr-soon">n/a</span>
+              <span class="dfr-na">n/a</span>
             </button>
       ))}
     </div>
@@ -52,6 +52,7 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       </button>
     </div>
+    <p class="dfr-codenote" data-code-note hidden></p>
   </div>
 
   <div class="dfr-codewrap" hidden>
@@ -88,7 +89,8 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
   .dfr-chip.active { background: rgba(252,180,0,.16); border-color: #FCB400; color: #fff; }
   .dfr-chip:disabled { opacity: .5; cursor: default; }
   .dfr-fwi { width: 15px; height: 15px; flex: none; display: block; }
-  .dfr-soon { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; margin-left: 4px; }
+  .dfr-na { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; margin-left: 4px; }
+  .dfr-codenote { flex: 1 0 100%; margin: 0; font-size: 12px; line-height: 1.4; color: #9a9a9a; }
   .dfr-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; border: 1px solid #333; background: #1d1d1d; color: #cfcfcf; cursor: pointer; }
   .dfr-icon:hover:not(:disabled) { background: #2a2a2a; color: #fff; }
   .dfr-icon.active { background: rgba(252,180,0,.16); border-color: #FCB400; color: #fff; }
@@ -117,11 +119,24 @@ const FW_ICON: Record<Framework, { color: string; path: string }> = {
     const q = <T extends Element>(s: string) => Array.from(root.querySelectorAll<T>(s))
     // Framework switch: swap active chip + code group. Live preview is single-framework per page
     // (see comment in /examples/[id].astro — multi-framework live preview conflicts on PIXI
-    // singletons), so we do NOT toggle preview panels here; the chip switcher only navigates the
-    // source view between framework implementations.
+    // singletons), so the chip never swaps the canvas. A chip that isn't the live framework
+    // is source only, and the note says which canvas is actually on screen.
+    const FW_LABEL: Record<string, string> = {
+      vanilla: 'JS', react: 'React', vue: 'Vue', svelte: 'Svelte', solid: 'Solid', angular: 'Angular',
+    }
+    const liveFw = root.querySelector('.dfr-preview [data-fw]')?.getAttribute('data-fw') ?? ''
+    const note = root.querySelector<HTMLElement>('[data-code-note]')
     const setFw = (fw: string): void => {
       for (const c of q<HTMLButtonElement>('.dfr-chip')) c.classList.toggle('active', c.dataset.fwChip === fw)
       for (const g of q<HTMLElement>('[data-fw-code]')) g.classList.toggle('dfr-hidden', g.dataset.fwCode !== fw)
+      if (!note) return
+      const sourceOnly = liveFw !== '' && fw !== liveFw
+      note.hidden = !sourceOnly
+      if (sourceOnly) {
+        const liveName = FW_LABEL[liveFw] ?? liveFw
+        const tabName = FW_LABEL[fw] ?? fw
+        note.textContent = `Canvas stays on ${liveName}. This tab is ${tabName} source only.`
+      }
     }
     for (const chip of q<HTMLButtonElement>('.dfr-chip[data-fw-chip]')) {
       chip.addEventListener('click', () => setFw(chip.dataset.fwChip!))

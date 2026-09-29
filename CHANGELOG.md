@@ -8,6 +8,16 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Added
+
+- **Example source tabs for Vue, Svelte, Solid, and Angular.** The live canvas is still one framework per page (vanilla, otherwise React). Chips that are not that canvas switch the code only, and the frame says so (`Canvas stays on JS` / `React`). Ported: two-way binding, load, viewport, theming, export-image, built-in widgets, canvas widget, conditional widgets, type conversions, breadcrumb dive, preview nodes, edge paths, nested layout, auto-layout. `apps/site` build runs `scripts/check-example-snippets.mjs` first: every snippet path exists, every snippet file is listed, the word "soon" is banned, and every `.svelte` file compiles. Custom-widget bridges stay React-only (Vue and Svelte are the later pair). Solid and Angular still have no widget bridge.
+
+### Fixed
+
+- **Docs matched the tree.** README no longer calls the Svelte, Solid, Angular, and Web Component adapters "thin starters" with hooks "not scheduled" — each row now says what that package actually ships (Svelte `./components` is Svelte 5; Angular is `XenolithGraphService` with no library component; Solid and the Web Component have no widget bridge). MCP count in the highlights is 26 tools and 3 resources, matching the rest of the file. Keyboard node navigation is listed as shipped; screen-reader traversal of the canvas stays unscheduled. The React Flow migration guide (EN/RU/ZH) documents `useNodesState()` / `nodesState()` / `editor.applyChanges` / `graph:changed` — the commit-time protocol shipped in 0.7.0-beta.6, which the guide still called "planned".
+- **Bundle table remeasured** (`pnpm size`, fresh package build): editor **91.8 KB** gzip (the badge said 74.3), core 8.7, render-pixi 18.3, react 2.8. Under the 120 KB ceiling. Realistic app load with the PIXI peer is ~340 KB.
+- **Svelte example panels actually mount.** `SaveRestoreDemo` and `PropertiesSidebarDemo` called `XenolithPanel` without `createXenolithEditorContext()`, so the panel rendered nothing. Both now create the context during init and set it from `onready`. Files that also use Svelte 5 `onclick` use `onready`, not `on:ready` (the compiler rejects the mix).
+
 ## [0.7.0-beta.7] — 2026-09-29
 
 ### Fixed

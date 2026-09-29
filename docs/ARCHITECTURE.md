@@ -362,7 +362,7 @@ Large graphs are a shipped property of the mechanisms below. A 58k-node pass is 
 | `@xenolithengine/graph-render-pixi` | < 80 kB gzip (PIXI excluded as peer) |
 | `@xenolithengine/graph-editor` | < 120 kB gzip (PIXI excluded as peer) |
 
-The README badge reports the editor at 74.3 kB gzip. That is a published measurement, not the ceiling.
+The README badge reports the editor at 91.8 kB gzip (`pnpm size`, 2026-09-30). That is a published measurement, not the ceiling.
 
 ### Load-bearing perf mechanisms
 
@@ -387,8 +387,9 @@ Rule: O(visible), not O(N).
 | **v0.3** | Comments, two reroute kinds + edge-midpoint menu, copy/paste, minimap, grid snap. | shipped |
 | **v0.4** | React adapter (XenolithPanel/Controls/MiniMap/Button + hooks), Liquid Glass theme, docs site, landing page. | shipped |
 | **v0.5** | Widgets (number/slider/combo/text/toggle/color/button + canvas-draw + DOM-mount), Macros (collapse-groups), Live templates (definition + dive-in + convert), Plugin host (`editor.use` + `PluginContext`), glyphs, UE-Blueprint header layout, virtualization + LOD (58k tested). | shipped |
-| **v0.6** | Runtime VM (experimental, shipped as a package). Vue adapter at panel parity. Thin Svelte / Solid / Angular mounts. Touch: pinch, two-finger pan, long-press. Auto-layout (Dagre + ELK). | shipped, with the gaps below |
-| **v0.6 gaps** | Canvas accessibility (ARIA + keyboard nav of nodes) is not done. Mobile polish beyond the gestures above is open. | open |
+| **v0.6** | Runtime VM (experimental, shipped as a package). Vue adapter at panel parity. Thin Svelte / Solid / Angular mounts. Touch: pinch, two-finger pan, long-press. Auto-layout (Dagre + ELK). | shipped |
+| **v0.7** | MCP server (26 tools, 3 resources, propose mode), commit-time controlled protocol, React Flow importer, six adapters at the adapter contract, keyboard node navigation + aria-live. Public beta, API not frozen. | shipped (beta) |
+| **Still open** | Screen-reader traversal of the canvas — only if a real host is blocked. Mobile polish beyond the gestures above (virtual keyboard, finger marquee, drawer behaviour). | open |
 | **v1.0** | Public API freeze, `xenolith.v1` format freeze. Gzip ceilings already run in CI. | planned |
 
 Not started: Yjs collab, orthogonal edge routing that avoids obstacles.
