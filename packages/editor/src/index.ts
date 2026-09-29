@@ -42,7 +42,6 @@ import {
   widgetValue,
   widgetBindKey,
   widgetVisibility,
-  widgetRendersInBody,
   migrateNodePayload,
   type CoreEvents,
   type WidgetStyle,
@@ -85,9 +84,7 @@ import {
   renderRerouteNodeBox,
   rerouteSize,
   rerouteBoxSize,
-  computeWidgetRects,
   fitView,
-  isDomWidgetController,
   resolvePinFill,
   screenToWorld,
   worldToScreen,
@@ -102,11 +99,8 @@ import {
   Viewport,
   xenTheme,
   resolveWidgetStyle,
-  widgetCssVars,
   themeCssVars,
   type CustomWidgetController,
-  type DomWidgetController,
-  type WidgetLayoutTokens,
   type NodeView,
   type PinLayout,
   type RenderEdgeOptions,
@@ -128,6 +122,7 @@ import { SidebarManager } from './sidebar.js'
 import { CommentController } from './comments-controller.js'
 import { Subgraph } from './subgraph.js'
 import { PointerController } from './pointer-controller.js'
+import { DomWidgetLayer } from './dom-widgets.js'
 import { PaletteSidebar, type PaletteSidebarOpts } from './palette-sidebar.js'
 import { computeRerouteBridges } from './reroute-bridge.js'
 import { spliceCompatible, danglingRerouteRemovalPlan } from './edge-insert.js'
@@ -848,6 +843,20 @@ export class XenolithEditor {
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias -- intentional: host-bag/observer closures capture the editor alias
     const ptrSelf = this
+    this.#domWidgets = new DomWidgetLayer({
+      get graph() { return ptrSelf.graph },
+      get host() { return ptrSelf.#host },
+      get theme() { return ptrSelf.#theme },
+      get viewport() { return ptrSelf.#viewport },
+      get views() { return ptrSelf.#views },
+      get nodesLayer() { return ptrSelf.#nodesLayer },
+      get widgetControllers() { return ptrSelf.#widgetControllers },
+      isPinConnected: (nodeId, pinKey) => ptrSelf.#isPinConnected(nodeId, pinKey),
+      widgetDisplayValue: (node, w) => ptrSelf.#widgetDisplayValue(node, w),
+      widgetThemeColors: (spec) => ptrSelf.#widgetThemeColors(spec),
+      setWidgetValue: (nodeId, widgetId, v) => ptrSelf.setWidgetValue(nodeId, widgetId, v),
+      openSidebar: (nodeId) => ptrSelf.openSidebar(nodeId),
+    })
     this.#pointer = new PointerController({
       ed: ptrSelf,
       get app() { return ptrSelf.#app },
@@ -1095,7 +1104,7 @@ export class XenolithEditor {
       // when a bake-glow cache miss collides with a re-render). Logging > killing the ticker —
       // the next frame is almost always fine.
       try { this.#app.render() } catch (err) { console.warn('[editor] PIXI render frame failed (continuing)', err) }
-      this.#positionDomWidgets()
+      this.#domWidgets.position()
     })
 
     if (opts.minimap) {
@@ -1356,7 +1365,7 @@ export class XenolithEditor {
       this.#minimap?.place(screen.width, screen.height)
       this.#minimap?.setViewport(this.#viewport.state, screen.width, screen.height)
       this.#updateGrid()
-      this.#positionDomWidgets()
+      this.#domWidgets.position()
       this.#requestRender()
     })
   }
@@ -2562,7 +2571,7 @@ export class XenolithEditor {
     if (!this.#virtualizeActive() || this.#nodeIntersects(node, this.#virtualizeBands().inner)) {
       this.#ensureView(node)
     }
-    if (node.widgets?.some((w) => w.type === 'custom')) this.#syncDomWidgets()
+    if (node.widgets?.some((w) => w.type === 'custom')) this.#domWidgets.sync()
     this.#scheduleMinimapSync()
     this.#requestRender()
     return node
@@ -2848,7 +2857,7 @@ export class XenolithEditor {
    *  `custom` widget's `renderer` field names the controller. */
   registerWidget(name: string, controller: CustomWidgetController): void {
     this.#widgetControllers.set(name, controller)
-    this.#syncDomWidgets()
+    this.#domWidgets.sync()
   }
 
   /** Provider that resolves the live runtime value flowing into a node's bound pin (typically
@@ -2866,21 +2875,10 @@ export class XenolithEditor {
     return (k) => p(nodeId, k)
   }
 
-  // ---- DOM-mounted custom widgets --------------------------------------------------------------
-  // A screen-space layer over the canvas hosts framework/HTML widgets; we keep each element synced
-  // to its node's on-screen widget rect (pan/zoom/drag/collapse) every painted frame.
-  #domLayer: HTMLDivElement | null = null
-  readonly #domWidgets = new Map<string, { el: HTMLElement; controller: DomWidgetController; cleanup?: () => void; nodeId: NodeId; widgetId: string }>()
-
-  #widgetLayoutTokens(): WidgetLayoutTokens {
-    const g = this.#theme.tokens.geometry
-    return {
-      node:   { headerHeight: g.node.headerHeight },
-      pin:    { rowSpacing: g.pin.rowSpacing, rowHeight: g.pin.rowHeight, diameter: g.pin.diameter, labelGap: g.pin.labelGap },
-      header: { toPinsGap: g.header.toPinsGap },
-      widget: { rowHeight: g.widget.rowHeight, gap: g.widget.gap, paddingX: g.widget.paddingX },
-    }
-  }
+  // ---- DOM-mounted custom widgets (extraction M2 -> dom-widgets.ts) ------------------------
+  // Screen-space layer over the canvas hosting framework/HTML widgets, glued to their nodes'
+  // on-screen widget rects every painted frame. The layer object owns the div + mounted map.
+  #domWidgets!: DomWidgetLayer
 
   /** True when the data IN-pin identified by `pinKey` (matched against pin label, then id) has
    *  ≥1 incoming edge. Drives pin-bound widget visibility — a widget bound to a connected pin is
@@ -2901,26 +2899,6 @@ export class XenolithEditor {
     return false
   }
 
-  #ensureDomLayer(): HTMLDivElement {
-    if (!this.#domLayer) {
-      const l = document.createElement('div')
-      Object.assign(l.style, { position: 'absolute', inset: '0', overflow: 'hidden', pointerEvents: 'none', zIndex: '5' })
-      if (getComputedStyle(this.#host).position === 'static') this.#host.style.position = 'relative'
-      this.#host.appendChild(l)
-      this.#domLayer = l
-    }
-    return this.#domLayer
-  }
-
-  /** Mount/unmount DOM custom widgets to match the current graph, then position them. Called after
-   *  structural changes (load, add, re-render, theme swap). */
-  /** Expose the active widget theme as --xeno-* CSS custom properties on a DOM widget's host, so
-   *  framework/vanilla widgets can style with var(--xeno-accent) etc. and track the theme for free. */
-  #applyWidgetVars(el: HTMLElement, spec: { style?: WidgetStyle }): void {
-    const vars = widgetCssVars(resolveWidgetStyle(this.#theme.tokens, spec.style))
-    for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v)
-  }
-
   /** Resolve the value a widget should display: live runtime value when its bound pin is wired
    *  AND visibility is 'always' (display widgets), else the stored state default. Applies to
    *  BOTH custom and built-in widgets — display-mode contract is widget-type-agnostic. */
@@ -2937,144 +2915,6 @@ export class XenolithEditor {
   #isDisplayModeWidget(node: Node, w: WidgetSpec): boolean {
     const bind = widgetBindKey(w)
     return !!bind && widgetVisibility(w) === 'always' && this.#isPinConnected(node.id, bind)
-  }
-
-  #syncDomWidgets(): void {
-    const seen = new Set<string>()
-    for (const node of this.graph.nodes()) {
-      for (const w of node.widgets ?? []) {
-        if (w.type !== 'custom' || !widgetRendersInBody(w)) continue
-        const ctrl = this.#widgetControllers.get(w.renderer)
-        if (!ctrl || !isDomWidgetController(ctrl)) continue
-        const key = `${String(node.id)}:${w.id}`
-        seen.add(key)
-        if (this.#domWidgets.has(key)) {
-          this.#applyWidgetVars(this.#domWidgets.get(key)!.el, w)
-          ctrl.update?.({ value: this.#widgetDisplayValue(node as Node, w), node, width: 0, height: 0, ...this.#widgetThemeColors(w) })
-          continue
-        }
-        const el = document.createElement('div')
-        Object.assign(el.style, { position: 'absolute', pointerEvents: 'auto', transformOrigin: 'top left' })
-        this.#applyWidgetVars(el, w)
-        this.#ensureDomLayer().appendChild(el)
-        const cleanup = ctrl.mount(el, {
-          value: this.#widgetDisplayValue(node as Node, w), node, width: 0, height: 0, ...this.#widgetThemeColors(w),
-          setValue: (v) => this.setWidgetValue(node.id, w.id, v),
-          openSidebar: () => this.openSidebar(node.id),
-        })
-        const entry: { el: HTMLElement; controller: DomWidgetController; cleanup?: () => void; nodeId: NodeId; widgetId: string } =
-          { el, controller: ctrl, nodeId: node.id, widgetId: w.id }
-        if (typeof cleanup === 'function') entry.cleanup = cleanup
-        this.#domWidgets.set(key, entry)
-      }
-    }
-    for (const [key, rec] of this.#domWidgets) {
-      if (seen.has(key)) continue
-      rec.cleanup?.(); rec.controller.unmount?.(); rec.el.remove()
-      this.#domWidgets.delete(key)
-    }
-    this.#positionDomWidgets()
-  }
-
-  /** Sync each mounted DOM widget to its node's on-screen widget rect. Cheap — runs per painted
-   *  frame so pan/zoom/drag/collapse keep the element glued to the node. */
-  #positionDomWidgets(): void {
-    if (this.#domWidgets.size === 0) return
-    const vp = this.#viewport.state
-    const layout = this.#widgetLayoutTokens()
-    // Paint-order index per node container, so DOM widgets can match the canvas z-order and hide
-    // where a higher node occludes them (DOM always paints above the WebGL canvas, so without this
-    // a back node's widget bleeds over a front node's body).
-    const z = new Map<unknown, number>()
-    this.#nodesLayer.children.forEach((c, i) => z.set(c, i))
-    for (const rec of this.#domWidgets.values()) {
-      const node = this.graph.getNode(rec.nodeId)
-      const view = this.#views.get(rec.nodeId)
-      const rect = node?.size ? computeWidgetRects(node, node.size.x, layout, { isPinConnected: (k) => this.#isPinConnected(rec.nodeId, k) }).find((r) => r.id === rec.widgetId) : undefined
-      if (!node || !view || !rect || view.isCollapsed()) { rec.el.style.display = 'none'; continue }
-      // Use the VIEW container's live world position, not node.position — during a drag the model
-      // position isn't committed until drop, but the container moves every frame.
-      const left = (view.container.x + rect.x) * vp.zoom + vp.x
-      const top = (view.container.y + rect.y) * vp.zoom + vp.y
-      const myZ = z.get(view.container) ?? 0
-      const W = rect.width, H = rect.height
-      // Clip the widget to the VISIBLE region = widget rect MINUS every node painted above it
-      // (DOM always paints above the WebGL canvas). Computed as a rectangle difference into a set
-      // of NON-overlapping rects — overlapping evenodd "holes" cancel each other, so we subtract
-      // explicitly instead. clip-path = the union of the surviving rects.
-      const gn = this.#theme.tokens.geometry.node
-      let vis: { x: number; y: number; w: number; h: number }[] = [{ x: 0, y: 0, w: W, h: H }]
-      // Subtract an axis-aligned rect from the visible set (splits each survivor into ≤4 slivers).
-      const subtract = (ax1: number, ay1: number, ax2: number, ay2: number): void => {
-        if (ax2 - ax1 < 0.5 || ay2 - ay1 < 0.5) return
-        const next: typeof vis = []
-        for (const r of vis) {
-          const ix1 = Math.max(r.x, ax1), iy1 = Math.max(r.y, ay1)
-          const ix2 = Math.min(r.x + r.w, ax2), iy2 = Math.min(r.y + r.h, ay2)
-          if (ix2 <= ix1 || iy2 <= iy1) { next.push(r); continue }
-          if (iy1 > r.y) next.push({ x: r.x, y: r.y, w: r.w, h: iy1 - r.y })
-          if (iy2 < r.y + r.h) next.push({ x: r.x, y: iy2, w: r.w, h: r.y + r.h - iy2 })
-          if (ix1 > r.x) next.push({ x: r.x, y: iy1, w: ix1 - r.x, h: iy2 - iy1 })
-          if (ix2 < r.x + r.w) next.push({ x: ix2, y: iy1, w: r.x + r.w - ix2, h: iy2 - iy1 })
-        }
-        vis = next
-      }
-      for (const [id, ov] of this.#views) {
-        if (id === rec.nodeId || (z.get(ov.container) ?? 0) <= myZ) continue
-        const other = this.graph.getNode(id)
-        if (!other?.size) continue
-        const collapsed = ov.isCollapsed()
-        // A collapsed node occludes only its header pill (exact rect + radius from the view), not
-        // its full expanded size. Expanded → the body rect (node radius).
-        const cRect = collapsed ? ov.collapsedRect : undefined
-        const localX = cRect?.x ?? 0, localY = cRect?.y ?? 0
-        const ow = cRect?.w ?? other.size.x, oh = cRect?.h ?? other.size.y
-        const ol = (ov.container.x + localX) * vp.zoom + vp.x, ot = (ov.container.y + localY) * vp.zoom + vp.y
-        // Small pad to cover the front node's thin outline/border (pins are handled separately below).
-        const OCC_PAD = 2
-        const ox1 = (ol - left) / vp.zoom - OCC_PAD, oy1 = (ot - top) / vp.zoom - OCC_PAD
-        const ox2 = ox1 + ow + OCC_PAD * 2, oy2 = oy1 + oh + OCC_PAD * 2
-        // Occlude by the node's ROUNDED-rect shape, not its bounding box: the corners outside the
-        // border radius aren't painted, so the node behind must show there (not be clipped to black).
-        // Subtract the straight middle as one rect, then the rounded caps as arc-following strips.
-        const cr = Math.max(0, Math.min((cRect?.r ?? gn.radius) + OCC_PAD, (ox2 - ox1) / 2, (oy2 - oy1) / 2))
-        if (cr < 0.5) { subtract(ox1, oy1, ox2, oy2) }
-        else {
-          subtract(ox1, oy1 + cr, ox2, oy2 - cr) // straight middle band (full width)
-          const STEP = 2
-          for (let yy = 0; yy < cr; yy += STEP) {
-            const dy = Math.min(STEP, cr - yy)
-            // Inset at the strip's wider edge (toward the middle) so we slightly over-cover rather
-            // than bleed: top cap widens downward, bottom cap widens upward.
-            const d = cr - (yy + dy)
-            const inset = cr - Math.sqrt(Math.max(0, cr * cr - d * d))
-            subtract(ox1 + inset, oy1 + yy, ox2 - inset, oy1 + yy + dy)        // top cap strip
-            subtract(ox1 + inset, oy2 - yy - dy, ox2 - inset, oy2 - yy)        // bottom cap strip
-          }
-        }
-        // Pins poke out beyond the body silhouette — subtract a small box at each so the back widget
-        // doesn't bleed over them.
-        const wox = view.container.x + rect.x, woy = view.container.y + rect.y
-        for (const pin of other.pins) {
-          const pp = ov.pinLocalPosition(pin.id)
-          if (!pp) continue
-          const px = ov.container.x + pp.x - wox, py = ov.container.y + pp.y - woy
-          subtract(px - 7, py - 7, px + 7, py + 7)
-        }
-      }
-      if (vis.length === 0) { rec.el.style.display = 'none'; continue }
-      const fullyVisible = vis.length === 1 && vis[0]!.x <= 0.5 && vis[0]!.y <= 0.5 && vis[0]!.w >= W - 0.5 && vis[0]!.h >= H - 0.5
-      const clip = fullyVisible ? 'none'
-        : `path("${vis.map((r) => `M${r.x.toFixed(1)} ${r.y.toFixed(1)} H${(r.x + r.w).toFixed(1)} V${(r.y + r.h).toFixed(1)} H${r.x.toFixed(1)} Z`).join(' ')}")`
-      rec.el.style.display = ''
-      rec.el.style.clipPath = clip
-      rec.el.style.zIndex = String(myZ)
-      rec.el.style.left = `${left}px`
-      rec.el.style.top = `${top}px`
-      rec.el.style.width = `${rect.width}px`
-      rec.el.style.height = `${rect.height}px`
-      rec.el.style.transform = `scale(${vp.zoom})`
-    }
   }
 
   /** Theme accent/text/muted for a custom widget, so canvas/DOM widgets can match the active
@@ -4041,7 +3881,7 @@ export class XenolithEditor {
     // widgets after a mutation doesn't run for the initial set — every custom-widget node would
     // paint with bare pins until the first drag/collapse forced a re-render. Force one pass now
     // so DOM controllers mount during the same frame as the rest of the node visual.
-    this.#syncDomWidgets()
+    this.#domWidgets.sync()
     // Refresh the minimap — loadJSON adds nodes as data (#addNodeData), which doesn't schedule a
     // minimap sync the way addNode does, so do it explicitly (otherwise the minimap keeps its 1×1
     // default bounds and renders empty).
@@ -4515,7 +4355,7 @@ export class XenolithEditor {
     // Widget set changed (count/heights) → drop the stale size so the view refits + DOM widgets sync.
     delete (this.graph.getNode(nodeId) as { size?: unknown }).size
     this.#rerenderNode(nodeId)
-    this.#syncDomWidgets()
+    this.#domWidgets.sync()
     this.#requestRender()
   }
 
@@ -4599,9 +4439,9 @@ export class XenolithEditor {
   get interactive(): boolean { return this.#interactive }
   setInteractive(interactive: boolean): void {
     this.#interactive = interactive
-    // DOM-mounted widgets are real DOM above the canvas, so the WebGL gate above can't stop them —
-    // toggle their pointer events directly so a locked graph freezes framework widgets too.
-    for (const rec of this.#domWidgets.values()) rec.el.style.pointerEvents = interactive ? 'auto' : 'none'
+    // DOM widgets are real DOM above the canvas — the WebGL gate can't stop them; the layer
+    // toggles their pointer events so a locked graph freezes framework widgets too.
+    this.#domWidgets.setInteractivity(interactive)
   }
 
   /** G12 — Live Mode (LiteGraph parity). Freezes all interaction (`setInteractive(false)`) and
@@ -4775,7 +4615,7 @@ export class XenolithEditor {
     this.#applyMacroVisibility() // re-hide collapsed members + rebuild expanded frames in the new theme
     this.#updateVisualStates()
     // Refresh DOM widget hosts' --xeno-* CSS vars (and their controllers) for the new theme.
-    this.#syncDomWidgets()
+    this.#domWidgets.sync()
     // Edges re-paint themselves through the ticker via #drawEdge — no explicit pass needed.
     this.#palette?.setStyle(next.paletteStyle)
     this.#edgeMenu?.setStyle(next.paletteStyle)
@@ -4803,8 +4643,7 @@ export class XenolithEditor {
     this.#search?.dispose()
     this.#interaction?.detach()
     if (this.#freezeTimer) clearTimeout(this.#freezeTimer)
-    for (const rec of this.#domWidgets.values()) { rec.cleanup?.(); rec.controller.unmount?.(); rec.el.remove() }
-    this.#domWidgets.clear()
+    this.#domWidgets.destroy()
     this.#controls?.destroy()
     this.#minimap?.destroy()
     this.#overlayRoot?.remove()
@@ -5328,7 +5167,7 @@ export class XenolithEditor {
     this.#updateVisualStates()
     this.#comments.sync() // keep comment frames in sync on every mutation (incl. undo/redo)
     this.#applyMacroVisibility() // hide members of collapsed macros (incl. undo/redo)
-    this.#syncDomWidgets()
+    this.#domWidgets.sync()
     this.#scheduleMinimapSync()
     // If a graph edit lands while zoomed out, refresh whatever batch the current LOD level draws.
     if (this.#lodLevel !== 'full') {
