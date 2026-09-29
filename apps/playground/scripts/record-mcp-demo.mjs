@@ -37,6 +37,14 @@ await page.goto(PAGE_URL)
 // The session's first visible moment = transcript panel mounted (buildLog) — trim up to here.
 await page.waitForSelector('[data-agent-log]', { timeout: 60_000 })
 const startMs = Date.now() - t0
+// --propose: the session pauses for a human decision — the recorder plays the human, after a
+// beat on camera so the pending batch is visible.
+if (process.argv.includes('--propose')) {
+  await page.waitForSelector('[data-agent-step="human_review"]', { timeout: 60_000 })
+  await page.waitForSelector('[data-xeno-proposals-panel]', { timeout: 10_000 })
+  await page.waitForTimeout(1400) // the batch sits pending — the trust boundary, on camera
+  await page.click('[data-xeno-proposals-approve]')
+}
 await page.waitForSelector('[data-agent-done]', { timeout: 60_000 })
 await page.waitForTimeout(1500) // let the final state breathe on camera
 await context.close() // flushes the video

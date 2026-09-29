@@ -159,7 +159,7 @@ interface LogUi {
   step: (tool: string, args: string) => { ok: (detail: string) => void; err: (detail: string) => void }
   sub: (text: string, cls?: string) => void
   summary: (text: string) => void
-  done: () => void
+  done: (textOverride?: string) => void
 }
 
 function buildLog(editor: XenolithEditor, mode: 'auto' | 'propose'): LogUi {
@@ -202,11 +202,11 @@ function buildLog(editor: XenolithEditor, mode: 'auto' | 'propose'): LogUi {
     },
     sub: (text, cls = 'dim') => line(`  ${text}`, cls === 'run' ? '#8ecdf5' : cls === 'ok' ? '#9fd48a' : cls === 'err' ? '#e2695f' : 'rgba(232,232,232,0.6)'),
     summary: (text) => { summaryEl.textContent = text },
-    done: () => {
+    done: (textOverride?: string) => {
       const el = line(
-        mode === 'propose'
+        textOverride ?? (mode === 'propose'
           ? '✓ session complete — the approved batch is ONE undoable history entry'
-          : '✓ session complete — every agent edit is ordinary undoable history',
+          : '✓ session complete — every agent edit is ordinary undoable history'),
         '#d8b45a',
       )
       el.setAttribute('data-agent-done', '')
@@ -303,21 +303,32 @@ export async function runAgentSession(
     palette.ok('')
   }
 
-  // ---- REVIEW + APPROVE (propose only): the human clicks the REAL panel UI ----
+  // ---- REVIEW + APPROVE (propose only): YOUR TURN — the session waits for the human ----
+  // The panel OPENS for you (badge click below), but the decision is yours and only yours:
+  // nothing is scripted from here. The queue drains when you press Approve all / Reject all
+  // in the real panel (or reject entries one by one). e2e and the recorder play the human.
   if (propose && proposals) {
-    const review = ui.step('human_review', `${proposals.size} proposals — approve the batch`)
+    const pending = proposals.size
+    const review = ui.step('human_review', `${pending} proposals — YOUR TURN`)
     await wait(900)
     const badge = editor.overlayRoot.querySelector('[data-xeno-proposals-badge]') as HTMLElement | null
-    badge?.click()
-    await wait(600)
-    const approve = editor.overlayRoot.querySelector('[data-xeno-proposals-approve]') as HTMLElement | null
-    approve?.click()
+    badge?.click() // open the review panel FOR the human — the DECISION stays human
+    ui.sub('your turn — review the batch, then Approve all; Reject all leaves your graph untouched', 'dim')
+    while (proposals.size > 0) await wait(120)
+    await wait(400)
+    const nodes = nodeCount()
+    if (nodes === 0 && edgeCount() === 0) {
+      // Rejected in full: the trust boundary HELD — the agent changed nothing at all.
+      review.ok('rejected — the agent changed NOTHING; your graph and undo history are intact')
+      ui.summary('0 nodes · 0 edges — trust boundary held')
+      ui.done('✓ session complete — batch REJECTED: the agent touched nothing (that is the point)')
+      return
+    }
     // Fit with the same geometry as the auto path — clear of the transcript panel, not clipped.
     editor.fitView({ padding: 220 })
     editor.view.pan(180, 0)
-    const applied = proposals.size === 0 && nodeCount() === agentSchemas.length
-    if (applied) review.ok(`${nodeCount()} nodes · ${edgeCount()} edges — ONE undo step`)
-    else review.err(`queue=${proposals.size} nodes=${nodeCount()}`)
+    if (nodes === agentSchemas.length) review.ok(`${nodes} nodes · ${edgeCount()} edges — ONE undo step`)
+    else review.ok(`partial approve — ${nodes}/${agentSchemas.length} nodes (you rejected the rest)`)
   } else {
     // Fit with enough slack, then shift right for the 360px transcript panel: padding 220 + pan 180
     // → ~400px left margin (panel + gap), ~40px right margin — fully visible, nothing clipped.

@@ -31,8 +31,9 @@ editor.registerWidget('preview', createPreviewWidget())
 // tool surface the MCP server exposes, with a live transcript panel. Used by the agent-builds
 // e2e spec and the "Agents build. Humans debug." capture (scripts/record-mcp-demo.mjs).
 // ?demo=agent&mode=propose — the trust-boundary variant (F2 / ADR 0007): every agent mutation
-// queues for review, a "human" approves the batch through the real panel UI, and the whole
-// batch lands as ONE undo step. Capture: scripts/record-mcp-demo.mjs --propose.
+// queues for review; the session then OPENS the review panel and WAITS — YOU press Approve all
+// (the whole batch lands as ONE undo step) or Reject all (the agent changes nothing). Capture:
+// scripts/record-mcp-demo.mjs --propose (the recorder plays the human).
 // -----------------------------------------------------------------------------------------------
 const params = new URLSearchParams(window.location.search)
 const isAgentDemo = params.get('demo') === 'agent'
