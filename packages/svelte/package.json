@@ -1,25 +1,31 @@
 {
   "name": "@xenolithengine/graph-svelte",
   "version": "0.7.0-beta.6",
-  "description": "Svelte adapter for XenolithGraph — the `use:xenolith` action.",
+  "description": "Svelte adapter for XenolithGraph — the use:xenolith action, reactive stores, in-editor panel components, svelteWidget.",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./components": {
+      "types": "./src/components.ts",
+      "svelte": "./src/components.ts",
+      "default": "./src/components.ts"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist",
+    "src",
     "README.md"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc --noEmit -p tsconfig.json",
     "dev": "tsc -b --watch",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint src",
@@ -34,6 +40,7 @@
     "svelte": ">=4"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6.0.0",
     "jsdom": "^25.0.0",
     "pixi.js": "^8.6.0",
     "svelte": "^5.55.0",
@@ -59,5 +66,6 @@
   "bugs": {
     "url": "https://github.com/XenolithEngine/xenolith-graph/issues"
   },
-  "author": "XenolithEngine"
+  "author": "XenolithEngine",
+  "svelte": "./src/index.ts"
 }

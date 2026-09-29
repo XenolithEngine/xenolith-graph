@@ -148,6 +148,60 @@ position and state deltas are diffed onto the editor as **one undo step** (shall
 position by coordinates, state by reference); the `graph:changed` echo converges the mirror.
 `applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
 
+## In-editor components (Svelte 5)
+
+The panel family ships behind the `./components` subpath — they are Svelte 5 components compiled
+by YOUR build (the package ships source), so importing them needs Svelte 5 while the runtime
+entry (action + stores) keeps working on Svelte 4:
+
+```svelte
+<script lang="ts">
+  import { xenolith, createXenolithEditorContext } from '@xenolithengine/graph-svelte'
+  import { XenolithPanel, XenolithButton, XenolithControls, XenolithMiniMap } from '@xenolithengine/graph-svelte/components'
+
+  // During component init (NOT inside on:ready — Svelte context is init-time only):
+  const editor = createXenolithEditorContext()
+  const props = { resizeToWindow: false }
+</script>
+
+<div use:xenolith={props} on:ready={(e) => editor.set(e.detail)} style="position:absolute;inset:0"></div>
+
+<XenolithControls position="bottom-left" />
+<XenolithMiniMap position="bottom-right" />
+<XenolithPanel position="top-right">
+  <XenolithButton active on:click={() => addBox()}>Add box</XenolithButton>
+</XenolithPanel>
+```
+
+| Component | What it does |
+|---|---|
+| `<XenolithPanel position bare>` | Portals into `editor.chrome.overlayRoot`; six anchors, `bare` drops the card chrome. |
+| `<XenolithButton active disabled onclick>` | Themed `--xeno-*` button; `active` paints with the accent. |
+| `<XenolithControls …>` | Declarative `chrome.setControls`; unmount → toolbar removed. |
+| `<XenolithMiniMap position />` | Declarative minimap toggle; unmount → hidden. |
+| `<XenolithProposalQueue />` | Declarative proposal review panel (silent no-op without a propose-mode session). |
+
+## Custom Svelte widgets
+
+`svelteWidget(Component)` bridges a Svelte 5 component into a node widget — mount once per
+instance, updates stream through a props store (no remount, internal state survives):
+
+```svelte
+<!-- MyKnob.svelte -->
+<script lang="ts">
+  import type { WidgetProps } from '@xenolithengine/graph-svelte/components'
+  let { value, setValue, accent }: WidgetProps = $props()
+</script>
+<input type="range" style={`accent-color:${accent}`} value={Number(value ?? 0)}
+  oninput={(e) => setValue(Number(e.currentTarget.value))} />
+```
+
+```ts
+import MyKnob from './MyKnob.svelte'
+import { svelteWidget } from '@xenolithengine/graph-svelte/components'
+editor.registerWidget('knob', svelteWidget(MyKnob))
+```
+
 ## Imperative primitive
 
 `createXenolithGraph(el, props?)` — the raw `createEditorBinding` pass-through for hosts that
@@ -163,13 +217,10 @@ binding.on('node:click', (p) => console.log(p.nodeId))
 binding.destroy()
 ```
 
-## What's NOT in this adapter (yet)
+## What's NOT in this adapter
 
-- **No in-editor panel components** (`<XenolithPanel>` family). Overlay UI today: portal your own
-  markup into `editor.chrome.overlayRoot`, or drive the built-in chrome imperatively
-  (`editor.chrome.setControls(...)`, `setMinimapVisible(...)`, `showProposals()`). Panel
-  components shipped as `.svelte` source are on the roadmap.
-- **No `svelteWidget` bridge** for custom Svelte node-widgets — same roadmap slice as the panels.
+- **Components/widgets need Svelte 5** (runes). The action and the stores work on Svelte 4; the
+  `./components` subpath (panels + `svelteWidget`) requires Svelte 5, compiled by your build.
 - **No SSR.** WebGL only; in SvelteKit gate with `browser` / `export const ssr = false` — see the
   [SvelteKit integration](../../integrations/sveltekit/).
 

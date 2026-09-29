@@ -43,9 +43,15 @@ Editor events are re-dispatched as kebab-named `CustomEvent`s off the host node 
 
 - `xenolith` — the Svelte action: `use:xenolith={props}`; dispatches `on:ready` (detail: the `XenolithEditor`) once mounted
 - `createXenolithStores()` — per-editor bag of reactive stores: `editor` (writable), `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`, and the controlled triple `nodesState()` (commit-time mirror + one-undo-step `setNodes`); `dispose()` unsubscribes
+- `createXenolithEditorContext()` / `getXenolithEditorContext()` / `XenolithEditorContextKey` — Svelte context wiring for the panel components
 - `createXenolithGraph(el, props)` — imperative primitive returning an `EditorBinding`
 - `svelteEventName(event)` — colon → kebab name translation
 - `XenolithActionReturn` / `XenolithActionAttributes` — action typing; `on:*` handlers carry typed payloads (derived from `EditorEvents`, surfaced by svelte-check)
+
+From `@xenolithengine/graph-svelte/components` (Svelte 5; compiled by your build — the package ships source):
+
+- `XenolithPanel` (portal into `editor.chrome.overlayRoot`, six anchors, `bare`), `XenolithButton` (themed, `active`), `XenolithControls`, `XenolithMiniMap`, `XenolithProposalQueue` — declarative chrome toggles with cleanup on unmount
+- `svelteWidget(Component)` + `WidgetProps` — bridge a Svelte component into a custom node widget (mounts once, updates stream via a props store)
 
 ## Docs
 

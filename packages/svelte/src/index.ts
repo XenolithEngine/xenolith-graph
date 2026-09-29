@@ -8,6 +8,10 @@ import {
 import type { EditorEvents, XenolithEditor } from '@xenolithengine/graph-editor'
 
 export { createXenolithStores, type XenolithStores, type XenolithNodesState } from './stores.js'
+export { createXenolithEditorContext, getXenolithEditorContext, XenolithEditorContextKey } from './context.js'
+// In-editor components (panels) + svelteWidget live behind the './components' subpath — they
+// compile .svelte sources in the CONSUMER's build, so the runtime entry stays framework-tooling
+// agnostic: import { XenolithPanel, svelteWidget } from '@xenolithengine/graph-svelte/components'
 
 /** Imperative primitive for Svelte hosts that need direct editor access (registering schemas,
  *  opening the sidebar, etc.) — the `use:xenolith` action keeps the binding private. The caller

@@ -126,14 +126,14 @@ theme's `--xeno-*` vars:
 |---|---|---|---|---|---|---|---|---|
 | React | ✅ StrictMode-safe | ✅ | ✅ `EventCallbacks` | ✅ full | ✅ | ✅ ×4 + Queue | ✅ | ✅ |
 | Vue | ✅ | ✅ (A2 done) | ✅ typed emits (A2) | ✅ full (A2: `useXenolithGraph`) | ✅ (A2) | ✅ ×4 + Queue | ✅ | ✅ (A2: controlled pattern + mount composable) |
-| Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ⏳ next slice (.svelte source + compiler devDep) | ⏳ same slice | ✅ (A3) |
+| Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ✅ ×4 + Queue (slice 2, `./components` subpath) | ✅ `svelteWidget` (slice 2) | ✅ (A3+2) |
 | Angular | ✅ BYO host component (A4) | ✅ mount(props) (A4) | ✅ typed `on$()` (A4) | ✅ service observables (A4) | ✅ `nodesState()` (A4) | ✗ via `editor.chrome` (by design) | ✗ | ✅ (A4) |
 | Solid | ✅ directive (A5) | ✅ via bound accessor (A5) | ✅ colon `on:` + `JSX.Directives` typing (A5) | ✅ signal bag (A5) | ✅ `nodesState()` (A5) | ✗ via `editor.chrome` | ✗ | ✅ (A5) |
 | WC | ✅ custom element (A6) | ✅ attr dict 5 + JS props 4 (A6) | ✅ all 25 + `ready` CustomEvents (A6) | n/a (DOM: no hooks — imperative `el.editor`) | n/a (host framework's job) | ✗ via `editor.chrome` | ✗ | ✅ (A6) |
 
-Svelte's "components + widget" slice requires shipping `.svelte` source and compiling components
-in tests (`@sveltejs/vite-plugin-svelte` as a test-only devDep — pending owner approval per the
-new-dependency rule). The runtime surface above is complete and covered by tests.
+Svelte slice 2 (components + widget) ships `.svelte` source behind the `./components` subpath
+and compiles it in tests via `@sveltejs/vite-plugin-svelte` — a test-only devDep, owner-approved.
+Requires Svelte 5 for the subpath; the runtime entry stays Svelte-4 compatible.
 
 Angular will never ship components by that route either: its "mount component" is deliberately
 **bring-your-own** — a decorator-free `XenolithGraphService` (plain-class DI + RxJS) with the
