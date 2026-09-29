@@ -1,27 +1,29 @@
-// Angular standalone component — palette sidebar. Schemas + sidebar config from the shared
-// package; the editor's built-in `node:drop` handler spawns the dragged node at the drop point.
-import { Component } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolithengine/graph-angular'
-import type { XenolithEditor } from '@xenolithengine/graph-editor'
+// Angular standalone host component — palette sidebar. Schemas + sidebar config from the
+// shared package; the editor's built-in `node:drop` handler spawns the dragged node at the
+// drop point. mount() resolves the editor for one-shot seed work.
+import { AfterViewInit, Component, ElementRef, OnDestroy, inject, viewChild } from '@angular/core'
+import { XenolithGraphService } from '@xenolithengine/graph-angular'
 import { buildPaletteSidebar } from '@xenolithengine/demo/palette-sidebar'
 
 @Component({
   selector: 'palette-sidebar-demo',
   standalone: true,
-  imports: [XenolithGraphComponent],
+  providers: [XenolithGraphService],
   template: `
     <div class="app" style="position:absolute;inset:0;">
-      <xenolith-graph
-        class="xeno"
-        [resizeToWindow]="false"
-        (ready)="onReady($event)">
-      </xenolith-graph>
+      <div #host class="xeno" style="position:absolute;inset:0;"></div>
     </div>
   `,
 })
-export class PaletteSidebarDemoComponent {
-  onReady(editor: XenolithEditor): void {
+export class PaletteSidebarDemoComponent implements AfterViewInit, OnDestroy {
+  private graph = inject(XenolithGraphService)
+  private host = viewChild.required<ElementRef<HTMLDivElement>>('host')
+
+  async ngAfterViewInit(): Promise<void> {
+    const editor = await this.graph.mount(this.host().nativeElement, { resizeToWindow: false })
     buildPaletteSidebar(editor)
     editor.view.fitView({ padding: 80, maxZoom: 1 })
   }
+
+  ngOnDestroy(): void { this.graph.destroy() }
 }

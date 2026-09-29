@@ -8,8 +8,16 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Breaking (beta — flagged per policy)
+
+- **`@xenolithengine/graph-angular`: removed `XenolithGraphComponent` and `angularOutputName`.** The shipped component was a landmine: Angular libraries with components require ng-packagr partial compilation, and the decorator class we shipped (compiled by plain tooling, no `ɵcmp`) throws "is not a component" in every default AOT consumer build — it could only ever work in JIT/dev. Replaced by the decorator-free `XenolithGraphService` (below); the Learn page ships the exact host-component recipe as the migration path. `@angular/core` dropped from peer deps (the service imports zero Angular APIs — plain-class DI works as-is).
+
 ### Added
 
+- **Angular adapter — runtime parity (A4)** — `@xenolithengine/graph-angular` rebuilt around `XenolithGraphService`:
+  - Decorator-free plain class: `providers: [XenolithGraphService]` + `inject()` with no library compilation on our side; `mount(host, props)` / `destroy()` lifecycle (remount rebinds), `editor` sync accessor, `editor$` observable.
+  - RxJS reactive surface (the fabric every Angular app already has): `nodes$`, `edges$`, `selection$`, `viewport$`, `graphJSON$`, `canUndo$`/`canRedo$` + `undo()`/`redo()`, typed `on$('node:click')` for all 25 editor events, and `nodesState()` — the controlled triple (E5 / ADR 0006) with the shared `diffNodesToChanges` write side. BehaviorSubject-backed (`| async`/`toSignal` see the current value), microtask-coalesced bursts — same budget as React/Vue/Svelte.
+  - Learn page `guides/angular` (EN canonical + RU/ZH stubs), sidebar entry; the five Angular examples on the site Examples page migrated to the service pattern (they previously demonstrated the broken component). Package tests 4 → 14.
 - **Svelte adapter — runtime parity (A3, slice 1)** — `@xenolithengine/graph-svelte` grows from a mount-only action to the contract §1–§2 + §5–§6 surface:
   - `on:ready` — the action now dispatches `ready` (detail: the live `XenolithEditor`) once mounted. Closes the biggest gap: Svelte hosts no longer need the Web Component fallback for imperative setup (register schemas, fitView, wire stores).
   - Typed action events — `XenolithActionAttributes` derives `on:node-click`-style handler types with their payloads from `EditorEvents` (compile-time-locked to `EDITOR_EVENT_NAMES`); svelte-check surfaces `e.detail` types in templates.

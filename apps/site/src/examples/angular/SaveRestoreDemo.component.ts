@@ -1,7 +1,11 @@
-// Angular standalone component — save & restore. Imperative IO via the shared helpers; autosave
-// rides the `(historyChanged)` Output. Editor reference is captured from `(ready)` once.
-import { Component, signal, ViewChild, ElementRef } from '@angular/core'
-import { XenolithGraphComponent } from '@xenolithengine/graph-angular'
+// Angular standalone host component — save & restore. Imperative IO via the shared helpers;
+// autosave rides the service's on$('history:changed') stream. Editor reference is captured
+// once from mount().
+import {
+  AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, inject, signal, viewChild,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { XenolithGraphService } from '@xenolithengine/graph-angular'
 import type { XenolithEditor } from '@xenolithengine/graph-editor'
 import {
   initSaveRestore, downloadGraph, uploadGraph, saveToLocal, restoreFromLocal, hasSaved,
@@ -10,15 +14,10 @@ import {
 @Component({
   selector: 'save-restore-demo',
   standalone: true,
-  imports: [XenolithGraphComponent],
+  providers: [XenolithGraphService],
   template: `
     <div class="app" style="position:absolute;inset:0;">
-      <xenolith-graph
-        class="xeno"
-        [resizeToWindow]="false"
-        (ready)="onReady($event)"
-        (historyChanged)="scheduleAutosave()">
-      </xenolith-graph>
+      <div #host class="xeno" style="position:absolute;inset:0;"></div>
 
       <div data-xeno-panel class="panel">
         <p class="label">Save / restore</p>
@@ -30,7 +29,7 @@ import {
       </div>
     </div>
   `,
-  styles: [\`
+  styles: [`
     .panel { position:absolute; top:12px; left:12px; display:flex; flex-direction:column; gap:6px;
       width:180px; padding:10px; background:var(--xeno-panel,#1d1d1d);
       border:1px solid var(--xeno-border,#333); border-radius:8px;
@@ -40,18 +39,25 @@ import {
       border:1px solid var(--xeno-border,#333); border-radius:6px;
       background:transparent; color:var(--xeno-text,#cfcfcf); }
     .status { color:#9a9a9a; font-size:11px; line-height:1.4; }
-  \`],
+  `],
 })
-export class SaveRestoreDemoComponent {
+export class SaveRestoreDemoComponent implements AfterViewInit, OnDestroy {
+  private graph = inject(XenolithGraphService)
+  private host = viewChild.required<ElementRef<HTMLDivElement>>('host')
+  private destroyRef = inject(DestroyRef)
   private editor: XenolithEditor | null = null
   private timer: ReturnType<typeof setTimeout> | null = null
   private first = true
   savedAt = signal<number | null>(null)
   readonly hasSaved = hasSaved()
 
-  onReady(editor: XenolithEditor): void {
+  async ngAfterViewInit(): Promise<void> {
+    const editor = await this.graph.mount(this.host().nativeElement, { resizeToWindow: false })
     this.editor = editor
     initSaveRestore(editor)
+    this.graph.on$('history:changed')
+      .pipe(takeUntilDestroyed(this.destroyRef)) // outside injection context (post-await) — pass DestroyRef explicitly
+      .subscribe(() => this.scheduleAutosave())
   }
 
   scheduleAutosave(): void {
@@ -68,4 +74,6 @@ export class SaveRestoreDemoComponent {
     const f = (ev.target as HTMLInputElement).files?.[0]
     if (f && this.editor) uploadGraph(this.editor, f)
   }
+
+  ngOnDestroy(): void { this.graph.destroy() }
 }

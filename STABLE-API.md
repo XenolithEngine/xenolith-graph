@@ -121,11 +121,11 @@ Peer dep: `pixi.js@^8.6.0`.
 
 | Package | Exports |
 |---|---|
-| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith`; `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
-| `@xenolithengine/graph-vue` | `<XenolithGraph>` (with `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo`; in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`. |
-| `@xenolithengine/graph-svelte` | `xenolith` action, `createXenolithGraph`, `XenolithActionReturn`, `svelteEventName`. |
+| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith` / `useNodesState` (controlled triple, ADR 0006); `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
+| `@xenolithengine/graph-vue` | `<XenolithGraph>` (typed object-form emits + `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useXenolithGraph` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useNodesState` (controlled triple); in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`, `emitName`, `XenolithGraphEmits`. |
+| `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`. |
 | `@xenolithengine/graph-solid` | `xenolith` directive, `createXenolithGraph`. |
-| `@xenolithengine/graph-angular` | `XenolithGraphComponent`, standalone. |
+| `@xenolithengine/graph-angular` | `XenolithGraphService` (decorator-free DI service: `mount`/`destroy`/`editor`/`editor$`, store observables `nodes$`…`graphJSON$`, `canUndo$`/`canRedo$` + `undo`/`redo`, typed `on$('node:click')`, `nodesState()` controlled triple), `XenolithNodesState`. No shipped component — bring-your-own host (Learn page recipe). |
 | `@xenolithengine/graph-wc` | `XenolithGraphElement`, `register(tag?)`, `FORWARDED_EVENTS`, `readAttributes`. |
 
 ### Themes

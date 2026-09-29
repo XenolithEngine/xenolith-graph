@@ -1,7 +1,7 @@
 {
   "name": "@xenolithengine/graph-angular",
   "version": "0.7.0-beta.6",
-  "description": "Angular adapter for XenolithGraph — standalone <xenolith-graph> component (consumed from source).",
+  "description": "Angular adapter for XenolithGraph — decorator-free XenolithGraphService (DI + RxJS reactive surface).",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -29,12 +29,10 @@
     "@xenolithengine/graph-editor": "workspace:*"
   },
   "peerDependencies": {
-    "@angular/core": ">=17",
     "pixi.js": "^8.6.0",
     "rxjs": ">=7"
   },
   "devDependencies": {
-    "@angular/core": "^17.0.0",
     "jsdom": "^25.0.0",
     "pixi.js": "^8.6.0",
     "rxjs": "^7.8.0",

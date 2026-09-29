@@ -1,0 +1,15 @@
+---
+title: "Angular 适配器"
+description: "通过无装饰器的 XenolithGraphService 在 Angular 中驱动 XenolithGraph:DI、RxJS 可观察对象,以及宿主侧的挂载组件配方。"
+---
+
+:::caution[翻译可能滞后]
+{/* EN-canonical-banner */}
+英文版本是规范源。如果有内容与[英文页面](../../../guides/angular/)相矛盾,请以英文为准。在 v1.0 之前我们会定期重新同步翻译。
+:::
+
+请参阅[英文版本](../../../guides/angular/) — `@xenolithengine/graph-angular` 适配器的完整
+API:为什么是服务而不是库组件(带组件的 Angular 库需要 ng-packagr 部分编译——原始装饰器
+在 AOT 下会报错)、`XenolithGraphService`(无装饰器 DI、`mount()`/`destroy()`)、RxJS 响应式
+表面(`editor$`、`nodes$`/`edges$`/`selection$`/`viewport$`/`graphJSON$`、`canUndo$`/`canRedo$`、
+覆盖全部 25 个事件的类型化 `on$()`、受控三元组 `nodesState()`)、宿主组件配方。

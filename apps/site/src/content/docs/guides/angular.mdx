@@ -1,0 +1,122 @@
+---
+title: Angular adapter
+description: Drive XenolithGraph from Angular with the decorator-free XenolithGraphService — DI, RxJS observables, and a bring-your-own-component mount recipe.
+---
+
+The Angular adapter ships as `@xenolithengine/graph-angular`. Its shape is deliberate: a
+**decorator-free service** (`XenolithGraphService`) — not a library component. Angular libraries
+that ship components must be partially compiled (ng-packagr / `@angular/compiler-cli`); a
+decorator class compiled by plain tooling has no `ɵcmp` and throws *"is not a component"* in
+every default (AOT) consumer build. A plain class with no constructor dependencies injects into
+Angular DI as-is — `providers: [XenolithGraphService]` just works, and YOUR Angular compiles
+the thin host component (recipe below), which is the only part that needs compiling.
+
+RxJS is the reactive fabric — every Angular app already has it. The service's observables are
+BehaviorSubject-backed: `| async` and `toSignal()` see the current value immediately, and event
+bursts coalesce into one microtask recompute (a 1000-node transaction costs ONE rebuild).
+
+## Install
+
+```bash
+pnpm add @xenolithengine/graph-angular pixi.js
+```
+
+Peer deps: `rxjs >= 7`, `pixi.js@^8.6.0`. Works with Angular 17+ (and any setup with RxJS —
+the service itself imports zero Angular APIs). Editor is WebGL/client-only; in SSR setups gate
+on `isPlatformBrowser` / route-level `ssr: false`.
+
+## Mount — bring-your-own-component
+
+Provide the service PER EDITOR at the component level, mount into a host div from
+`ngAfterViewInit`, destroy in `ngOnDestroy`:
+
+```ts
+import {
+  AfterViewInit, Component, ElementRef, OnDestroy, inject, viewChild,
+} from '@angular/core'
+import { XenolithGraphService } from '@xenolithengine/graph-angular'
+
+@Component({
+  selector: 'editor-host',
+  standalone: true,
+  providers: [XenolithGraphService], // per-editor instance, not app-singleton
+  template: '<div #host style="position:absolute;inset:0"></div>',
+})
+export class EditorHost implements AfterViewInit, OnDestroy {
+  private graph = inject(XenolithGraphService)
+  private host = viewChild.required<ElementRef<HTMLDivElement>>('host')
+
+  async ngAfterViewInit(): Promise<void> {
+    // Props apply at mount (the full XenolithProps surface — nine keys).
+    const editor = await this.graph.mount(this.host().nativeElement, {
+      resizeToWindow: false,
+      snap: 8,
+      graph: savedGraph,
+      fitOnLoad: true,
+    })
+    editor.registry.register(mySchema) // one-shot imperative setup on the resolved editor
+  }
+
+  ngOnDestroy(): void { this.graph.destroy() }
+}
+```
+
+For later prop changes prefer the imperative editor API (`editor.setTheme(...)` etc.) — same
+reference-diff semantics as every adapter.
+
+## Reactive surface
+
+| Member | Type | Re-fires on |
+|---|---|---|
+| `editor$` | `Observable<XenolithEditor \| null>` | mount / destroy. `graph.editor` is the sync accessor. |
+| `nodes$` | `Observable<readonly Node[]>` | add/remove/move, load, undo/redo. |
+| `edges$` | `Observable<readonly Edge[]>` | connect/disconnect, node removal, load, undo/redo. |
+| `selection$` | `Observable<readonly NodeId[]>` | `selection:changed`. |
+| `viewport$` | `Observable<ViewportState>` | pan/zoom. |
+| `graphJSON$` | `Observable<XenolithGraphV1 \| null>` | any mutation, load, undo/redo. |
+| `canUndo$` / `canRedo$` | `Observable<boolean>` | `history:changed`. |
+| `undo()` / `redo()` | `() => boolean` | Stable handles for toolbar buttons. |
+| `on$('node:click')` | `Observable<Payload>` | Any single editor event, typed — all 25. |
+| `nodesState()` | the controlled triple — below | commit-time `graph:changed`. |
+
+Observables never complete — scope subscriptions with `| async`, `toSignal`, or
+`takeUntilDestroyed(destroyRef)` (pass the `DestroyRef` explicitly when subscribing after an
+`await`, outside the injection context).
+
+```ts
+protected n = toSignal(this.graph.nodes$.pipe(map((ns) => ns.length)), { initialValue: 0 })
+protected selection = toSignal(this.graph.selection$, { initialValue: [] as string[] })
+
+this.graph.on$('node:removing')
+  .pipe(takeUntilDestroyed(this.destroyRef))
+  .subscribe((e) => { if (e.nodeId === lockedId) e.cancel() }) // preventable events expose cancel()
+```
+
+## Controlled state (commit-time)
+
+NgRx/SignalStore migrants: `graph.nodesState()` gives you the controlled triple — `nodes$`,
+`edges$`, `applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
+Same semantics as React's `useNodesState` / Vue's / Svelte's; each call creates an independent
+mirror. One deliberate difference from React Flow: positions arrive when a drag COMMITS, never
+per frame.
+
+`setNodes(next)` — pass the next nodes array or an updater over the live mirror; adds, removes,
+position and state deltas land on the editor as **one undo step** (shallow diff: position by
+coordinates, state by reference); the `graph:changed` echo converges the mirror.
+`applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
+
+## What's NOT in this adapter
+
+- **No shipped `<xenolith-graph>` component** — by design (library components require
+  ng-packagr partial compilation). The host recipe above is the full mount story.
+- **No in-editor panel components / widget bridge** — overlay UI via `editor.chrome.*`
+  (`setControls`, `setMinimapVisible`, `showProposals`, `overlayRoot` for your own DOM portals).
+- **No SSR.** WebGL only.
+
+## Related
+
+- [`@xenolithengine/graph-editor` API reference](../api/) — every method on the editor `mount()` resolves with
+- [Events](../events-commands/) — the full 25-event surface and which are preventable
+- [ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md) — the commit-time controlled protocol
+- [React](../react/) / [Vue](../vue/) / [Svelte](../svelte/) adapters for comparison

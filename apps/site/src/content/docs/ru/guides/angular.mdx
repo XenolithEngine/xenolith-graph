@@ -1,0 +1,16 @@
+---
+title: "Angular-адаптер"
+description: "XenolithGraph в Angular через decorator-free XenolithGraphService: DI, RxJS-обсервблы и рецепт mount-компонента на стороне хоста."
+---
+
+:::caution[Перевод может отставать]
+{/* EN-canonical-banner */}
+Английская версия — канонический источник. Если что-то противоречит [английской странице](../../../guides/angular/) — доверяй ей. Переводы будем пересинхронизировать периодически до v1.0.
+:::
+
+См. [англоязычную версию](../../../guides/angular/) — там полное API адаптера
+`@xenolithengine/graph-angular`: почему сервис, а не библиотечный компонент (Angular-библиотеки
+с компонентами требуют partial compilation через ng-packagr — сырые декораторы падают в AOT),
+`XenolithGraphService` (DI без декораторов, `mount()`/`destroy()`), RxJS-поверхность (`editor$`,
+`nodes$`/`edges$`/`selection$`/`viewport$`/`graphJSON$`, `canUndo$`/`canRedo$`, типизированный
+`on$()` на все 25 событий, контролируемый триплет `nodesState()`), рецепт host-компонента.

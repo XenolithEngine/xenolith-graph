@@ -127,11 +127,18 @@ theme's `--xeno-*` vars:
 | React | ✅ StrictMode-safe | ✅ | ✅ `EventCallbacks` | ✅ full | ✅ | ✅ ×4 + Queue | ✅ | ✅ |
 | Vue | ✅ | ✅ (A2 done) | ✅ typed emits (A2) | ✅ full (A2: `useXenolithGraph`) | ✅ (A2) | ✅ ×4 + Queue | ✅ | ✅ (A2: controlled pattern + mount composable) |
 | Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ⏳ next slice (.svelte source + compiler devDep) | ⏳ same slice | ✅ (A3) |
-| Solid / Angular / WC | stubs | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Angular | ✅ BYO host component (A4) | ✅ mount(props) (A4) | ✅ typed `on$()` (A4) | ✅ service observables (A4) | ✅ `nodesState()` (A4) | ✗ via `editor.chrome` (by design) | ✗ | ✅ (A4) |
+| Solid / WC | stubs | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
 
 Svelte's "components + widget" slice requires shipping `.svelte` source and compiling components
 in tests (`@sveltejs/vite-plugin-svelte` as a test-only devDep — pending owner approval per the
 new-dependency rule). The runtime surface above is complete and covered by tests.
+
+Angular will never ship components by that route either: its "mount component" is deliberately
+**bring-your-own** — a decorator-free `XenolithGraphService` (plain-class DI + RxJS) with the
+host-side component recipe documented on the Learn page. Angular library components require
+ng-packagr partial compilation; raw decorator classes break every AOT consumer (the old shipped
+`XenolithGraphComponent` was exactly that landmine, removed in A4).
 
 Stubs become "claimed" only when their column is ✅ across this checklist — until then the docs
 must not claim parity (F3 truth-pass rule).
