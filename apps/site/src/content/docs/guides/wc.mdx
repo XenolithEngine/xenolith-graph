@@ -1,0 +1,101 @@
+---
+title: Web Component
+description: The framework-neutral <xenolith-graph> element — full attribute dictionary, all 25 events as CustomEvents, ready event with the editor handle. Works in any DOM-speaking stack.
+---
+
+`@xenolithengine/graph-wc` defines one custom element — `<xenolith-graph>` — that works in any
+stack that speaks DOM: Lit, Astro, Angular, Vue, Svelte, plain HTML, WordPress, GSAP pages.
+Its parity shape is its own (ADAPTER-CONTRACT): **a full attribute/event dictionary plus an
+imperative handle** — no hooks or stores in DOM land; reactive integration is what your
+framework's adapter is for.
+
+## Install
+
+```bash
+pnpm add @xenolithengine/graph-wc @xenolithengine/graph-editor pixi.js
+```
+
+Peer dep: `pixi.js@^8.6.0`. Registration is explicit (pre-0.7 side-effect auto-register is
+gone — it broke tree-shaking and tag-name choice):
+
+```ts
+import { register } from '@xenolithengine/graph-wc'
+register()                // <xenolith-graph>
+register('my-graph')      // custom tag; idempotent
+```
+
+## Mount + imperative handle
+
+```html
+<xenolith-graph minimap fit-on-load disable-grid snap="16" style="display:block;height:100vh">
+</xenolith-graph>
+```
+
+```ts
+const el = document.querySelector('xenolith-graph')!
+el.addEventListener('ready', (e) => {
+  const editor = e.detail // XenolithEditor — no polling
+  editor.registry.register(mySchema)
+  editor.view.fitView({ padding: 80 })
+})
+```
+
+`el.editor` is the sync accessor (null before mount). The `ready` event fires once after the
+editor mounts — the previous polling recipe is obsolete.
+
+## Attribute dictionary (declarative slice)
+
+| Attribute | Type | Notes |
+|---|---|---|
+| `minimap` | boolean attr | Present = `true`, `false` string = `false`. |
+| `fit-on-load` | boolean attr | After `graph` loads, call `fitView`. |
+| `disable-grid` | boolean attr | Hide the background grid. |
+| `resize-to-window` | boolean attr | Default `true`; set `false` to fit the element. |
+| `snap` | number attr | Grid snap step in world px, e.g. `snap="16"`. |
+
+Attributes and JS properties are tracked as separate sources and re-merged on every change —
+**removing an attribute clears the prop** (no stale merge).
+
+## Property dictionary (JS slice)
+
+Complex values that don't fit attributes arrive as element properties:
+
+```ts
+el.theme = liquidGlass
+el.graph = savedGraph        // xenolith.v1 JSON
+el.zoomBounds = [0.05, 16]
+el.isValidConnection = (info) => info.fromType !== info.toType
+```
+
+JS properties win over attributes in the merge.
+
+## Events
+
+`ready` plus every public editor event (all 25, derived from `EDITOR_EVENT_NAMES`) re-dispatched
+off the element as a same-named CustomEvent with the payload in `event.detail` — including the
+four preventable `-ing` events, whose `event.detail.cancel()` vetoes the action:
+
+```ts
+el.addEventListener('node:removing', (e) => { if (e.detail.nodeId === locked) e.detail.cancel() })
+el.addEventListener('selection:changed', (e) => updateInspector(e.detail.nodeIds))
+```
+
+## Lifecycle
+
+- Connected → the editor mounts into the element (`await XenolithEditor.init` — async, safe to
+  attach/detach mid-init).
+- Disconnected → the editor is destroyed and its WebGL context released. Reconnecting mounts a
+  fresh editor (graph state does not survive — keep it in your app, e.g. `el.graph = saved`).
+
+## SSR
+
+The package is import-safe in Node (the class guards `HTMLElement`); nothing renders on the
+server. See the [SvelteKit integration](../../integrations/sveltekit/) pattern 2 for a real
+setup.
+
+## Related
+
+- [`@xenolithengine/graph-editor` API reference](../api/) — every method on the `ready` editor
+- [Events](../events-commands/) — the full 25-event surface and which are preventable
+- [SvelteKit integration](../../integrations/sveltekit/) — the WC as SvelteKit pattern 2
+- [React](../react/) / [Vue](../vue/) / [Svelte](../svelte/) / [Angular](../angular/) / [Solid](../solid/) adapters

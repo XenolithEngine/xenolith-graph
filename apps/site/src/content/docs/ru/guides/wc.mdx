@@ -1,0 +1,15 @@
+---
+title: "Web Component"
+description: "Фреймворк-нейтральный элемент <xenolith-graph>: полный словарь атрибутов, все 25 событий как CustomEvents, ready-событие с редактором."
+---
+
+:::caution[Перевод может отставать]
+{/* EN-canonical-banner */}
+Английская версия — канонический источник. Если что-то противоречит [английской странице](../../../guides/wc/) — доверяй ей. Переводы будем пересинхронизировать периодически до v1.0.
+:::
+
+См. [англоязычную версию](../../../guides/wc/) — там полное API `@xenolithengine/graph-wc`:
+явная `register(tag?)`, атрибуты (`minimap`, `fit-on-load`, `disable-grid`,
+`resize-to-window`, `snap`) отдельно от JS-свойств (`theme`, `graph`, `zoomBounds`,
+`isValidConnection`), события `ready` + все 25 событий редактора как same-named CustomEvents
+(включая preventable `-ing` с `cancel()`), lifecycle (disconnect → destroy) и SSR-заметку.

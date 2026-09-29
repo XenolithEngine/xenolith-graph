@@ -144,6 +144,7 @@ export default defineConfig({
             { slug: 'guides/svelte' },
             { slug: 'guides/angular' },
             { slug: 'guides/solid' },
+            { slug: 'guides/wc' },
             { slug: 'guides/testing' },
           ],
         },

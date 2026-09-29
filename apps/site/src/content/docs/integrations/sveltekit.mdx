@@ -75,8 +75,11 @@ The Svelte adapter is an *action* (`use:xenolith={props}`) rather than a compone
     const { register } = await import('@xenolithengine/graph-wc')
     register() // defines <xenolith-graph>
     // The WC takes `graph` via the JS property — set it after the element is in the DOM and the
-    // editor mounts itself + loads it. For imperative work (registering schemas, plugins) poll
-    // `el.editor` until it's non-null.
+    // editor mounts itself + loads it. `ready` fires once with the editor; no polling needed.
+    el.addEventListener('ready', (e) => {
+      const editor = (e as CustomEvent).detail
+      // imperative setup: register schemas, custom plugins
+    })
     ;(el as any).graph = myGraph
     ;(el as any).setAttribute('fit-on-load', '')
   })

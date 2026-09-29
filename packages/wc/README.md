@@ -43,10 +43,14 @@ Registration is **explicit** (the import is side-effect-free); call `register()`
 
 - `register(tag?)` — define the custom element (idempotent; default tag `xenolith-graph`)
 - `XenolithGraphElement` — the `HTMLElement` class (if you want to register it yourself)
+- Attributes (declarative slice): `minimap`, `fit-on-load`, `disable-grid`, `resize-to-window` (booleans), `snap` (number); JS properties: `theme`, `graph`, `zoomBounds`, `isValidConnection`. Attribute and property sources re-merge on every change — removing an attribute clears the prop.
+- Events: `ready` (detail: the `XenolithEditor`, fires once after mount) + every public editor event (all 25, derived from `EDITOR_EVENT_NAMES`) as a same-named CustomEvent with the payload in `event.detail` — including the preventable `-ing` events with `cancel()`.
+- `el.editor` — the live editor, or null before mount (no polling — listen for `ready`)
 - `readAttributes`, `FORWARDED_EVENTS` — used internally; exported for advanced hosts
 
 ## Docs
 
+- [Web Component guide](https://graph.xenolith.studio/guides/wc/) — attribute/property dictionaries, events, lifecycle
 - [API reference](https://graph.xenolith.studio/guides/api/) — every method exposed by `XenolithEditor`
 - [GitHub](https://github.com/XenolithEngine/xenolith-graph)
 

@@ -14,6 +14,11 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ### Added
 
+- **Web Component v2 (A6) — full dictionary + imperative handle** — `<xenolith-graph>` reaches its own parity shape:
+  - `ready` event (detail: the `XenolithEditor`) fires once after mount — the imperative handle (`el.editor`) no longer needs polling; the SvelteKit integration page's poll-until-non-null recipe is retired.
+  - Event forwarding is DERIVED from `EDITOR_EVENT_NAMES` — the old hand-list had silently lost 12 of the 25 events, including every preventable `-ing` veto channel (`node:removing`, `edge:connecting`, …). A derive-lock test freezes the equality.
+  - Attribute dictionary completed: `resize-to-window` (boolean) and `snap` (number) join `minimap` / `fit-on-load` / `disable-grid`. Attribute and JS-property sources are tracked separately and re-merged on every change — removing an attribute now actually clears the prop (was a stale merge).
+  - `zoomBounds` / `isValidConnection` property accessors (get+set symmetric), Learn page `guides/wc` (EN + RU/ZH stubs), sidebar entry, README, contract matrix, STABLE-API row. Package tests 5 → 11.
 - **Solid adapter — runtime parity (A5)** — `@xenolithengine/graph-solid` grows from a mount-only directive to the contract §1–§2 + §5–§6 surface (compiler-free, works on solid-js 1.8+):
   - `on:ready` — the directive dispatches `ready` (detail: the live `XenolithEditor`) once mounted; editor events keep their colon names (`on:node:click`) with payloads in `event.detail`. Directive typing ships via `JSX.Directives` augmentation — `use:xenolith={props}` typechecks out of the box.
   - `createXenolithStores()` — per-editor bag of signal-backed accessors (`setEditor`/`editor`, `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`) and `nodesState()` — the controlled triple (E5 / ADR 0006) on the shared `diffNodesToChanges`. The rebind effect's `onCleanup` releases previous-editor subscriptions automatically (disposal rides the owning root); bursts coalesce into one microtask recompute. Identity-compared editor signal: swap = rebind.

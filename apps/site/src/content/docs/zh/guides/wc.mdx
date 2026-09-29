@@ -1,0 +1,15 @@
+---
+title: "Web Component"
+description: "框架无关的 <xenolith-graph> 元素:完整的属性字典、全部 25 个事件作为 CustomEvents、携带编辑器的 ready 事件。"
+---
+
+:::caution[翻译可能滞后]
+{/* EN-canonical-banner */}
+英文版本是规范源。如果有内容与[英文页面](../../../guides/wc/)相矛盾,请以英文为准。在 v1.0 之前我们会定期重新同步翻译。
+:::
+
+请参阅[英文版本](../../../guides/wc/) — `@xenolithengine/graph-wc` 的完整 API:显式
+`register(tag?)`、属性字典(`minimap`、`fit-on-load`、`disable-grid`、`resize-to-window`、
+`snap`)与 JS 属性(`theme`、`graph`、`zoomBounds`、`isValidConnection`)分离、`ready` 事件 +
+全部 25 个编辑器事件以同名 CustomEvents 转发(包括带 `cancel()` 的 preventable `-ing` 事件)、
+生命周期(disconnect → destroy)与 SSR 说明。

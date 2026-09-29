@@ -129,7 +129,7 @@ theme's `--xeno-*` vars:
 | Svelte | ✅ action | ✅ via action param | ✅ typed `on:*` attrs (A3) | ✅ stores (A3) | ✅ `nodesState()` (A3) | ⏳ next slice (.svelte source + compiler devDep) | ⏳ same slice | ✅ (A3) |
 | Angular | ✅ BYO host component (A4) | ✅ mount(props) (A4) | ✅ typed `on$()` (A4) | ✅ service observables (A4) | ✅ `nodesState()` (A4) | ✗ via `editor.chrome` (by design) | ✗ | ✅ (A4) |
 | Solid | ✅ directive (A5) | ✅ via bound accessor (A5) | ✅ colon `on:` + `JSX.Directives` typing (A5) | ✅ signal bag (A5) | ✅ `nodesState()` (A5) | ✗ via `editor.chrome` | ✗ | ✅ (A5) |
-| WC | stub | partial | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| WC | ✅ custom element (A6) | ✅ attr dict 5 + JS props 4 (A6) | ✅ all 25 + `ready` CustomEvents (A6) | n/a (DOM: no hooks — imperative `el.editor`) | n/a (host framework's job) | ✗ via `editor.chrome` | ✗ | ✅ (A6) |
 
 Svelte's "components + widget" slice requires shipping `.svelte` source and compiling components
 in tests (`@sveltejs/vite-plugin-svelte` as a test-only devDep — pending owner approval per the
@@ -140,6 +140,11 @@ Angular will never ship components by that route either: its "mount component" i
 host-side component recipe documented on the Learn page. Angular library components require
 ng-packagr partial compilation; raw decorator classes break every AOT consumer (the old shipped
 `XenolithGraphComponent` was exactly that landmine, removed in A4).
+
+WC parity is its own shape by design (§0: adapters are framework-idiomatic, and DOM has no
+hooks): full attribute/event dictionary + imperative handle. Reactive store sets and the
+controlled triple are the HOST framework's adapter's job — the WC hands over the editor via
+`ready` + `el.editor`.
 
 Stubs become "claimed" only when their column is ✅ across this checklist — until then the docs
 must not claim parity (F3 truth-pass rule).

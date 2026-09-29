@@ -126,7 +126,7 @@ Peer dep: `pixi.js@^8.6.0`.
 | `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`. |
 | `@xenolithengine/graph-solid` | `xenolith` directive (`use:xenolith`, typed via `JSX.Directives`; `on:ready` + colon-named CustomEvents), `createXenolithStores` (signal bag: `setEditor`/`editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()`), `createXenolithGraph`. |
 | `@xenolithengine/graph-angular` | `XenolithGraphService` (decorator-free DI service: `mount`/`destroy`/`editor`/`editor$`, store observables `nodes$`…`graphJSON$`, `canUndo$`/`canRedo$` + `undo`/`redo`, typed `on$('node:click')`, `nodesState()` controlled triple), `XenolithNodesState`. No shipped component — bring-your-own host (Learn page recipe). |
-| `@xenolithengine/graph-wc` | `XenolithGraphElement`, `register(tag?)`, `FORWARDED_EVENTS`, `readAttributes`. |
+| `@xenolithengine/graph-wc` | `XenolithGraphElement` (`<xenolith-graph>`: attributes `minimap`/`fit-on-load`/`disable-grid`/`resize-to-window`/`snap`; JS props `theme`/`graph`/`zoomBounds`/`isValidConnection`; `ready` event with the editor; all 25 events forwarded), `register(tag?)`, `FORWARDED_EVENTS` (= `EDITOR_EVENT_NAMES`), `readAttributes`. |
 
 ### Themes
 
