@@ -1619,7 +1619,7 @@ export class XenolithEditor {
   /** Add an edge as DATA only (model + opts + index), no Graphics — the virtualized loadJSON path.
    *  #cullEdges materialises the visible ones later. */
   #addEdgeData(edge: Edge, opts: RenderEdgeOptions): void {
-    this.graph._addEdge(edge)
+    this.graph.internals()._addEdge(edge)
     this.#edgeOpts.set(edge.id, opts)
     this.#addEdgeToIndex(edge)
   }
@@ -2550,7 +2550,7 @@ export class XenolithEditor {
    *  virtualized loadJSON path where views are materialised lazily by #cullToViewport(). */
   #addNodeData(node: Node, render: RenderNodeOptions = {}): void {
     this.#ensureSize(node, render)
-    this.graph._addNode(node)
+    this.graph.internals()._addNode(node)
     this.#renderOpts.set(node.id, render)
     this.#addToSpatialGrid(node)
   }
@@ -4012,7 +4012,7 @@ export class XenolithEditor {
       this.#addNodeData(node, parsed.renderOpts.get(String(node.id)) ?? {})
     }
     for (const edge of parsed.edges) this.#addEdgeData(edge, parsed.edgeOpts.get(String(edge.id)) ?? {})
-    for (const comment of parsed.comments) this.graph._addComment(comment)
+    for (const comment of parsed.comments) this.graph.internals()._addComment(comment)
     // `#addNodeData` bypasses the command bus, so the macro-parent index hasn't been invalidated
     // by event hooks — do it explicitly before `#materializeLoadedMacros` runs (it reads parents
     // to nest macros deepest-first).
@@ -4021,7 +4021,7 @@ export class XenolithEditor {
     // their real edges present as ordinary data. Materialise the collapse (derive proxy pins, rewire)
     // deepest-nested first, so an inner macro is a real collapsed node before an outer one collapses.
     this.#materializeLoadedMacros()
-    // #materializeLoadedMacros mutates edges via graph._removeEdge/_addEdge (bypassing the command
+    // #materializeLoadedMacros mutates edges via graph.internals()._addEdge/_removeEdge (bypassing the command
     // bus / event hooks), so #edgesByNode still holds the pre-collapse edge ids for macro members
     // and doesn't know about the new proxy-pin edges. Rebuild the index once before views are
     // created — otherwise #connectedPinIdsFor(macro) returns empty during the initial render pass
@@ -4061,8 +4061,8 @@ export class XenolithEditor {
   /** Re-attach a deserialized edge using its preserved id and pin-id endpoints — bypasses the
    *  fresh-edge-id path of public `connect()`. */
   #loadEdge(edge: Edge, opts: RenderEdgeOptions): void {
-    this.graph._addEdge(edge)
-    if (!this.#materializeEdge(edge, opts)) this.graph._removeEdge(edge.id)
+    this.graph.internals()._addEdge(edge)
+    if (!this.#materializeEdge(edge, opts)) this.graph.internals()._removeEdge(edge.id)
   }
 
   /** Tear down everything DISPLAY-scoped — views, edge graphics, spatial index, comment/macro views,
@@ -4130,13 +4130,13 @@ export class XenolithEditor {
     this.#teardownDisplay()
     this.#edgeOpts.clear()
     this.#renderOpts.clear()
-    for (const id of Array.from(this.#rootGraph.nodes()).map((n) => n.id)) this.#rootGraph._removeNode(id)
-    for (const id of Array.from(this.#rootGraph.edges()).map((e) => e.id)) this.#rootGraph._removeEdge(id)
+    for (const id of Array.from(this.#rootGraph.nodes()).map((n) => n.id)) this.#rootGraph.internals()._removeNode(id)
+    for (const id of Array.from(this.#rootGraph.edges()).map((e) => e.id)) this.#rootGraph.internals()._removeEdge(id)
     this.#displayGraph = this.#rootGraph
     this.#displayBus = this.#rootBus
     this.selection.clear()
     this.#clipboard = null
-    for (const id of [...this.#rootGraph.comments()].map((c) => c.id)) this.#rootGraph._removeComment(id)
+    for (const id of [...this.#rootGraph.comments()].map((c) => c.id)) this.#rootGraph.internals()._removeComment(id)
   }
 
   /** Undo the most recent committed command (drag-drop MoveNode, ConnectPins from pin-drag, etc).

@@ -23,6 +23,7 @@ otherwise. File an issue and we'll classify it.
 | Symbol | Notes |
 |---|---|
 | `Graph` class | Read-only — host shouldn't mutate directly. |
+| `Graph.internals()` / `GraphInternals` | The friend surface (ADR 0008): the command-bus mutation backdoor the in-repo editor uses. NOT for hosts — mutating through it skips undo, preventable events and `graph:changed` commits. Use editor commands / `editor.applyChanges`. |
 | `Selection` class | |
 | `NodeRegistry`, `TypeRegistry` | Register / unregister / list. |
 | `EventEmitter`, `Unsubscribe` | |
@@ -185,10 +186,11 @@ hits the command bus. Cancelling fires no follow-up event (no `node:removed` aft
 ## `@internal` — DO NOT depend on
 
 The following exist at runtime today but are NOT part of the public contract. They are
-**already stripped from the shipped `.d.ts`** (`stripInternal` is on in every package except
-`graph-core`, whose `Graph._add*` mutators are the editor's legal in-repo mutation path — a
-friend-interface refactor there is future work). If you reach for one, file an issue describing
-what you need — we'll likely promote the underlying capability through a proper public method.
+**already stripped from the shipped `.d.ts`** (`stripInternal` is on in EVERY package, core
+included since ADR 0008 — the editor bus reaches `Graph`'s stripped mutators through the
+documented friend surface `Graph.internals()`, see the core section above). If you reach for
+one, file an issue describing what you need — we'll likely promote the underlying capability
+through a proper public method.
 
 - `editor.app` — raw PIXI `Application`. Couples hosts to PIXI's major-version cadence. Use
   `editor.exportImage()` / `editor.chrome.overlayRoot` / `editor.setTheme(...)` instead.

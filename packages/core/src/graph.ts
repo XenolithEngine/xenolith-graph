@@ -1,5 +1,6 @@
 import type { NodeId, EdgeId, PinId, CommentId, TypeId } from './ids.js'
 import type { WidgetSpec } from './widget.js'
+import type { GraphInternals } from './graph-internals.js'
 
 export interface Vec2 {
   x: number
@@ -63,7 +64,7 @@ export interface Comment {
   color?: string
 }
 
-export class Graph {
+export class Graph implements GraphInternals {
   readonly #nodes = new Map<NodeId, Node>()
   readonly #edges = new Map<EdgeId, Edge>()
   readonly #comments = new Map<CommentId, Comment>()
@@ -201,5 +202,15 @@ export class Graph {
     else delete node.widgets
     this.#version++
     return node
+  }
+
+  /**
+   * The command-bus mutation surface (ADR 0008) — the friend path to the underscore mutators
+   * (which carry internal markers and are stripped from the shipped `.d.ts`). Reserved for the
+   * in-repo editor bus; hosts mutate through editor commands or `editor.applyChanges`, never
+   * through this.
+   */
+  internals(): GraphInternals {
+    return this
   }
 }

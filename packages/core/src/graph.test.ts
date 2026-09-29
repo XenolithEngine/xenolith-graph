@@ -204,3 +204,20 @@ describe('Graph — read isolation', () => {
     expect(typeof iter[Symbol.iterator]).toBe('function')
   })
 })
+
+describe('Graph — internals() friend surface (ADR 0008)', () => {
+  it('exposes the command-bus mutation surface, typed as GraphInternals', () => {
+    const g = new Graph()
+    const internals = g.internals()
+    const n = makeNode()
+    internals._addNode(n)
+    expect(g.getNode(n.id)).toBe(n)
+    internals._removeNode(n.id)
+    expect(g.getNode(n.id)).toBeUndefined()
+  })
+
+  it('is the graph itself (no wrapper allocations)', () => {
+    const g = new Graph()
+    expect(g.internals()).toBe(g)
+  })
+})

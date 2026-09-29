@@ -437,8 +437,8 @@ export class Subgraph {
     // A live graph + per-level bus for the definition. Sharing #coreEvents keeps the command→sync
     // bridge firing against the now-displayed definition graph.
     const g = new Graph()
-    for (const n of def.nodes) g._addNode(n)
-    for (const e of def.edges) g._addEdge(e)
+    for (const n of def.nodes) g.internals()._addNode(n)
+    for (const e of def.edges) g.internals()._addEdge(e)
     const bus = new CommandBus({ graph: g, events: this.h.coreEvents })
 
     this.h.teardownDisplay()
@@ -518,7 +518,7 @@ export class Subgraph {
       // Drop parent-graph edges that referenced an instance pin the interface no longer has.
       for (const e of Array.from(this.h.displayGraph.edges())) {
         const stale = (e.from.node === node.id && !keptPinIds.has(String(e.from.pin))) || (e.to.node === node.id && !keptPinIds.has(String(e.to.pin)))
-        if (stale) this.h.displayGraph._removeEdge(e.id)
+        if (stale) this.h.displayGraph.internals()._removeEdge(e.id)
       }
       node.pins = pins
       node.state['pinBoundary'] = pinBoundary
@@ -762,8 +762,8 @@ export class Subgraph {
       // the pins overflow a too-short node body.
       delete (macro as { size?: unknown }).size
       this.h.ensureSize(macro, this.h.renderOpts.get(macro.id) ?? {})
-      for (const eid of plan.disconnect) this.h.ed.graph._removeEdge(eid)
-      for (const e of plan.connect) this.h.ed.graph._addEdge(e)
+      for (const eid of plan.disconnect) this.h.ed.graph.internals()._removeEdge(eid)
+      for (const e of plan.connect) this.h.ed.graph.internals()._addEdge(e)
     }
   }
 

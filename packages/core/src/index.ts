@@ -14,6 +14,7 @@ export {
 export type { NodeId, EdgeId, PinId, CommentId, TypeId } from './ids.js'
 
 export { Graph } from './graph.js'
+export type { GraphInternals } from './graph-internals.js'
 export type { Node, Edge, Pin, Comment, Vec2, PinKind, PinDirection, NodeGlyph } from './graph.js'
 export { incomers, outgoers, connectedEdges, roots, leaves, topoOrder, wouldCreateCycle, reachableFrom } from './traversal.js'
 export { evaluateGraph } from './evaluate.js'
