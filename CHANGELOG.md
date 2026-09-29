@@ -8,6 +8,12 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+## [0.7.0-beta.7] — 2026-09-29
+
+### Fixed
+
+- **`?demo=agent&mode=propose` is now genuinely interactive** — the session auto-OPENS the review panel but then WAITS: you press Approve all (the batch lands as ONE undo step) or Reject all (the agent changes nothing — honest ending, session reports "trust boundary held", history stays clean). Previously the scripted demo auto-clicked Approve itself, so the trust boundary flashed by in ~1.5s and read as "nothing changed" — a fair complaint. e2e now plays the human (4 specs incl. the reject path); the recorder script plays it too for captures.
+
 ### Breaking (beta — flagged per policy)
 
 - **`@xenolithengine/graph-angular`: removed `XenolithGraphComponent` and `angularOutputName`.** The shipped component was a landmine: Angular libraries with components require ng-packagr partial compilation, and the decorator class we shipped (compiled by plain tooling, no `ɵcmp`) throws "is not a component" in every default AOT consumer build — it could only ever work in JIT/dev. Replaced by the decorator-free `XenolithGraphService` (below); the Learn page ships the exact host-component recipe as the migration path. `@angular/core` dropped from peer deps (the service imports zero Angular APIs — plain-class DI works as-is).
@@ -135,6 +141,7 @@ Summary in [docs/release-notes/v0.7.0-beta.5.md](docs/release-notes/v0.7.0-beta.
 First public beta. What shipped is summarised in [docs/release-notes/v0.7.0-beta.4.md](docs/release-notes/v0.7.0-beta.4.md). [`STABLE-API.md`](STABLE-API.md) is the surface intended to freeze at v1.0. It is not frozen.
 
 [Unreleased]: https://github.com/XenolithEngine/xenolith-graph/commits/main
+[0.7.0-beta.7]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.6...v0.7.0-beta.7
 [0.7.0-beta.6]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.5...v0.7.0-beta.6
 [0.7.0-beta.5]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.4...v0.7.0-beta.5
 [0.7.0-beta.4]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.3...v0.7.0-beta.4

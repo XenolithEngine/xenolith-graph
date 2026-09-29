@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-test-utils",
-  "version": "0.7.0-beta.6",
+  "version": "0.7.0-beta.7",
   "description": "jsdom test kit for XenolithGraph hosts: boot the real WebGL editor headlessly, or drive a logic-level FakeEditor.",
   "license": "MIT",
   "type": "module",
