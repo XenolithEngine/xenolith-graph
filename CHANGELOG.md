@@ -20,6 +20,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 - **Flat viewport and history verbs stay through v1.0.** `editor.fitView`, `editor.setViewport`, `editor.screenToWorld`, `editor.undo`, `editor.redo`, `editor.canUndo`, `editor.canRedo` are no longer scheduled for removal. `editor.view` and `editor.history` are the same functions. `setNodeState` merges keys into `node.state` (omitted keys stay) — the implementation already did; the comment said replace.
 - **Solid directive events are kebab names.** Bind `on:node-click`, not `on:node:click`. Two colons fail Vite's esbuild dependency scan. `solidEventName('node:click')` is `'node-click'`.
 
+### Fixed
+
+- **A locked graph can no longer spawn or delete nodes.** `setInteractive(false)` (graph diff, live mode) already blocked drag, connect, and marquee. Tab, double-click, the insert button, an already-open palette, the context menu, and the delete / undo / paste / duplicate shortcuts still edited the graph. Those gestures no-op while locked, and locking closes the palette, context menu, and sidebar. `insertNode` and the rest of the programmatic API stay available.
+
 ## [0.7.0-beta.8] — 2026-09-30
 
 Summary in [docs/release-notes/v0.7.0-beta.8.md](docs/release-notes/v0.7.0-beta.8.md).

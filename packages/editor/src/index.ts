@@ -1844,6 +1844,7 @@ export class XenolithEditor {
   /** Double-click on empty canvas opens the insert palette at the cursor. Skipped when the
    *  cursor is over a node (so double-clicking a node body never spawns a palette on top of it). */
   readonly #onDoubleClick = (e: MouseEvent): void => {
+    if (!this.#interactive) return
     if (this.#hoveredId !== null) {
       const n = this.graph.getNode(this.#hoveredId)
       // Double-clicking a macro toggles it (collapsed ⇄ expanded); a template instance dives into
@@ -1918,6 +1919,7 @@ export class XenolithEditor {
    *  a pan. Emits preventable `*:contextmenu` event — listeners that call `cancel()` (e.g. a host
    *  with its own menu UI) suppress the built-in menu. */
   #openMenuAt(screen: { x: number; y: number }): void {
+    if (!this.#interactive) return
     const world = screenToWorld(screen, this.#viewport.state)
     const pinHit = this.#pickPinAt(world)
     if (pinHit) { this.#openPinMenu(pinHit.nodeId, pinHit.pinId, screen); return }
@@ -3158,6 +3160,7 @@ export class XenolithEditor {
       // observe `node:drop` to layer on validation / snapping; this default path keeps the
       // panel useful out of the box.
       this.on('node:drop', (e) => {
+        if (!this.#interactive) return
         if (e.text && this.#registry.has(e.text)) this.insertNode(e.text, e.position)
       })
     } else {
@@ -3246,8 +3249,10 @@ export class XenolithEditor {
   }
 
   /** Open the insert palette. `screen` is a canvas-relative point (defaults to last pointer
-   *  position, then canvas centre). No-op if the registry is empty. */
+   *  position, then canvas centre). No-op if the registry is empty, or the graph is locked
+   *  (`setInteractive(false)`) — a review pane must not be able to spawn nodes. */
   openPalette(screen?: { x: number; y: number }): void {
+    if (!this.#interactive) return
     if (this.#registry.size === 0 && this.#builtins.size === 0 && this.#templateRegistry.size === 0) return
     if (!this.#palette) {
       this.#palette = new InsertPalette(this.#host, this.#theme.paletteStyle, {
@@ -3374,6 +3379,7 @@ export class XenolithEditor {
   }
 
   #insertFromPalette(type: string, screen: { x: number; y: number }): void {
+    if (!this.#interactive) return
     const world = screenToWorld(screen, this.#viewport.state)
     if (type === COMMENT_PALETTE_TYPE) {
       // Comments are frames, not nodes — anchor the new frame's top-left at the cursor.
@@ -4340,6 +4346,14 @@ export class XenolithEditor {
     // DOM widgets are real DOM above the canvas — the WebGL gate can't stop them; the layer
     // toggles their pointer events so a locked graph freezes framework widgets too.
     this.#domWidgets.setInteractivity(interactive)
+    if (!interactive) {
+      // These overlays keep a live insert/delete callback. Closing them is what stops a
+      // palette that was already open from spawning a node after the lock.
+      this.closePalette()
+      this.#edgeMenu?.close()
+      this.closeSidebar()
+    }
+    this.#controls?.syncInteractive()
   }
 
   /** G12 — Live Mode (LiteGraph parity). Freezes all interaction (`setInteractive(false)`) and
@@ -4684,6 +4698,7 @@ export class XenolithEditor {
       return
     }
     if (!mod && e.key === 'Enter') {
+      if (!this.#interactive) return
       const selected = [...this.selection.ids()]
       if (selected.length === 1) {
         e.preventDefault()
@@ -4697,6 +4712,7 @@ export class XenolithEditor {
       return
     }
     if (!mod && (e.key === 'Delete' || e.key === 'Backspace')) {
+      if (!this.#interactive) return
       if (this.#comments.selectionSize() > 0) {
         e.preventDefault()
         const ids = this.#comments.selectedIds()
@@ -4710,11 +4726,13 @@ export class XenolithEditor {
       return
     }
     if (mod && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+      if (!this.#interactive) return
       e.preventDefault()
       this.undo()
       return
     }
     if (mod && ((e.key === 'z' || e.key === 'Z') && e.shiftKey || e.key === 'y' || e.key === 'Y')) {
+      if (!this.#interactive) return
       e.preventDefault()
       this.redo()
       return
@@ -4725,11 +4743,13 @@ export class XenolithEditor {
       return
     }
     if (mod && (e.key === 'd' || e.key === 'D')) {
+      if (!this.#interactive) return
       e.preventDefault()
       this.duplicateSelected()
       return
     }
     if (mod && (e.key === 'g' || e.key === 'G')) {
+      if (!this.#interactive) return
       // Cmd/Ctrl+G — Collapse the selection into an in-place macro. With Shift — convert it into a
       // reusable Template instance instead (one shared definition, dive-in to edit).
       if (this.selection.size === 0) return
@@ -4746,6 +4766,7 @@ export class XenolithEditor {
       return
     }
     if (mod && (e.key === 'v' || e.key === 'V')) {
+      if (!this.#interactive) return
       if (!this.#clipboard) return
       e.preventDefault()
       const at = this.#lastPointerWorld

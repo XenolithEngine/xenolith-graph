@@ -90,6 +90,7 @@ export class EditorControls {
   #undoBtn?: HTMLButtonElement
   #redoBtn?: HTMLButtonElement
   #lockBtn?: HTMLButtonElement
+  #insertBtn: HTMLButtonElement | undefined = undefined
   #menu: HTMLDivElement | null = null
   #offHistory: () => void = () => {}
   #onDocPointer: ((e: PointerEvent) => void) | null = null
@@ -143,8 +144,10 @@ export class EditorControls {
 
     const o = this.#opts
     const groups: HTMLElement[][] = []
+    this.#insertBtn = undefined
     if (o.showInsert) {
-      groups.push([this.#btn('Insert node', ICONS.insert, () => this.#editor.openPalette(this.#focal()))])
+      this.#insertBtn = this.#btn('Insert node', ICONS.insert, () => this.#editor.openPalette(this.#focal()))
+      groups.push([this.#insertBtn])
     }
     const zoomFit: HTMLElement[] = []
     if (o.showZoom) zoomFit.push(this.#btn('Zoom in', ICONS.zoomIn, () => this.#editor.zoomAt(this.#focal(), o.zoomStep)))
@@ -175,6 +178,7 @@ export class EditorControls {
       if (gi > 0) this.#root.appendChild(this.#divider())
       for (const btn of group) this.#root.appendChild(btn)
     })
+    this.#syncInsert()
   }
 
   #focal(): { x: number; y: number } {
@@ -214,6 +218,21 @@ export class EditorControls {
   #toggleLock(): void {
     this.#editor.setInteractive(!this.#editor.interactive)
     this.#syncLock()
+  }
+
+  /** Hosts call `setInteractive` directly (graph diff, live mode). Repaint the lock and the
+   *  insert button so a locked graph does not still offer "+". */
+  syncInteractive(): void {
+    this.#syncLock()
+    this.#syncInsert()
+  }
+
+  #syncInsert(): void {
+    const b = this.#insertBtn
+    if (!b) return
+    const locked = !this.#editor.interactive
+    b.disabled = locked
+    b.style.opacity = locked ? '0.4' : '1'
   }
 
   #syncLock(): void {
