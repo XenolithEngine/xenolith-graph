@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { diffNodesToChanges } from './controlled-diff.js'
-import type { GraphMirror, Node } from '@xenolithengine/graph-editor'
+import { diffEdgesToChanges, diffNodesToChanges } from './controlled-diff.js'
+import type { Edge, GraphMirror, Node } from '@xenolithengine/graph-editor'
 
 // Nodes are treated as immutable records: the same state REFERENCE means "unchanged". Tests that
 // don't care about state share this frozen bag so they don't accidentally assert data deltas.
@@ -59,5 +59,43 @@ describe('diffNodesToChanges (write side of the controlled triple, ADR 0006)', (
       { type: 'remove', id: 'b' },
     ])
     expect(out.unsupported).toEqual([])
+  })
+})
+
+const edge = (
+  id: string,
+  fromNode = 'a',
+  toNode = 'b',
+  fromPin = 'out',
+  toPin = 'in',
+): Edge => ({ id, from: { node: fromNode, pin: fromPin }, to: { node: toNode, pin: toPin } }) as Edge
+
+const withEdges = (edges: readonly Edge[]): GraphMirror => ({ nodes: [], edges: [...edges] })
+
+describe('diffEdgesToChanges (edge half of the controlled triple)', () => {
+  it('emits nothing when endpoints match, even if the edge objects are fresh', () => {
+    const live = withEdges([edge('e1')])
+    expect(diffEdgesToChanges(live, [edge('e1')])).toEqual({ nodes: [], edges: [], unsupported: [] })
+  })
+
+  it('emits add for edges not in the live mirror', () => {
+    const added = edge('e2')
+    const out = diffEdgesToChanges(withEdges([edge('e1')]), [edge('e1'), added])
+    expect(out.edges).toEqual([{ type: 'add', edge: added }])
+    expect(out.nodes).toEqual([])
+  })
+
+  it('emits remove for live edges missing from next', () => {
+    const out = diffEdgesToChanges(withEdges([edge('e1'), edge('e2')]), [edge('e2')])
+    expect(out.edges).toEqual([{ type: 'remove', id: 'e1' }])
+  })
+
+  it('rewrites a changed endpoint as remove then add of the same id', () => {
+    const next = edge('e1', 'a', 'c')
+    const out = diffEdgesToChanges(withEdges([edge('e1', 'a', 'b')]), [next])
+    expect(out.edges).toEqual([
+      { type: 'remove', id: 'e1' },
+      { type: 'add', edge: next },
+    ])
   })
 })

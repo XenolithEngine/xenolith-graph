@@ -39,22 +39,24 @@ otherwise. File an issue and we'll classify it.
 
 ### `@xenolithengine/graph-editor`
 
-The `XenolithEditor` class is the main entry point. The **namespaces** below are the canonical
-v0.7 surface — flat methods on the class root (`editor.fitView`, `editor.undo`, …) still work
-but are deprecated and will be removed in v1.0.
+The `XenolithEditor` class is the main entry point. The **namespaces** below group the surface.
+The viewport and history verbs also live on the class root (`editor.fitView`, `editor.setViewport`,
+`editor.screenToWorld`, `editor.undo`, `editor.redo`, `editor.canUndo`, `editor.canRedo`) and
+**stay there through v1.0** — that is the call shape hosts already type. `editor.view` and
+`editor.history` are the same functions. Chrome and clipboard stay namespaced.
 
 | Stable | Notes |
 |---|---|
 | `XenolithEditor.init(target, opts)` → `Promise<XenolithEditor>` | Mount the editor. |
 | `editor.destroy()`, `editor.isDestroyed` | |
 | `editor.on(event, handler)` → `Unsubscribe` | The 25 public events listed below. |
-| `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()`, `editor.graphNodes()`, `editor.graphEdges()`, `editor.getNode(id)`, `editor.readGraph()` | Same data — `getGraphReadonly` is the new name. `graphNodes`/`graphEdges`/`getNode` are the LIVE read surface (what `useNodes`/`useEdges` are built on). `readGraph()` hands the live `Graph` to the core traversal helpers (`topoOrder`, `evaluateGraph`, `reachableFrom`) — read-only by convention. |
+| `editor.loadJSON(data: unknown)`, `editor.toJSON()`, `editor.getGraphReadonly()`, `editor.graphNodes()`, `editor.graphEdges()`, `editor.getNode(id)`, `editor.readGraph()` | Three reads, not six. `toJSON()` is the document snapshot (xyflow `toObject`); `getGraphReadonly()` returns that same snapshot. `exportJSON()` wraps it in a download `Blob`. `graphNodes`/`graphEdges`/`getNode` and `readGraph()` are the LIVE graph (`readGraph()` is what the core traversal helpers take) — read-only by convention. |
 | `importFromReactFlow(json, opts?)` → `{ doc, report }`, `editor.importReactFlow(json, opts?)` → `ImportReport` | React Flow (xyflow) `toObject()` JSON → xenolith.v1. Pins synthesized from edge handles (`inferType` or `schemas[]` for typing), loss accounting in the report — nothing drops silently. Guide: Migrate from React Flow. |
 | `editor.transaction(fn)`, `editor.beginGroup(opts?)`, `editor.endGroup()` | Group many mutations into ONE undo entry; `beginGroup({ idleTimeoutMs })` auto-closes for keystroke coalescing. |
-| `editor.setNodeState(nodeId, state)` | Bus-routed `SetNodeState` — undoable, fires events. |
+| `editor.setNodeState(nodeId, state)` | Bus-routed `SetNodeState` — **merges** keys into `node.state` (omitted keys stay). Undoable, fires events. |
 | `editor.applyChanges(changes)`, `editor.getGraphMirror()`, `reduceGraphChanges(mirror, changes)`, `snapshotGraph(nodes, edges)` | The write side of the controlled protocol: one transaction per call (one undo step), echo-idempotent (re-adding/re-removing/no-op positions skip). `reduceGraphChanges` is the pure store reducer (Zustand/Redux); React hosts get `useNodesState()` in `@xenolithengine/graph-react`. ADR 0006. |
 | `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
-| `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId` | **The canonical wire API.** Refs (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` = the node's single pin of that direction. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs. |
+| `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId`, `editor.connect({ source, sourceHandle, target, targetHandle }, opts?)` → `EdgeId` | **The canonical wire API.** Positional refs and the object form (`ConnectEndpoints`, the React Flow `onConnect` shape) share one resolver (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` or `null` = the node's single pin of that direction. `source` / `target` are a node or its id. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs, and `connect: source node '<id>' was not found` when the id is missing. |
 | `editor.setNodeStatus`, `editor.clearNodeStatuses` | |
 | `editor.addComment`, `editor.removeComment`, `editor.setCommentText`, `editor.setCommentColor` | |
 | `editor.createMacroFromSelection`, `editor.ungroupMacro`, `editor.expandMacro`, `editor.collapseMacro` | |
@@ -122,12 +124,14 @@ Peer dep: `pixi.js@^8.6.0`.
 
 | Package | Exports |
 |---|---|
-| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith` / `useNodesState` (controlled triple, ADR 0006); `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
-| `@xenolithengine/graph-vue` | `<XenolithGraph>` (typed object-form emits + `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useXenolithGraph` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useNodesState` (controlled triple); in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`, `emitName`, `XenolithGraphEmits`. |
-| `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`. |
-| `@xenolithengine/graph-solid` | `xenolith` directive (`use:xenolith`, typed via `JSX.Directives`; `on:ready` + colon-named CustomEvents), `createXenolithStores` (signal bag: `setEditor`/`editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()`), `createXenolithGraph`. |
-| `@xenolithengine/graph-angular` | `XenolithGraphService` (decorator-free DI service: `mount`/`destroy`/`editor`/`editor$`, store observables `nodes$`…`graphJSON$`, `canUndo$`/`canRedo$` + `undo`/`redo`, typed `on$('node:click')`, `nodesState()` controlled triple), `XenolithNodesState`. No shipped component — bring-your-own host (Learn page recipe). |
+| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith` / `useNodesState` (`{ nodes, edges, applyChanges, setNodes, setEdges }`, ADR 0006); `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
+| `@xenolithengine/graph-vue` | `<XenolithGraph>` (typed object-form emits + `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useXenolithGraph` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useNodesState` (`setNodes` + `setEdges`); in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`, `emitName`, `XenolithGraphEmits`. |
+| `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`. |
+| `@xenolithengine/graph-solid` | `xenolith` directive (`use:xenolith`, typed via `JSX.Directives`; `on:ready` + kebab CustomEvents `on:node-click` — one colon, so Vite's dep scan can parse the JSX), `solidEventName`, `createXenolithStores` (signal bag: `setEditor`/`editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`), `createXenolithGraph`. |
+| `@xenolithengine/graph-angular` | `XenolithGraphService` (decorator-free DI service: `mount`/`destroy`/`editor`/`editor$`, store observables `nodes$`…`graphJSON$`, `canUndo$`/`canRedo$` + `undo`/`redo`, typed `on$('node:click')`, `nodesState()` with `setNodes` + `setEdges`), `XenolithNodesState`. No shipped component — bring-your-own host (Learn page recipe). |
 | `@xenolithengine/graph-wc` | `XenolithGraphElement` (`<xenolith-graph>`: attributes `minimap`/`fit-on-load`/`disable-grid`/`resize-to-window`/`snap`; JS props `theme`/`graph`/`zoomBounds`/`isValidConnection`; `ready` event with the editor; all 25 events forwarded), `register(tag?)`, `FORWARDED_EVENTS` (= `EDITOR_EVENT_NAMES`), `readAttributes`. |
+
+Adapter tiers, frozen as shipped. **Full** (mount, hooks, panels, widget bridge): React and Vue. **Svelte** matches that on the `./components` subpath, which needs Svelte 5; the runtime entry stays Svelte 4. **Mount + stores + controlled state** (panels via `editor.chrome`, no widget bridge): Solid and Angular. **Custom element** (events + `el.editor`, no hooks): the Web Component. Widget bridges are `reactWidget`, `vueWidget`, and `svelteWidget` only.
 
 ### Themes
 

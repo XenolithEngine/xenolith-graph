@@ -4,7 +4,7 @@ import type {
   GraphChanges, GraphMirror,
 } from '@xenolithengine/graph-editor'
 import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
-import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
+import { diffEdgesToChanges, diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 
 // Solid's reactive fabric is signals + effects under an owner root. `createXenolithStores()`
 // must be called inside one — a component's setup IS a root, so the idiomatic call site owns
@@ -32,6 +32,7 @@ export interface XenolithNodesState {
   edges: Accessor<readonly Edge[]>
   applyChanges: (changes: GraphChanges) => void
   setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+  setEdges: (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])) => void
 }
 
 /** Bag of signal-backed accessors bound to one editor — Solid's counterpart of the React/Vue
@@ -150,7 +151,16 @@ export function createXenolithStores(): XenolithStores {
       if (changes.nodes.length > 0) e.applyChanges(changes)
     }
 
-    return { nodes: nodesAcc, edges: edgesAcc, applyChanges, setNodes }
+    const setEdges = (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])): void => {
+      const e = untrack(editor)
+      if (!e) return
+      const live = snapshotGraph(e.graphNodes(), e.graphEdges())
+      const nextEdges = typeof next === 'function' ? next(live.edges) : next
+      const changes = diffEdgesToChanges(live, nextEdges)
+      if (changes.edges.length > 0) e.applyChanges(changes)
+    }
+
+    return { nodes: nodesAcc, edges: edgesAcc, applyChanges, setNodes, setEdges }
   }
 
   return { setEditor, editor, nodes, edges, selection, viewport, graphJSON, undoRedo, nodesState }

@@ -5,8 +5,10 @@ import {
   type EditorBinding,
   type XenolithProps,
 } from '@xenolithengine/graph-adapter-core'
+import { solidEventName } from './event-name.js'
 
 export { createXenolithStores, type XenolithStores, type XenolithNodesState } from './stores.js'
+export { solidEventName }
 
 // Typing for `use:xenolith={props}` — the documented way Solid libraries type their directives.
 // Importing this module teaches the language tools the directive's value type project-wide.
@@ -21,13 +23,13 @@ declare module 'solid-js' {
 }
 
 /**
- * Solid directive: `<div use:xenolith={props} on:ready on:node:click on:selection:changed … />`.
+ * Solid directive: `<div use:xenolith={props} on:ready on:node-click on:selection-changed … />`.
  * Mounts the editor into the element, syncs props reactively (the bound expression is tracked),
  * dispatches `ready` (detail: the live `XenolithEditor`) once mounted, and re-dispatches every
- * editor event off the element as a same-named CustomEvent — Solid's `on:` binds colon names,
- * so `on:node:click` / `on:selection:changed` map 1:1 to the editor's event surface with their
- * payloads in `event.detail`. Client-only (WebGL). Wire reactive stores from `on:ready`:
- * `stores.setEditor(e.detail)` — see `createXenolithStores`.
+ * editor event off the element as a kebab CustomEvent (`node-click`, `selection-changed`, …)
+ * with the payload in `event.detail`. The name has one colon (`on:node-click`) so Vite's
+ * esbuild dep scan can parse the JSX — `on:node:click` cannot. Client-only (WebGL). Wire
+ * reactive stores from `on:ready`: `stores.setEditor(e.detail)` — see `createXenolithStores`.
  *
  * Solid calls a directive as `xenolith(el, accessor)`, where `accessor()` is the bound value.
  */
@@ -40,7 +42,7 @@ export function xenolith(el: HTMLElement, accessor: () => XenolithProps | undefi
     if (destroyed) { b.destroy(); return }
     binding = b
     for (const ev of EDITOR_EVENT_NAMES) {
-      offs.push(b.on(ev, (detail) => el.dispatchEvent(new CustomEvent(ev, { detail }))))
+      offs.push(b.on(ev, (detail) => el.dispatchEvent(new CustomEvent(solidEventName(ev), { detail }))))
     }
     b.setProps(accessor() ?? {})
     el.dispatchEvent(new CustomEvent('ready', { detail: b.editor }))

@@ -44,7 +44,7 @@ const onReady = (editor) => editor.fitView()
 
 - `<XenolithGraph>` — Vue 3 component (props: `theme`, `graph`, `zoomBounds`, `minimap`, `disableGrid`, `snap`, `resizeToWindow`, `fitOnLoad`, `isValidConnection`; typed object-form emits — camelCase versions of every editor event plus `ready`, payloads visible to vue-tsc/Volar)
 - In-editor panels: `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`
-- Composables: `useEditor`, `useEditorOrNull`, `useEditorReady`, `useEditorEvent`, `useXenolithGraph` (headless mount), `useNodes`, `useEdges`, `useSelection`, `useViewport`, `useGraphJSON`, `useUndoRedo`, `useNodesState` (controlled triple — commit-time mirror + one-undo-step `setNodes`)
+- Composables: `useEditor`, `useEditorOrNull`, `useEditorReady`, `useEditorEvent`, `useXenolithGraph` (headless mount), `useNodes`, `useEdges`, `useSelection`, `useViewport`, `useGraphJSON`, `useUndoRedo`, `useNodesState` (controlled state — commit-time mirror + one-undo-step `setNodes` / `setEdges`)
 - `XenolithEditorKey` — Vue injection key (for hand-rolled `provide`/`inject`)
 - Custom widgets: `vueWidget`, `WidgetProps`
 

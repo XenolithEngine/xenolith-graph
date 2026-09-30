@@ -183,4 +183,23 @@ describe('nodesState (E5 / ADR 0006 — Svelte edition)', () => {
     expect(applyChanges).toHaveBeenCalledWith(changes)
     s.dispose()
   })
+
+  it('setEdges diffs onto the editor as ONE applyChanges batch', async () => {
+    state.edges = [{ id: 'e1', from: { node: 'a', pin: 'o' }, to: { node: 'b', pin: 'i' } }]
+    const s = boot()
+    const ns = s.nodesState()
+    await flush()
+    const added = { id: 'e2', from: { node: 'a', pin: 'o' }, to: { node: 'c', pin: 'i' } }
+    ns.setEdges([added])
+    expect(applyChanges).toHaveBeenCalledTimes(1)
+    expect(applyChanges).toHaveBeenCalledWith({
+      nodes: [],
+      edges: [
+        { type: 'add', edge: added },
+        { type: 'remove', id: 'e1' },
+      ],
+      unsupported: [],
+    })
+    s.dispose()
+  })
 })

@@ -234,9 +234,10 @@ example, mounting into a portal or a third-party slot.
 ## Controlled state (commit-time)
 
 React Flow migrants: `useNodesState()` gives you the controlled triple — `nodes`, `edges`,
-`applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays ([ADR
+`applyChanges`, `setNodes`, `setEdges` — folded from **commit-time** `graph:changed` arrays ([ADR
 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
 One deliberate difference from React Flow: positions arrive when a drag COMMITS, never per
-frame, so your tree stays still while the WebGL renderer owns the drag. `setNodes(next)`
-diffs onto the editor as one undo step; echoes are idempotent. For Redux/Zustand use the pure
+frame, so your tree stays still while the WebGL renderer owns the drag. `setNodes(next)` and
+`setEdges(next)` each diff onto the editor as one undo step; echoes are idempotent. Selection
+is not a field on the node — read `useSelection()`. For Redux/Zustand use the pure
 `reduceGraphChanges` reducer directly.

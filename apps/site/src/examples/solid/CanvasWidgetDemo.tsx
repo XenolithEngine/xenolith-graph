@@ -1,5 +1,5 @@
-// Solid — a WebGL level bar. widget:changed is subscribed from on:ready so the attribute
-// list stays a single colon (on:widget:changed is two, and the site's dep scanner rejects that).
+// Solid — a WebGL level bar. widget:changed is subscribed from on:ready. The directive's
+// attribute form is on:widget-changed (one colon); on:widget:changed fails Vite's dep scan.
 import { createSignal } from 'solid-js'
 import { xenolith } from '@xenolithengine/graph-solid'
 import type { NodeId, XenolithEditor } from '@xenolithengine/graph-editor'

@@ -71,11 +71,11 @@ interface ImportReport {
 | React Flow 概念 | XenolithGraph 等价物 |
 |---|---|
 | `<ReactFlow nodes={} edges={}>`（受控 props） | 文档住在编辑器里。读取用 `editor.toJSON()` / `useGraphJSON()`。整份替换用 `editor.loadJSON(doc)`，增量写入用 `editor.applyChanges(changes)`（一次 undo）。`graph:changed` 在事务、undo 组或 undo/redo 提交时给出合并后的变更数组 —— 拖拽的每一帧都不会发。 |
-| `useNodesState` / `applyNodeChanges` | `@xenolithengine/graph-react` 与 `@xenolithengine/graph-vue` 的 `useNodesState()` 返回 `{ nodes, edges, applyChanges, setNodes }`。`setNodes(next)` 把差异作为一次 undo 写回编辑器。Svelte 与 Solid 的同一三元组叫 `nodesState()`，Angular 放在 `XenolithGraphService` 上。`useNodes` / `useEdges` / `useSelection` / `useViewport` 仍是只读订阅。 |
+| `useNodesState` / `applyNodeChanges` | `@xenolithengine/graph-react` 与 `@xenolithengine/graph-vue` 的 `useNodesState()` 返回 `{ nodes, edges, applyChanges, setNodes, setEdges }`。`setNodes(next)` 与 `setEdges(next)` 各把差异作为一次 undo 写回编辑器。Svelte 与 Solid 的同一表面叫 `nodesState()`，Angular 放在 `XenolithGraphService` 上。选中状态不是节点字段：读 `useSelection()` / `selection:changed`。`useNodes` / `useEdges` / `useViewport` 仍是只读订阅。 |
 | JSX 里的 `<Handle type="source">` | 在 `NodeSchema` 里一次声明的类型化引脚（`{ direction: 'out', type: 'float', label: 'Out' }`）。连线强制类型；`any` 是显式通配。 |
 | `nodeTypes` + 自定义节点组件 | schema + **DOM widget**（`reactWidget` 包装、`freeFloating` 节点内控件、侧栏）。节点体由渲染器绘制 —— 这正是 WebGL 护城河；你的 HTML 活在 widget 里。 |
 | `node.data` | `node.state`（widget 值）；导入器原样映射。 |
-| `onConnect` → `addEdge` | `editor.connect(from, 'Out', to, 'In')` —— 解析 label、可撤销、类型门控。 |
+| `onConnect` → `addEdge` | `editor.connect({ source, sourceHandle: 'Out', target, targetHandle: 'In' })` —— 节点或 id，引脚选择器与位置参数相同（id、label、索引）。`null` handle 表示该方向的唯一引脚。可撤销、类型门控。`setEdges(eds => [...eds, edge])` 是数组形式。 |
 | `isValidConnection` | `editor.setIsValidConnection(predicate)` —— 同样的钩子，外加内建类型兼容。 |
 | `onNodesChange`（拖拽更新） | 拖拽的每一帧都没有回调 —— 位置在手势提交前属于渲染器。提交以 `node:moved` 到达，并作为 `graph:changed` 数组里的一条记录。 |
 | `<Background>`、`<Controls>`、`<MiniMap>` | 内建：`editor.chrome.setControls()`、minimap、网格 —— 无需挂载组件。 |

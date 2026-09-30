@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { EditorEvents, XenolithEditor, ViewportState, Node, Edge, NodeId, XenolithGraphV1, GraphChanges, GraphMirror } from '@xenolithengine/graph-editor'
 import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
-import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
+import { diffEdgesToChanges, diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 import { useXenolithEditor } from './context.js'
 
 // Canonical pattern: subscribe to an external (non-React) mutable store via `useSyncExternalStore`.
@@ -174,12 +174,14 @@ export function useUndoRedo(): { canUndo: boolean; canRedo: boolean; undo: () =>
  *   adds/removes/position/state deltas are applied to the editor as ONE undo step, and the
  *   resulting `graph:changed` echo updates this mirror. Diffing rule is shallow: position by
  *   coordinates, state by reference.
+ * - `setEdges(next)` — the edge half. Endpoints compare by node id and pin id. One undo step.
  */
 export function useNodesState(): {
   nodes: readonly Node[]
   edges: readonly Edge[]
   applyChanges: (changes: GraphChanges) => void
   setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+  setEdges: (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])) => void
 } {
   const editor = useXenolithEditor()
   const [mirror, setMirror] = useState<GraphMirror>({ nodes: [], edges: [] })
@@ -205,5 +207,15 @@ export function useNodesState(): {
     if (changes.nodes.length > 0) editor.applyChanges(changes)
   }, [editor])
 
-  return { nodes: mirror.nodes, edges: mirror.edges, applyChanges, setNodes }
+  const setEdges = useCallback((
+    next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[]),
+  ): void => {
+    if (!editor) return
+    const live = snapshotGraph(editor.graphNodes(), editor.graphEdges())
+    const nextEdges = typeof next === 'function' ? next(live.edges) : next
+    const changes = diffEdgesToChanges(live, nextEdges)
+    if (changes.edges.length > 0) editor.applyChanges(changes)
+  }, [editor])
+
+  return { nodes: mirror.nodes, edges: mirror.edges, applyChanges, setNodes, setEdges }
 }

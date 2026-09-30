@@ -57,7 +57,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
 - `XenolithGraphService` — DI service (decorator-free): `mount(host, props)` / `destroy()` / `editor`
 - Reactive surface: `editor$`, `nodes$`, `edges$`, `selection$`, `viewport$`, `graphJSON$`, `canUndo$` / `canRedo$`, `undo()` / `redo()`, typed `on$('node:click')` for all 25 editor events
-- `nodesState()` — the controlled triple (ADR 0006): `nodes$` / `edges$` mirror folded from commit-time `graph:changed`, `applyChanges`, `setNodes` (one undo step)
+- `nodesState()` — controlled state (ADR 0006): `nodes$` / `edges$` mirror folded from commit-time `graph:changed`, `applyChanges`, `setNodes` / `setEdges` (one undo step each)
 - `XenolithNodesState` — return type of `nodesState()`
 
 ## Docs

@@ -31,22 +31,21 @@ export function Editor() {
   return (
     <div
       use:xenolith={props()}
-      on:node:click={(e) => console.log(e.detail.nodeId)}
-      on:selection:changed={(e) => console.log(e.detail)}
+      on:node-click={(e) => console.log(e.detail.nodeId)}
+      on:selection-changed={(e) => console.log(e.detail)}
       style="width: 100%; height: 100vh"
     />
   )
 }
 ```
 
-Editor events are re-dispatched as same-named `CustomEvent`s — Solid's `on:` binds colon names directly.
-
-Editor events are re-dispatched as same-named `CustomEvent`s — Solid's `on:` binds colon names directly. `on:ready` (detail: the live `XenolithEditor`) fires once on mount.
+Editor events are re-dispatched as kebab `CustomEvent`s (`node-click`). Bind them as `on:node-click` — one colon. `on:node:click` does not parse in Vite's dependency scan. `on:ready` (detail: the live `XenolithEditor`) fires once on mount.
 
 ## What's exported
 
-- `xenolith` — the Solid directive (`use:xenolith={props}`); typed via `JSX.Directives` augmentation, dispatches `on:ready` + every editor event as colon-named CustomEvents
-- `createXenolithStores()` — per-editor bag of signal-backed accessors: `setEditor`/`editor`, `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo` (`canUndo`/`canRedo`/`undo`/`redo`), and the controlled triple `nodesState()` (commit-time mirror + one-undo-step `setNodes`); disposal rides the owning root's cleanup
+- `xenolith` — the Solid directive (`use:xenolith={props}`); typed via `JSX.Directives` augmentation, dispatches `on:ready` + every editor event as a kebab CustomEvent (`on:node-click`)
+- `solidEventName` — `node:click` → `node-click`
+- `createXenolithStores()` — per-editor bag of signal-backed accessors: `setEditor`/`editor`, `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo` (`canUndo`/`canRedo`/`undo`/`redo`), and `nodesState()` (commit-time mirror + one-undo-step `setNodes` / `setEdges`); disposal rides the owning root's cleanup
 - `createXenolithGraph(el, props)` — imperative primitive returning an `EditorBinding`
 
 ## Docs

@@ -1,6 +1,6 @@
 ---
 title: Solid adapter
-description: Mount XenolithGraph in Solid with the use:xenolith directive, colon-named typed events, and a signal-backed store set — including the controlled-state triple.
+description: Mount XenolithGraph in Solid with the use:xenolith directive, kebab-named events, and a signal-backed store set — including controlled nodes and edges.
 ---
 
 The Solid adapter ships as `@xenolithengine/graph-solid`. Where React/Vue get components, Solid
@@ -36,8 +36,8 @@ const [props, setProps] = createSignal({ resizeToWindow: false, snap: 8 })
     e.detail.registry.register(mySchema)
     e.detail.view.fitView({ padding: 80 })
   }}
-  on:node:click={(e) => console.log('clicked', e.detail.nodeId)}
-  on:node:removing={(e) => { if (e.detail.nodeId === lockedId) e.detail.cancel() }}
+  on:node-click={(e) => console.log('clicked', e.detail.nodeId)}
+  on:node-removing={(e) => { if (e.detail.nodeId === lockedId) e.detail.cancel() }}
   style="position:absolute;inset:0"
 />
 ```
@@ -55,12 +55,12 @@ The full `XenolithProps` surface (nine keys, ADAPTER-CONTRACT §1): `theme`, `gr
 
 ### Directive events
 
-`ready` (detail: the `XenolithEditor` — fires once when mounted) plus every editor event under
-its own colon name — Solid binds colon names directly, so the editor's surface maps 1:1:
-`on:node:click`, `on:selection:changed`, `on:edge:connecting`, … (all 25; the four preventable
-`-ing` events expose `e.detail.cancel()`). Payloads ride `event.detail`; the shapes are the
-`EditorEvents` map from `@xenolithengine/graph-editor` — see the
-[events reference](../events-commands/).
+`ready` (detail: the `XenolithEditor` — fires once when mounted) plus every editor event as a
+kebab name with a single colon: `on:node-click`, `on:selection-changed`, `on:edge-connecting`,
+… (all 25; the four preventable `-ing` events expose `e.detail.cancel()`). Two colons
+(`on:node:click`) do not parse in Vite's dependency scan. Payloads ride `event.detail`; the
+shapes are the `EditorEvents` map from `@xenolithengine/graph-editor` — see the
+[events reference](../events-commands/). `solidEventName('node:click')` is `'node-click'`.
 
 ## Signal stores
 
@@ -94,7 +94,7 @@ costs ONE rebuild, not 1000 (same budget as the React/Vue/Svelte/Angular adapter
 ## Controlled state (commit-time)
 
 React Flow migrants: `stores.nodesState()` gives you the controlled triple — `nodes`, `edges`
-(accessors), `applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+(accessors), `applyChanges`, `setNodes`, `setEdges` — folded from **commit-time** `graph:changed` arrays
 ([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
 Same semantics as every adapter; each call creates an independent mirror. One deliberate
 difference from React Flow: positions arrive when a drag COMMITS, never per frame.
@@ -102,6 +102,7 @@ difference from React Flow: positions arrive when a drag COMMITS, never per fram
 `setNodes(next)` — pass the next nodes array or an updater over the live mirror; adds, removes,
 position and state deltas land on the editor as **one undo step** (shallow diff: position by
 coordinates, state by reference); the `graph:changed` echo converges the mirror.
+`setEdges(next)` is the edge half: endpoints compare by node id and pin id, also one undo step.
 `applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
 
 ## Imperative primitive

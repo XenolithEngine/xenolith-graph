@@ -251,6 +251,21 @@ export interface ConnectionRequest {
   targetPin: PinId
 }
 
+/** `editor.connect` object form — the React Flow `onConnect` payload, with our pin selectors.
+ *  `source` / `target` are a node or its id. Handles resolve like the positional refs
+ *  (id, label, index, `'in'`/`'out'`, or omitted for the single pin of that direction).
+ *  `null` is the same as omitted. */
+export interface ConnectEndpoints {
+  source: Node | NodeId
+  sourceHandle?: PinSelector | null
+  target: Node | NodeId
+  targetHandle?: PinSelector | null
+}
+
+function isConnectEndpoints(value: Node | ConnectEndpoints): value is ConnectEndpoints {
+  return typeof value === 'object' && value !== null && 'source' in value && 'target' in value
+}
+
 /** Per-node execution status, surfaced as a coloured ring. `running` pulses; `idle` clears it.
  *  Lets a host show graph-execution progress (LLM/audio/pipeline showcases) without a runtime. */
 export type NodeStatus = 'idle' | 'running' | 'ok' | 'error'
@@ -429,9 +444,9 @@ export class XenolithEditor {
    *  API. This is the typed successor of the internal `graph` getter the Run guide used. */
   readGraph(): Graph { return this.#displayGraph }
 
-  /** Replace a node's `state` object (bus-routed `SetNodeState` — undoable, fires the usual
-   *  events). For ticking sims that must not flood undo history use widget-value writes with
-   *  `ephemeral` or the plugin runtime-delegation surface instead. */
+  /** Merge keys into a node's `state` (bus-routed `SetNodeState` — undoable, fires the usual
+   *  events). Omitted keys stay. For ticking sims that must not flood undo history use
+   *  widget-value writes with `ephemeral` or the plugin runtime-delegation surface instead. */
   setNodeState(nodeId: NodeId, state: Record<string, unknown>): void {
     this.commandBus.apply(new SetNodeState(nodeId, state))
   }
@@ -463,9 +478,10 @@ export class XenolithEditor {
 
   // ---------------------------------------------------------------------------------------------
   // Public API namespaces (v0.7 BETA stable). Each is a frozen object lazily built on first read
-  // (`??=` cache) so it's a stable reference for `useMemo`-style consumer code. The flat methods
-  // on the editor (`editor.pan`, `editor.undo`, `editor.fitView`, …) still exist for back-compat
-  // and remain @deprecated until v1.0 — new code should reach for the namespace form.
+  // (`??=` cache) so it's a stable reference for `useMemo`-style consumer code. The flat viewport
+  // and history verbs (`editor.fitView`, `editor.setViewport`, `editor.screenToWorld`,
+  // `editor.undo`, `editor.redo`, …) are the same functions and stay on the class root through
+  // v1.0 — that is the call shape hosts already type. Chrome and clipboard stay namespaced.
   // ---------------------------------------------------------------------------------------------
 
   #viewNs?: Readonly<{
@@ -2787,8 +2803,38 @@ export class XenolithEditor {
    *
    *  @example editor.connect(src, 'Output', sink, 'In')
    *  @example editor.connect(src, 0, sink, 0)            // index overload (legacy shape)
-   *  @example editor.connect(src, undefined, sink, undefined) // single-pin nodes */
+   *  @example editor.connect(src, undefined, sink, undefined) // single-pin nodes
+   *  @example editor.connect({ source: srcId, sourceHandle: 'Out', target: sinkId, targetHandle: 'In' }) */
+  connect(fromNode: Node, fromRef: PinSelector, toNode: Node, toRef: PinSelector, opts?: RenderEdgeOptions): EdgeId
+  connect(connection: ConnectEndpoints, opts?: RenderEdgeOptions): EdgeId
   connect(
+    fromNodeOrConnection: Node | ConnectEndpoints,
+    fromRefOrOpts?: PinSelector | RenderEdgeOptions,
+    toNode?: Node,
+    toRef?: PinSelector,
+    opts: RenderEdgeOptions = {},
+  ): EdgeId {
+    if (isConnectEndpoints(fromNodeOrConnection)) {
+      const connection = fromNodeOrConnection
+      return this.#connectResolved(
+        this.#nodeForConnect(connection.source, 'source'),
+        connection.sourceHandle ?? undefined,
+        this.#nodeForConnect(connection.target, 'target'),
+        connection.targetHandle ?? undefined,
+        (fromRefOrOpts ?? {}) as RenderEdgeOptions,
+      )
+    }
+    return this.#connectResolved(fromNodeOrConnection, fromRefOrOpts as PinSelector, toNode!, toRef!, opts)
+  }
+
+  #nodeForConnect(ref: Node | NodeId, role: 'source' | 'target'): Node {
+    if (typeof ref !== 'string') return ref
+    const node = this.getNode(ref)
+    if (!node) throw new Error(`connect: ${role} node '${ref}' was not found`)
+    return node as Node
+  }
+
+  #connectResolved(
     fromNode: Node,
     fromRef: PinSelector,
     toNode: Node,

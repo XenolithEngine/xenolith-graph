@@ -27,7 +27,11 @@
     "./breadcrumb-dive": "./breadcrumb-dive.ts",
     "./conditional-widgets": "./conditional-widgets.ts",
     "./palette-sidebar": "./palette-sidebar.ts",
-    "./agent-session": "./agent-session.ts"
+    "./agent-session": "./agent-session.ts",
+    "./heatmap": "./heatmap.ts",
+    "./time-travel": "./time-travel.ts",
+    "./step-debugger": "./step-debugger.ts",
+    "./graph-diff-demo": "./graph-diff-demo.ts"
   },
   "types": "./demo-graph.ts",
   "dependencies": {

@@ -1,6 +1,6 @@
 ---
 title: "Solid 适配器"
-description: "在 Solid 中使用 use:xenolith 指令、带冒号的类型化事件和信号 store 集合(含受控三元组)挂载 XenolithGraph。"
+description: "在 Solid 中使用 use:xenolith 指令、on:node-click 事件和信号 store 集合(含受控节点与边)挂载 XenolithGraph。"
 ---
 
 :::caution[翻译可能滞后]
@@ -9,7 +9,7 @@ description: "在 Solid 中使用 use:xenolith 指令、带冒号的类型化事
 :::
 
 请参阅[英文版本](../../../guides/solid/) — `@xenolithengine/graph-solid` 适配器的完整 API:
-指令 `use:xenolith={props}`(携带编辑器实例的 `on:ready`、带冒号的事件 `on:node:click`,
-payload 位于 `event.detail`)、通过 `createXenolithStores()` 的信号 store(`nodes` / `edges` /
-`selection` / `viewport` / `graphJSON` / `undoRedo`、受控三元组 `nodesState()`)、命令式原语
+指令 `use:xenolith={props}`(携带编辑器实例的 `on:ready`、事件 `on:node-click`,
+payload 位于 `event.detail`。一个冒号; `on:node:click` 无法通过 Vite 依赖扫描)、通过 `createXenolithStores()` 的信号 store(`nodes` / `edges` /
+`selection` / `viewport` / `graphJSON` / `undoRedo`、`nodesState()` 含 `setNodes` 与 `setEdges`)、命令式原语
 `createXenolithGraph(el, props)`。

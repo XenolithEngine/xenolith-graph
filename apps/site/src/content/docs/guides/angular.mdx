@@ -95,7 +95,7 @@ this.graph.on$('node:removing')
 ## Controlled state (commit-time)
 
 NgRx/SignalStore migrants: `graph.nodesState()` gives you the controlled triple — `nodes$`,
-`edges$`, `applyChanges`, `setNodes` — folded from **commit-time** `graph:changed` arrays
+`edges$`, `applyChanges`, `setNodes`, `setEdges` — folded from **commit-time** `graph:changed` arrays
 ([ADR 0006](https://github.com/XenolithEngine/xenolith-graph/blob/main/docs/adr/0006-commit-time-controlled-protocol.md)).
 Same semantics as React's `useNodesState` / Vue's / Svelte's; each call creates an independent
 mirror. One deliberate difference from React Flow: positions arrive when a drag COMMITS, never
@@ -104,6 +104,7 @@ per frame.
 `setNodes(next)` — pass the next nodes array or an updater over the live mirror; adds, removes,
 position and state deltas land on the editor as **one undo step** (shallow diff: position by
 coordinates, state by reference); the `graph:changed` echo converges the mirror.
+`setEdges(next)` is the edge half: endpoints compare by node id and pin id, also one undo step.
 `applyChanges(changes)` forwards an array to `editor.applyChanges` — idempotent for echoes.
 
 ## What's NOT in this adapter

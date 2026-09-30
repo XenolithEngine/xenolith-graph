@@ -23,10 +23,10 @@ const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 describe('xenolith directive (Solid)', () => {
   beforeEach(() => { createEditorBinding.mockClear(); binding.setProps.mockClear(); binding.destroy.mockClear(); handlers.clear() })
 
-  it('mounts a binding and re-dispatches events as colon CustomEvents', async () => {
+  it('mounts a binding and re-dispatches events as single-colon kebab CustomEvents', async () => {
     const el = document.createElement('div')
     const seen: unknown[] = []
-    el.addEventListener('node:click', (e) => seen.push((e as CustomEvent).detail))
+    el.addEventListener('node-click', (e) => seen.push((e as CustomEvent).detail))
     const dispose = createRoot((d) => { xenolith(el, () => ({ minimap: true })); return d })
     await flush()
     expect(createEditorBinding).toHaveBeenCalledWith(el, { minimap: true })

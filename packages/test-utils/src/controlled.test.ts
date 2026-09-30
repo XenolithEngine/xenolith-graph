@@ -219,3 +219,39 @@ describe('applyChanges — the write side (ADR 0006)', () => {
     if (change.type === 'data') expect(change.state).toMatchObject({ level: 0.75 })
   })
 })
+
+describe('editor.connect connection object', () => {
+  it('wires by node id and pin label, the React Flow onConnect shape', async () => {
+    const { editor } = await boot()
+    const a = editor.insertNode('Box', { x: 0, y: 0 })!
+    const b = editor.insertNode('Box', { x: 100, y: 0 })!
+    const id = editor.connect({
+      source: a.id,
+      sourceHandle: 'Out',
+      target: b.id,
+      targetHandle: 'In',
+    })
+    const edge = [...editor.graphEdges()].find((e) => e.id === id)
+    expect(edge?.from).toEqual({ node: a.id, pin: a.pins.find((p) => p.label === 'Out')!.id })
+    expect(edge?.to).toEqual({ node: b.id, pin: b.pins.find((p) => p.label === 'In')!.id })
+  })
+
+  it('treats null handles as the single pin of that direction', async () => {
+    const { editor } = await boot()
+    const a = editor.insertNode('Box', { x: 0, y: 0 })!
+    const b = editor.insertNode('Box', { x: 100, y: 0 })!
+    const id = editor.connect({ source: a, sourceHandle: null, target: b, targetHandle: null })
+    expect([...editor.graphEdges()].some((e) => e.id === id)).toBe(true)
+  })
+
+  it('throws when the source id is not in the graph', async () => {
+    const { editor } = await boot()
+    const b = editor.insertNode('Box', { x: 0, y: 0 })!
+    expect(() => editor.connect({
+      source: 'missing',
+      sourceHandle: 'Out',
+      target: b.id,
+      targetHandle: 'In',
+    })).toThrow(/source node 'missing'/)
+  })
+})

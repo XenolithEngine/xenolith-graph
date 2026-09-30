@@ -111,7 +111,7 @@ import {
 | `useViewport()` | `Readonly<ShallowRef<ViewportState>>` | `viewport:changed`. |
 | `useGraphJSON()` | `Readonly<ShallowRef<XenolithGraphV1 \| null>>` | Any mutation, load, undo/redo. |
 | `useUndoRedo()` | `{ canUndo, canRedo: ShallowRef<boolean>; undo, redo: () => boolean }` | Toolbar state + handles. |
-| `useNodesState()` | `{ nodes, edges: Readonly<ShallowRef<…>>; applyChanges; setNodes }` | The controlled triple — see below. |
+| `useNodesState()` | `{ nodes, edges: Readonly<ShallowRef<…>>; applyChanges; setNodes; setEdges }` | The controlled state — see below. |
 
 `editor.value` is `null` during a child component's `setup()` because Vue runs setup synchronously
 before the parent's `onMounted`. Use `useEditorReady(cb)` (or `watch(editor, ...)`) for any setup
@@ -171,7 +171,8 @@ const addBox = () => setNodes((prev) => [...prev, makeBox(prev.length)])
 - `setNodes(next)` — pass the next nodes array or an updater over the live mirror. Adds,
   removes, position and state deltas are diffed onto the editor as **one undo step**
   (shallow diff: position by coordinates, state by reference); the `graph:changed` echo
-  converges the mirror.
+  converges the mirror. `setEdges(next)` is the edge half: endpoints compare by node id and
+  pin id, also one undo step.
 - `applyChanges(changes)` — forward an array (yours, or an echo) to `editor.applyChanges`;
   idempotent for echoes.
 - For Pinia/Vuex stores use the pure `reduceGraphChanges` reducer from

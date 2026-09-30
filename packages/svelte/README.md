@@ -42,7 +42,7 @@ Editor events are re-dispatched as kebab-named `CustomEvent`s off the host node 
 ## What's exported
 
 - `xenolith` — the Svelte action: `use:xenolith={props}`; dispatches `on:ready` (detail: the `XenolithEditor`) once mounted
-- `createXenolithStores()` — per-editor bag of reactive stores: `editor` (writable), `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`, and the controlled triple `nodesState()` (commit-time mirror + one-undo-step `setNodes`); `dispose()` unsubscribes
+- `createXenolithStores()` — per-editor bag of reactive stores: `editor` (writable), `nodes`, `edges`, `selection`, `viewport`, `graphJSON`, `undoRedo`, and `nodesState()` (commit-time mirror + one-undo-step `setNodes` / `setEdges`); `dispose()` unsubscribes
 - `createXenolithEditorContext()` / `getXenolithEditorContext()` / `XenolithEditorContextKey` — Svelte context wiring for the panel components
 - `createXenolithGraph(el, props)` — imperative primitive returning an `EditorBinding`
 - `svelteEventName(event)` — colon → kebab name translation

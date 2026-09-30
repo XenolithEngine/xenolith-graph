@@ -6,7 +6,7 @@ import { act } from 'react'
 import { useXenolithEditor, XenolithGraph, useNodesState } from '@xenolithengine/graph-react'
 import { createRoot } from 'react-dom/client'
 import { mockPixi } from './index.js'
-import type { XenolithEditor, Node } from '@xenolithengine/graph-editor'
+import type { XenolithEditor, Node, Edge } from '@xenolithengine/graph-editor'
 
 let restore: (() => void) | null = null
 afterEach(() => {
@@ -119,5 +119,28 @@ describe('useNodesState (E5 / ADR 0006)', () => {
     await act(async () => { await Promise.resolve() })
     expect(editor.graph.getNode(a.id)).toBeTruthy()
     expect(editor.graph.getNode('hook-add' as never)).toBeFalsy()
+  })
+
+  it('setEdges adds a wire as ONE undo step and the echo updates the mirror', async () => {
+    const p = await mountProbe()
+    const editor = p.editor!
+    editor.registry.register(SCHEMA)
+    const a = editor.insertNode('Box', { x: 0, y: 0 })!
+    const b = editor.insertNode('Box', { x: 100, y: 0 })!
+    await act(async () => { await Promise.resolve() })
+    const out = a.pins.find((pin) => pin.direction === 'out')!
+    const inn = b.pins.find((pin) => pin.direction === 'in')!
+    const edge = {
+      id: 'e-hook',
+      from: { node: a.id, pin: out.id },
+      to: { node: b.id, pin: inn.id },
+    } as Edge
+    await act(async () => { p.api.setEdges([edge]) })
+    await act(async () => { await Promise.resolve() })
+    expect([...editor.graphEdges()].some((e) => e.id === 'e-hook')).toBe(true)
+    expect(p.api.edges.some((e) => e.id === 'e-hook')).toBe(true)
+    editor.history.undo()
+    await act(async () => { await Promise.resolve() })
+    expect([...editor.graphEdges()].some((e) => e.id === 'e-hook')).toBe(false)
   })
 })

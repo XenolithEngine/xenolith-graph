@@ -8,6 +8,18 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+### Added
+
+- **`editor.connect({ source, sourceHandle, target, targetHandle })`.** The React Flow `onConnect` shape. `source` / `target` are a node or its id; handles use the same pin selectors as the positional form (`null` means the single pin of that direction).
+- **`setEdges` on the controlled state** in React, Vue, Svelte, Solid, and Angular. Same one-undo-step diff as `setNodes`. Endpoints compare by node id and pin id; a changed endpoint is remove-then-add of that id.
+- **Example code tabs** for `stress-test`, `diagram`, and `connection-validation` in Vue, Svelte, Solid, and Angular. The live canvas stays the React island.
+- **Example code tabs** for the showcase gallery: `image-pipeline`, `audio-synth`, `llm-builder`, `heatmap`, `mcp-live`, `step-debugger`, `time-travel`, and `graph-diff` in Vue, Svelte, Solid, and Angular. `custom-widgets` is Vue and Svelte — the adapters that ship a widget bridge. Solid and Angular image-pipeline and llm-builder mount a DOM widget controller in the snippet. The live canvas stays the React island.
+
+### Changed
+
+- **Flat viewport and history verbs stay through v1.0.** `editor.fitView`, `editor.setViewport`, `editor.screenToWorld`, `editor.undo`, `editor.redo`, `editor.canUndo`, `editor.canRedo` are no longer scheduled for removal. `editor.view` and `editor.history` are the same functions. `setNodeState` merges keys into `node.state` (omitted keys stay) — the implementation already did; the comment said replace.
+- **Solid directive events are kebab names.** Bind `on:node-click`, not `on:node:click`. Two colons fail Vite's esbuild dependency scan. `solidEventName('node:click')` is `'node-click'`.
+
 ## [0.7.0-beta.8] — 2026-09-30
 
 Summary in [docs/release-notes/v0.7.0-beta.8.md](docs/release-notes/v0.7.0-beta.8.md).

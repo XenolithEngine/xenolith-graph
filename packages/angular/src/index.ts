@@ -1,6 +1,7 @@
 import { BehaviorSubject, map, Subject, type Observable } from 'rxjs'
 import {
   createEditorBinding,
+  diffEdgesToChanges,
   diffNodesToChanges,
   EDITOR_EVENT_NAMES,
   type EditorBinding,
@@ -41,6 +42,7 @@ export interface XenolithNodesState {
   edges$: Observable<readonly Edge[]>
   applyChanges: (changes: GraphChanges) => void
   setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+  setEdges: (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])) => void
 }
 
 /**
@@ -202,6 +204,15 @@ export class XenolithGraphService {
       if (changes.nodes.length > 0) e.applyChanges(changes)
     }
 
+    const setEdges = (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])): void => {
+      const e = this.#editor.value
+      if (!e) return
+      const live = snapshotGraph(e.graphNodes(), e.graphEdges())
+      const nextEdges = typeof next === 'function' ? next(live.edges) : next
+      const changes = diffEdgesToChanges(live, nextEdges)
+      if (changes.edges.length > 0) e.applyChanges(changes)
+    }
+
     // Service-lifetime subscription: fires on every mount (BehaviorSubject) and rebinds the
     // graph:changed fold to the fresh editor; the per-editor `off` rides #offs so a remount
     // releases the previous one. Never disposed explicitly — it dies with the service, like
@@ -219,6 +230,7 @@ export class XenolithGraphService {
       edges$: mirror.pipe(map((m) => m.edges)),
       applyChanges,
       setNodes,
+      setEdges,
     }
   }
 

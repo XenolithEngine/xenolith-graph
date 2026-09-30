@@ -4,7 +4,7 @@ import type {
   GraphChanges, GraphMirror,
 } from '@xenolithengine/graph-editor'
 import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
-import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
+import { diffEdgesToChanges, diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 
 // Svelte's reactive fabric is stores — components subscribe with the `$` prefix, no wrapper
 // components needed. `createXenolithStores()` builds a per-editor bag (never a module-level
@@ -63,6 +63,7 @@ export interface XenolithNodesState {
   edges: Readable<readonly Edge[]>
   applyChanges: (changes: GraphChanges) => void
   setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+  setEdges: (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])) => void
 }
 
 export function createXenolithStores(): XenolithStores {
@@ -142,11 +143,21 @@ export function createXenolithStores(): XenolithStores {
       if (changes.nodes.length > 0) e.applyChanges(changes)
     }
 
+    const setEdges = (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])): void => {
+      const e = get(editor)
+      if (!e) return
+      const live = snapshotGraph(e.graphNodes(), e.graphEdges())
+      const nextEdges = typeof next === 'function' ? next(live.edges) : next
+      const changes = diffEdgesToChanges(live, nextEdges)
+      if (changes.edges.length > 0) e.applyChanges(changes)
+    }
+
     return {
       nodes: derived(mirror, (m) => m.nodes),
       edges: derived(mirror, (m) => m.edges),
       applyChanges,
       setNodes,
+      setEdges,
     }
   }
 

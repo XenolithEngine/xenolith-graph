@@ -1,5 +1,5 @@
 // Solid adapter — mount. Idiomatic Solid surface is `<div use:xenolith={props} />` (the directive
-// re-dispatches events with colon names: `on:node:click`). For programmatic editor access we use
+// re-dispatches events as kebab names: `on:node-click`). For programmatic editor access we use
 // the parallel imperative primitive `createXenolithGraph`, which the adapter exposes alongside the
 // directive — the caller owns teardown.
 import { createXenolithGraph } from '@xenolithengine/graph-solid'

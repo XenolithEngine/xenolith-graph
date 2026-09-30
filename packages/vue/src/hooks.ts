@@ -6,7 +6,7 @@ import type {
   GraphChanges, GraphMirror,
 } from '@xenolithengine/graph-editor'
 import { reduceGraphChanges, snapshotGraph } from '@xenolithengine/graph-editor'
-import { diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
+import { diffEdgesToChanges, diffNodesToChanges } from '@xenolithengine/graph-adapter-core'
 import { useEditor } from './index.js'
 
 /** Build a reactive store hook that recomputes its value on every event in `events`. Mirrors
@@ -152,6 +152,7 @@ export function useNodesState(): {
   edges: ReadonlyRef<readonly Edge[]>
   applyChanges: (changes: GraphChanges) => void
   setNodes: (next: readonly Node[] | ((prev: readonly Node[]) => readonly Node[])) => void
+  setEdges: (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])) => void
 } {
   const editor = useEditor()
   const mirror = shallowRef<GraphMirror>({ nodes: [], edges: [] })
@@ -178,10 +179,19 @@ export function useNodesState(): {
     if (changes.nodes.length > 0) e.applyChanges(changes)
   }
 
+  const setEdges = (next: readonly Edge[] | ((prev: readonly Edge[]) => readonly Edge[])): void => {
+    const e = editor.value
+    if (!e) return
+    const live = snapshotGraph(e.graphNodes(), e.graphEdges())
+    const nextEdges = typeof next === 'function' ? next(live.edges) : next
+    const changes = diffEdgesToChanges(live, nextEdges)
+    if (changes.edges.length > 0) e.applyChanges(changes)
+  }
+
   // computed so consumers re-render only when the mirror actually moved; the cast matches the
   // package-wide ReadonlyRef surface the other store hooks already expose.
   const nodes = computed(() => mirror.value.nodes) as unknown as ReadonlyRef<readonly Node[]>
   const edges = computed(() => mirror.value.edges) as unknown as ReadonlyRef<readonly Edge[]>
 
-  return { nodes, edges, applyChanges, setNodes }
+  return { nodes, edges, applyChanges, setNodes, setEdges }
 }

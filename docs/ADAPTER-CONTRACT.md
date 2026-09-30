@@ -67,11 +67,13 @@ Store hooks (read side; identity-stable snapshots, microtask-coalesced event bur
       body (React got this wrong until A1 — hooks created per-call defeat lint and caching).
 
 Controlled state (ADR 0006):
-- [ ] `useNodesState()` — the triple: `{ nodes, edges }` mirror folded from commit-time
+- [ ] `useNodesState()` — `{ nodes, edges }` mirror folded from commit-time
       `graph:changed` arrays via `reduceGraphChanges`; `applyChanges(changes)` forwarding to
       `editor.applyChanges` (idempotent for echoes); `setNodes(next | updater)` — one-shot
       shallow diff (position by coordinates, state by reference) applied as ONE undo step,
-      with the `graph:changed` echo updating the mirror. No per-frame position updates — the
+      with the `graph:changed` echo updating the mirror; `setEdges(next | updater)` — the
+      edge half, one undo step, endpoints compared by node id + pin id (a changed endpoint
+      is remove-then-add of that id). No per-frame position updates — the
       renderer owns the drag; positions land at commit.
 
 Return shapes are framework-idiomatic: React returns plain values; Vue returns
@@ -148,3 +150,10 @@ controlled triple are the HOST framework's adapter's job — the WC hands over t
 
 Stubs become "claimed" only when their column is ✅ across this checklist — until then the docs
 must not claim parity (F3 truth-pass rule).
+
+Tiers, as of the beta and the shape v1 freezes unless a later iteration fills a cell: **full**
+is React and Vue. Svelte's panels and `svelteWidget` are the `./components` subpath (Svelte 5);
+the runtime entry stays Svelte 4. Solid and Angular are mount + stores + `nodesState()`
+(`setNodes` and `setEdges`); panels go through `editor.chrome`, and there is no widget bridge.
+The Web Component is the DOM element: events and `el.editor`, no hooks. Widget bridges are
+`reactWidget`, `vueWidget`, and `svelteWidget` only.
