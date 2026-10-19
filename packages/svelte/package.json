@@ -1,6 +1,6 @@
 {
   "name": "@xenolithengine/graph-svelte",
-  "version": "0.7.0-beta.8",
+  "version": "0.7.0-beta.9",
   "description": "Svelte adapter for XenolithGraph — the use:xenolith action, reactive stores, in-editor panel components, svelteWidget.",
   "license": "MIT",
   "type": "module",

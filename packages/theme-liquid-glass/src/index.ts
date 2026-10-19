@@ -60,4 +60,4 @@ export const liquidGlassTheme: XenolithTheme = {
 
 export { liquidGlassTokens } from './tokens.js'
 
-export const VERSION = '0.7.0-beta.8'
+export const VERSION = '0.7.0-beta.9'

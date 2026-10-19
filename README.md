@@ -3,11 +3,11 @@
 [![BETA](https://img.shields.io/badge/status-BETA-FCB400?style=flat-square)](https://github.com/XenolithEngine/xenolith-graph#status)
 [![License: MIT](https://img.shields.io/badge/license-MIT-FCB400?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/XenolithEngine/xenolith-graph/ci.yml?branch=main&style=flat-square)](https://github.com/XenolithEngine/xenolith-graph/actions)
-[![Tests](https://img.shields.io/badge/tests-1369%20unit%20%C2%B7%20118%20e2e-39d98a?style=flat-square)](#tests)
+[![Tests](https://img.shields.io/badge/tests-1383%20unit%20%C2%B7%20124%20e2e-39d98a?style=flat-square)](#tests)
 [![Bundle: core](https://img.shields.io/badge/@xenolithengine%2Fgraph--core-8.7KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![Bundle: render-pixi](https://img.shields.io/badge/@xenolithengine%2Fgraph--render--pixi-18.3KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-91.8KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
-[![Bundle: react](https://img.shields.io/badge/@xenolithengine%2Fgraph--react-2.8KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: editor](https://img.shields.io/badge/@xenolithengine%2Fgraph--editor-92.0KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
+[![Bundle: react](https://img.shields.io/badge/@xenolithengine%2Fgraph--react-2.9KB%20gzip-39d98a?style=flat-square)](.size-limit.json)
 [![MCP Server](https://img.shields.io/badge/MCP-26%20tools%20%C2%B7%203%20resources-a855f7?style=flat-square)](packages/mcp-server/TESTING.md)
 [![Discussions](https://img.shields.io/badge/community-Discussions-181717?style=flat-square&logo=github)](https://github.com/XenolithEngine/xenolith-graph/discussions)
 
@@ -100,8 +100,8 @@ Honest numbers, measured by [size-limit](https://github.com/ai/size-limit) on th
 |---|---|---|
 | `@xenolithengine/graph-core` | **8.7 KB** | Headless graph model — zero deps |
 | `@xenolithengine/graph-render-pixi` | **18.3 KB** | (excl. PIXI peer dep) |
-| `@xenolithengine/graph-editor` | **91.8 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
-| `@xenolithengine/graph-react` | **2.8 KB** | Adapter on top of `@xenolithengine/graph-editor` |
+| `@xenolithengine/graph-editor` | **92.0 KB** | Everything: core + renderer + interaction + macros/templates + step debugger + MCP client (excl. PIXI) |
+| `@xenolithengine/graph-react` | **2.9 KB** | Adapter on top of `@xenolithengine/graph-editor` |
 | `@xenolithengine/graph-theme-xen` | **2.0 KB** | Default theme tokens + bundled Inter |
 | `@xenolithengine/graph-theme-daylight` | **5.0 KB** | Light-mode theme, custom pin-halo renderer |
 | `@xenolithengine/graph-theme-liquid-glass` | **8.0 KB** | Shader-based frosted-glass theme |
@@ -215,8 +215,8 @@ Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). ADRs: [`docs/adr/`
 
 `pnpm test` runs the full suite.
 
-- **1369 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
-- **118 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
+- **1383 unit tests** across `@xenolithengine/graph-*` packages (Vitest)
+- **124 interaction tests** across `apps/playground/tests` (Playwright — chromium + firefox)
 - Visual snapshot tests for the renderer (PIXI render → PNG → image-diff)
 - `pnpm size` enforces per-package bundle budgets in CI
 

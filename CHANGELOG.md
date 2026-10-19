@@ -8,6 +8,10 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 
 ## [Unreleased]
 
+## [0.7.0-beta.9] — 2026-10-19
+
+Summary in [docs/release-notes/v0.7.0-beta.9.md](docs/release-notes/v0.7.0-beta.9.md).
+
 ### Added
 
 - **`editor.connect({ source, sourceHandle, target, targetHandle })`.** The React Flow `onConnect` shape. `source` / `target` are a node or its id; handles use the same pin selectors as the positional form (`null` means the single pin of that direction).
@@ -23,6 +27,7 @@ Until v1.0 every release is a `0.x` minor; breaking changes are flagged in their
 ### Fixed
 
 - **A locked graph can no longer spawn or delete nodes.** `setInteractive(false)` (graph diff, live mode) already blocked drag, connect, and marquee. Tab, double-click, the insert button, an already-open palette, the context menu, and the delete / undo / paste / duplicate shortcuts still edited the graph. Those gestures no-op while locked, and locking closes the palette, context menu, and sidebar. `insertNode` and the rest of the programmatic API stay available.
+- **Bundle table remeasured** at the tag (`pnpm size`, fresh package build): editor **92.0 KB** gzip (was 91.8 — the `connect` object form and `setEdges` additions), react 2.9, core 8.7, render-pixi 18.3. Under the 120 KB ceiling. README badges and table match.
 
 ## [0.7.0-beta.8] — 2026-09-30
 
@@ -172,6 +177,7 @@ Summary in [docs/release-notes/v0.7.0-beta.5.md](docs/release-notes/v0.7.0-beta.
 First public beta. What shipped is summarised in [docs/release-notes/v0.7.0-beta.4.md](docs/release-notes/v0.7.0-beta.4.md). [`STABLE-API.md`](STABLE-API.md) is the surface intended to freeze at v1.0. It is not frozen.
 
 [Unreleased]: https://github.com/XenolithEngine/xenolith-graph/commits/main
+[0.7.0-beta.9]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.8...v0.7.0-beta.9
 [0.7.0-beta.8]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.7...v0.7.0-beta.8
 [0.7.0-beta.7]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.6...v0.7.0-beta.7
 [0.7.0-beta.6]: https://github.com/XenolithEngine/xenolith-graph/compare/v0.7.0-beta.5...v0.7.0-beta.6
