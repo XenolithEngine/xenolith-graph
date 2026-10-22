@@ -19,7 +19,7 @@ export {
 } from './style.js'
 export type { CategoryGradient, CategoryColorSpec, GraphCategoryPalette } from './style.js'
 
-export { renderNode, makeHeaderIcon, buildPinShape, readPinHandle, markPinInteractive, clearGlowTextureCache, clearGradientCache } from './node-renderer.js'
+export { renderNode, makeHeaderIcon, buildPinShape } from './node-renderer.js'
 export { IconRegistry, BUILTIN_ICONS } from './icons.js'
 export type { RenderNodeOptions, NodeView, NodeVisualState, PinHandle } from './node-renderer.js'
 

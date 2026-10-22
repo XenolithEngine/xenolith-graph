@@ -20,7 +20,6 @@ import {
   computeNodeLayout,
   makeHeaderIcon,
   buildPinShape,
-  markPinInteractive,
   renderWidgets,
   rerouteStateColor,
   resolveCategoryAccent,
@@ -33,6 +32,7 @@ import {
   type ThemeRenderContext,
   type WidgetHit,
 } from '@xenolithengine/graph-render-pixi'
+import { markPinInteractive } from '@xenolithengine/graph-render-pixi/internal'
 import { glassFragmentGLSL, glassVertexGLSL } from './glass-shader.js'
 
 /** Module-level registry of every live glass mesh so the theme's per-frame hook can broadcast

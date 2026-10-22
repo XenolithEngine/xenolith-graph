@@ -30,7 +30,6 @@ import {
   computeGroupSnappedDelta,
   isDomWidgetController,
   nodeBounds,
-  readPinHandle,
   rectFromPoints,
   rectIntersects,
   resolveWidgetStyle,
@@ -45,6 +44,7 @@ import {
   type WidgetHit,
   type XenolithTheme,
 } from '@xenolithengine/graph-render-pixi'
+import { readPinHandle } from '@xenolithengine/graph-render-pixi/internal'
 import type { CommentController } from './comments-controller.js'
 import { firePreventable, type EditorEvents } from './events.js'
 import type { XenolithEditor } from './index.js'

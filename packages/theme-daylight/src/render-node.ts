@@ -1,9 +1,10 @@
 import { Container, Graphics, BitmapText } from 'pixi.js'
 import type { Node } from '@xenolithengine/graph-core'
 import {
-  computeNodeLayout, renderWidgets, markPinInteractive,
+  computeNodeLayout, renderWidgets,
   type NodeView, type NodeVisualState, type RenderNodeOptions,
 } from '@xenolithengine/graph-render-pixi'
+import { markPinInteractive } from '@xenolithengine/graph-render-pixi/internal'
 import type { XenTokens } from '@xenolithengine/graph-theme-xen'
 
 // Daylight renderNode — drawn from scratch, not as a wrap around the base Xen renderer.

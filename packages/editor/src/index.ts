@@ -62,8 +62,6 @@ import {
 } from '@xenolithengine/graph-core'
 import {
   bezierMidpoint,
-  clearGlowTextureCache,
-  clearGradientCache,
   computeEdgePath,
   computeNodeLayout,
   computeOverlapBackdropPlan,
@@ -114,6 +112,7 @@ import {
   type XenolithTheme,
   type ZoomBounds,
 } from '@xenolithengine/graph-render-pixi'
+import { clearGlowTextureCache, clearGradientCache } from '@xenolithengine/graph-render-pixi/internal'
 import { mergeTheme, type DeepPartial, type XenTokens } from '@xenolithengine/graph-theme-xen'
 import { loadFonts, type FontUrlMap } from './fonts.js'
 import { canConnect } from './pin-compat.js'

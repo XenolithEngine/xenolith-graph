@@ -49,6 +49,8 @@ export default defineConfig({
       dedupe: ['pixi.js', 'react', 'react-dom', 'vue'],
       alias: {
         '@xenolithengine/graph-core':         new URL('../../packages/core/src/index.ts',         import.meta.url).pathname,
+        // /internal first — alias keys prefix-match, the generic entry would swallow the subpath.
+        '@xenolithengine/graph-render-pixi/internal': new URL('../../packages/render-pixi/src/internal.ts', import.meta.url).pathname,
         '@xenolithengine/graph-render-pixi':  new URL('../../packages/render-pixi/src/index.ts',  import.meta.url).pathname,
         '@xenolithengine/graph-editor':       new URL('../../packages/editor/src/index.ts',       import.meta.url).pathname,
         '@xenolithengine/graph-adapter-core': new URL('../../packages/adapter-core/src/index.ts', import.meta.url).pathname,

@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const pkgSrc = (name: string): string => resolve(here, '..', '..', 'packages', name, 'src', 'index.ts')
+const pkgInternal = (name: string): string => resolve(here, '..', '..', 'packages', name, 'src', 'internal.ts')
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/wasm/' : '/',
@@ -17,6 +18,8 @@ export default defineConfig(({ command }) => ({
   resolve: {
     alias: [
       { find: '@xenolithengine/graph-core', replacement: pkgSrc('core') },
+      // /internal first — string alias entries prefix-match, the generic entry would swallow it.
+      { find: '@xenolithengine/graph-render-pixi/internal', replacement: pkgInternal('render-pixi') },
       { find: '@xenolithengine/graph-render-pixi', replacement: pkgSrc('render-pixi') },
       { find: '@xenolithengine/graph-editor', replacement: pkgSrc('editor') },
       { find: '@xenolithengine/graph-plugin-runtime', replacement: pkgSrc('plugin-runtime') },

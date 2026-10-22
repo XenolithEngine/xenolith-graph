@@ -5,6 +5,8 @@ import { dirname, resolve } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const pkgSrc = (name: string): string =>
   resolve(here, '..', '..', 'packages', name, 'src', 'index.ts')
+const pkgInternal = (name: string): string =>
+  resolve(here, '..', '..', 'packages', name, 'src', 'internal.ts')
 
 // Resolve workspace packages to their TypeScript sources so Vite/HMR sees edits without a
 // `tsc -b` rebuild of dist/. The packages' published `main` still points to dist for end users.
@@ -21,6 +23,9 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@xenolithengine/graph-core',         replacement: pkgSrc('core') },
+      // The /internal subpath must be aliased BEFORE the bare package name — string alias
+      // entries prefix-match, so the generic entry would swallow the subpath.
+      { find: '@xenolithengine/graph-render-pixi/internal', replacement: pkgInternal('render-pixi') },
       { find: '@xenolithengine/graph-render-pixi',  replacement: pkgSrc('render-pixi') },
       { find: '@xenolithengine/graph-editor',       replacement: pkgSrc('editor') },
       { find: '@xenolithengine/graph-theme-xen',          replacement: pkgSrc('theme-xen') },

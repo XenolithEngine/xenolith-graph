@@ -48,13 +48,16 @@ const PIN_HIT_RADIUS_FACTOR = (() => {
 })()
 
 /** Read the PinHandle from a PIXI event target (or any DisplayObject). Returns null when the
- *  target is not a pin Graphics. Editor code uses this on stage `pointerdown` / `pointerover`. */
+ *  target is not a pin Graphics. Editor code uses this on stage `pointerdown` / `pointerover`.
+ *  Not part of the entry surface — in-repo packages import it via `./internal.js`. */
 export function readPinHandle(target: unknown): PinHandle | null {
   if (!target || typeof target !== 'object') return null
   const handle = (target as { __xenPin?: PinHandle }).__xenPin
   return handle ?? null
 }
 
+/** Tag a pin Graphics with its {@link PinHandle} and make it hit-testable.
+ *  Not part of the entry surface — in-repo packages import it via `./internal.js`. */
 export function markPinInteractive(
   g: Graphics,
   pin: Pin,
@@ -320,7 +323,8 @@ export function makeGlowLayer(
 }
 
 /** Drop the module-level cache — call when switching themes or on editor disposal to free the
- *  GPU memory the baked glow textures hold. */
+ *  GPU memory the baked glow textures hold. Not part of the entry surface — in-repo packages
+ *  import it via `./internal.js`. */
 export function clearGlowTextureCache(): void {
   for (const tex of glowTextureCache.values()) tex.destroy(true)
   glowTextureCache.clear()
@@ -340,7 +344,8 @@ function sharedGradient(options: LinearGradientOptions): FillGradient {
   return g
 }
 
-/** Drop the shared gradient cache (theme switch / disposal) — releases the gradient textures. */
+/** Drop the shared gradient cache (theme switch / disposal) — releases the gradient textures.
+ *  Not part of the entry surface — in-repo packages import it via `./internal.js`. */
 export function clearGradientCache(): void {
   for (const g of gradientCache.values()) g.destroy()
   gradientCache.clear()
