@@ -18,6 +18,9 @@ otherwise. File an issue and we'll classify it.
 
 ## Stable
 
+Every package below also exports a `VERSION` string const naming its release — that const is part
+of the stable surface in every package.
+
 ### `@xenolithengine/graph-core`
 
 | Symbol | Notes |
@@ -27,15 +30,20 @@ otherwise. File an issue and we'll classify it.
 | `Selection` class | |
 | `NodeRegistry`, `TypeRegistry` | Register / unregister / list. |
 | `EventEmitter`, `Unsubscribe` | |
-| Commands: `AddNode`, `RemoveNode`, `ConnectPins`, `DisconnectEdge`, `MoveNode`, `SetNodeState`, `SetNodePins`, `SetNodeWidgets` | The atomic mutation set. Other commands exist (macros, templates) — those are stable too but listed in their respective module sections below. |
-| `CommandBus` (read interface) | `apply`, `undo`, `redo`, `canUndo`, `canRedo`, `transaction`, `clearHistory`. |
-| Types: `Node`, `Edge`, `Pin`, `NodeId`, `EdgeId`, `PinId`, `NodeGlyph`, `Vec2`, `Unsubscribe` | |
-| Traversal: `topoOrder`, `wouldCreateCycle`, `reachableFrom`, `evaluateGraph` | `evaluateGraph(graph, compute)` runs a host dataflow pass. It is not an execution engine. |
-| ID minters: `createNodeId`, `createEdgeId`, `createPinId`, `pinId`, `createCommentId` | |
-| `defaultWidgetValue`, `comboOptions`, `clampWidgetValue` | |
-| Template helpers: `isTemplateInstance`, `isTemplateBoundary`, `getTemplateBoundary` | |
-| Macro helpers: `isMacro`, `createMacro`, `macroMembers`, `flattenMacroProxies` | |
-| Reroute: `isReroute`, `createReroute`, `REROUTE_NODE_TYPE` | |
+| Commands: `AddNode`, `RemoveNode`, `ConnectPins`, `DisconnectEdge`, `MoveNode`, `ResizeNode`, `SetNodeState`, `SetNodePins`, `SetNodeWidgets` | The atomic mutation set. Comment commands (`AddComment`, `RemoveComment`, `MoveComment`, `ResizeComment`, `SetCommentText`) are the same command-bus family, stable too. Undo-entry types `RemoveNodeUndo`, `SetNodePinsUndo`, `SetNodeWidgetsUndo`. Macro/template commands exist as well — their planning helpers are in the rows below. |
+| `CommandBus` (read interface) | `apply`, `undo`, `redo`, `canUndo`, `canRedo`, `transaction`, `clearHistory`. Types: `Command`, `CommandContext`, `CommandBusOptions`, `CoreEvents`, `HistoryAppliedCommand`. |
+| Types: `Node`, `Edge`, `Pin`, `Comment`, `CommentId`, `TypeId`, `NodeId`, `EdgeId`, `PinId`, `PinKind`, `PinDirection`, `NodeGlyph`, `Vec2`, `Unsubscribe` | |
+| Events: `EventEmitter`, `EventMap`, `Listener`, `ErrorListener` | |
+| Traversal: `incomers`, `outgoers`, `connectedEdges`, `roots`, `leaves`, `nodesInsideComment`, `topoOrder`, `wouldCreateCycle`, `reachableFrom`, `evaluateGraph` | `evaluateGraph(graph, compute)` runs a host dataflow pass. It is not an execution engine. Types: `NodeCompute`, `EvaluateGraphResult`. |
+| ID minters: `createNodeId`, `createEdgeId`, `createPinId`, `createCommentId`, `createTypeId`, `isUuidV7` | |
+| Registries: `NodeRegistry`, `TypeRegistry` | Register / unregister / list. Schema and search types: `NodeSchema`, `PinSchema`, `NodeSearchResult`, `TypeDescriptor`, `fuzzyMatch`, `FuzzyMatch`. |
+| `migrateNodePayload` | Upgrades a stored node payload across package versions. |
+| Selection: `Selection`, `SelectionMode`, `SelectionChange` | |
+| Widget helpers: `defaultWidgetValue`, `widgetValue`, `widgetVisibility`, `widgetBindKey`, `widgetIsVisible`, `widgetRendersInBody`, `clampWidgetValue`, `comboOptions` | Types `WidgetSpec`, `WidgetType`, `WidgetStyle`, `ComboOption`, `ComboOptionResolved`. |
+| Comment geometry: `PlacedNode`, `CommentRect` | Shapes behind comment hit-testing and containment queries. |
+| Template helpers: `isTemplateInstance`, `isTemplateBoundary`, `templateInterface`, `materializeInterface`, `planTemplateExtraction`, `planTemplateUnpack`, `templateDefContains`, `flattenTemplateInstance`, `flattenAllTemplateInstances` and the `TEMPLATE_INPUT_TYPE` / `TEMPLATE_OUTPUT_TYPE` / `TEMPLATE_INSTANCE_TYPE` markers | Types `TemplateDefId`, `TemplateDefinition`, `TemplateInterfacePin`, `TemplateMinters`, `TemplateExtraction`, `TemplateUnpackPlan`, `FlattenedTemplate`, `PinRef`. |
+| Macro helpers: `isMacro`, `createMacro`, `macroMembers`, `flattenMacroProxies`, `boundaryEdges`, `macroProxyPins`, `disconnectedWidgetBoundPins`, `planMacroCollapse`, `planMacroExpand` and the `MACRO_TYPE` marker | Types `MacroBoundary`, `MacroProxyPin`, `MacroProxyRecord`, `MacroCollapsePlan`, `MacroExpandPlan`, `Minters`. |
+| Reroute: `isReroute`, `createReroute`, `rerouteNodeSchema` and the `REROUTE_TYPE` / `REROUTE_NODE_TYPE` markers | |
 
 ### `@xenolithengine/graph-editor`
 
@@ -56,7 +64,7 @@ The viewport and history verbs also live on the class root (`editor.fitView`, `e
 | `editor.setNodeState(nodeId, state)` | Bus-routed `SetNodeState` — **merges** keys into `node.state` (omitted keys stay). Undoable, fires events. |
 | `editor.applyChanges(changes)`, `editor.getGraphMirror()`, `reduceGraphChanges(mirror, changes)`, `snapshotGraph(nodes, edges)` | The write side of the controlled protocol: one transaction per call (one undo step), echo-idempotent (re-adding/re-removing/no-op positions skip). `reduceGraphChanges` is the pure store reducer (Zustand/Redux); React hosts get `useNodesState()` in `@xenolithengine/graph-react`. ADR 0006. |
 | `editor.addNode`, `editor.removeNode`, `editor.moveNode`, `editor.addEdge`, `editor.disconnectEdge`, `editor.deleteEdge`, `editor.setSelection`, `editor.clear` | Mutation API — every call goes through the bus, fires events, undoable. |
-| `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId`, `editor.connect({ source, sourceHandle, target, targetHandle }, opts?)` → `EdgeId` | **The canonical wire API.** Positional refs and the object form (`ConnectEndpoints`, the React Flow `onConnect` shape) share one resolver (`PinSelector`): pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` or `null` = the node's single pin of that direction. `source` / `target` are a node or its id. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs, and `connect: source node '<id>' was not found` when the id is missing. |
+| `editor.connect(from, fromRef, to, toRef, opts?)` → `EdgeId`, `editor.connect({ source, sourceHandle, target, targetHandle }, opts?)` → `EdgeId` | **The canonical wire API.** Positional refs and the object form (`ConnectEndpoints`, the React Flow `onConnect` shape) share one resolver inside the editor: pin id → label (case-insensitive) → numeric index → `'in'`/`'out'` keyword → `undefined` or `null` = the node's single pin of that direction. `source` / `target` are a node or its id. Undoable (one `history.undo()`), fires `edge:connecting` (veto throws) + `edge:connected`, gates on pin compatibility, seeds wire colour from the source pin type. Throws with available-pins context on unresolvable refs, and `connect: source node '<id>' was not found` when the id is missing. |
 | `editor.setNodeStatus`, `editor.clearNodeStatuses` | |
 | `editor.addComment`, `editor.removeComment`, `editor.setCommentText`, `editor.setCommentColor` | |
 | `editor.createMacroFromSelection`, `editor.ungroupMacro`, `editor.expandMacro`, `editor.collapseMacro` | |
@@ -89,12 +97,22 @@ The viewport and history verbs also live on the class root (`editor.fitView`, `e
 | `editor.definitions` — template definitions | |
 | **25 public events** | Bus is `editor.on(name, handler)`. See [Events](#events) below. |
 | `editor.use(plugin)` — `PluginHost.use` | Mount a plugin. |
-| `parseXenolithGraph`, `serializeXenolithGraph`, `XENOLITH_GRAPH_VERSION` + `XenolithGraphV1` / `XenolithNodeV1` / `XenolithEdgeV1` / `XenolithPinV1` types | |
-| `Commands` const namespace + `CommandSpec` | |
+| `parseXenolithGraph`, `serializeXenolithGraph`, `XENOLITH_GRAPH_VERSION` + `XenolithGraphV1` / `XenolithNodeV1` / `XenolithEdgeV1` / `XenolithPinV1` / `XenolithCommentV1` / `XenolithTemplateV1` / `XenolithGraphVersion` types | |
+| `Commands` const namespace + `CommandSpec`, `HotkeySpec`, `CommandId` | |
 | `ContextMenuRegistry`, `ContextMenuItemSpec`, `ContextMenuTarget` | |
 | `EditorEvents`, `PreventablePayload` | |
-| `BUILTIN_RECIPES`, `createRecipeRegistry`, `instantiateRecipe`, `RecipeDef`, `RecipeNodeDef`, `RecipeEdgeDef`, `RecipeRegistry` | |
-| `diffGraphs`, `GraphDiff` | |
+| `BUILTIN_RECIPES`, `createRecipeRegistry`, `instantiateRecipe`, `RecipeDef`, `RecipeNodeDef`, `RecipeEdgeDef`, `RecipeRegistry`, `InstantiateResult` | |
+| `diffGraphs`, `GraphDiff`, `DiffSnapshot`, `DiffSnapshotNode`, `DiffSnapshotEdge`, `DiffOptions` | Graph diffing over document snapshots. |
+| Controlled-protocol types: `GraphChanges`, `NodeChange`, `EdgeChange`, `GraphMirror`, `GraphSnapshot`, `SnapshotNode`, `SnapshotEdge` | Argument / return shapes of `applyChanges` / `getGraphMirror` / `snapshotGraph` / `reduceGraphChanges` above. |
+| `XenolithEditorOptions`, `ConnectionRequest` | The `init` options object; the object form of `connect` (companion of `ConnectEndpoints`). |
+| Import types: `ImportReport`, `ImportReactFlowOptions`, `ReactFlowGraph`, `ReactFlowNode`, `ReactFlowEdge` | Shapes behind `importFromReactFlow` / `editor.importReactFlow`. |
+| MCP client + proposals: `buildHandlers`, `ProposalQueue`, `ProposalsPanel`, `AuditLog` | Types `ToolHandler`, `McpEditorSurface`, `BuildHandlersOptions`, `ProposalEntry`, `ProposalApproveResult`, `ProposalsPanelOpts`, `AuditEntry`, `AuditEffectDelta`. |
+| Chrome types: `ControlsOptions`, `ControlsPosition`, `MinimapPosition`, `ViewportState` | |
+| `SidebarManager`, `SidebarManagerOpts` | The sidebar controller behind `editor.openSidebar`. |
+| Plugins: `PluginHost`, `XenolithPlugin`, `PluginContext` | |
+| `NodeStatus` | The node compute-status union: idle, running, ok, error. |
+| Debug surface: `StepDebugger` | Types `StepExecutor`, `StepRecord`, `StepDebuggerStatus`, `StepDebuggerEvents` — experimental tier (see below). |
+| Re-exported host-facing types: `Node`, `Edge`, `NodeId`, `EdgeId`, `PinId`, `NodeSchema`, `PinSchema`, `NodeSearchResult`, `WidgetSpec`, `WidgetStyle`, `WidgetType`, `CustomWidgetController`, `CanvasWidgetController`, `DomWidgetController`, `CustomWidgetContext`, `FlattenedTemplate`, `PinRef`, `VERSION` | Convenience re-exports so a host can type against the editor entry alone. |
 
 ### `@xenolithengine/graph-adapter-core`
 
@@ -104,30 +122,38 @@ The viewport and history verbs also live on the class root (`editor.fitView`, `e
 | `EditorBinding`: `editor`, `on`, `setProps`, `destroy` | |
 | `EDITOR_EVENT_NAMES` const | 25 entries — drives every adapter's event-prop derivation. Compile-time exhaustiveness checked against `EditorEvents`. |
 | `XenolithProps`, `applyProps`, `EditorLike` | |
+| `diffNodesToChanges`, `diffEdgesToChanges` | The pure diff engine every framework `nodesState()` triple is built on (ADR 0006): arrays in, `GraphChanges` out. |
 
 ### `@xenolithengine/graph-render-pixi`
 
 | Symbol | Notes |
 |---|---|
-| `Viewport` | |
-| `InteractionManager` + the `intent:*` events | |
-| `Vec2`, `Rect`, `ViewportState`, `ZoomBounds`, `PathStyle` | |
-| `xenTheme`, `XenolithTheme`, `PaletteStyle` | |
-| Layout helpers: `computeNodeLayout`, `computeRerouteSize`, `computeMacroLayout`, etc. | Stateless. |
-| Rendering helpers: `renderNode`, `renderEdge`, `renderComment`, `renderRerouteNode`, `renderMacroFrame` | Stateless. |
-| `createPixiTextMeasurer`, `cssVarsForTheme` | |
+| `Viewport` | The `screenToWorld` / `worldToScreen` / `zoomAt` / `fitView` math is also shipped as stateless free functions. |
+| `InteractionManager` + the `intent:*` events | Options type `InteractionManagerOptions`. |
+| Geometry and viewport math: `Vec2`, `Rect`, `ViewportState`, `ZoomBounds`, `ViewportVec2`, `ViewportRect`, `FitViewOptions`, `ApplyTarget`, `wheelDeltaToZoomFactor`, `clampZoom`, `snapToGrid`, `computeDragTarget`, `computeGroupSnappedDelta`, `screenToWorld`, `worldToScreen`, `zoomAt`, `fitView`, `createGridSprite` | Stateless. |
+| Layout and measurement: `computeNodeLayout`, `measureNodeSize`, `findPinByKey`, `pinRowIndexFor`, `effectivePinRowHeight`, `createPixiTextMeasurer` | Types `NodeLayout`, `LayoutTokens`, `PinLayout`, `NodeSizeTokens`, `TextMeasurer`. |
+| Node rendering: `renderNode`, `renderComment`, `makeHeaderIcon`, `buildPinShape` | Types `RenderNodeOptions`, `NodeView`, `NodeVisualState`, `PinHandle`, `CommentView`. Stateless. |
+| Edge rendering: `renderEdge`, `drawEdge`, `mergeEdgeOptions`, `computeEdgePath`, `sampleBezier`, `bezierMidpoint` | Types `RenderEdgeOptions`, `EdgePathStyle`, `EdgePath`, `EdgeTokens`. |
+| Reroute rendering: `renderRerouteNode`, `rerouteSize`, `renderRerouteNodeBox`, `rerouteBoxSize`, `rerouteStateColor` | Stateless; macro-frame layout lives inside `renderMacroFrame` / `MacroFrameView`. |
+| Macro frame: `renderMacroFrame` | Types `MacroFrameView`, `MacroFrameState`, `FrameRect`. |
+| Color and theme resolution: `resolveCategoryAccent`, `resolvePinFill`, `resolvePinStroke`, `resolvePinShape`, `resolveEdgeColor`, `resolveCategoryGradient`, `hexToRgba`, `themeCssVars`, `widgetCssVars` | Types `CategoryGradient`, `CategoryColorSpec`, `GraphCategoryPalette`, `ThemeRenderContext`, `FontSpec`. |
+| `xenTheme`, `XenolithTheme`, `PaletteStyle` | `xenTheme` is the default theme object themes build on. |
+| Widgets: `renderWidgets`, `computeWidgetRects`, `resolveWidgetStyle`, `isDomWidgetController` | Types `WidgetRect`, `WidgetHit`, `WidgetsView`, `WidgetLayoutTokens`, `ComputeWidgetRectsCtx`, `ResolvedWidgetStyle`, `CustomWidgetController`, `CanvasWidgetController`, `DomWidgetController`, `CustomWidgetContext`. |
 | `IconRegistry`, `BUILTIN_ICONS` | |
+| Geometry and backdrop: `rectFromPoints`, `rectIntersects`, `nodeBounds`, `computeOverlapBackdropPlan` | Types `GeomRect`, `GeomVec2`, `NodeBoundsTokens`. |
+| Virtualization / LOD: `shouldVirtualize`, `visibleWorldRect`, `reconcileVisibleNodes`, `useLOD`, `lodLevel`, `cellKey`, `cellsForRect` | Types `Reconciliation`, `LODLevel`, `LODThresholds`. |
 
-Peer dep: `pixi.js@^8.6.0`.
+Peer dep: `pixi.js@^8.6.0`. PIXI-plumbing helpers used across in-repo packages are deliberately
+NOT exported from this entry — see [@internal](#internal--do-not-depend-on).
 
 ### Framework adapters
 
 | Package | Exports |
 |---|---|
-| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith` / `useNodesState` (`{ nodes, edges, applyChanges, setNodes, setEdges }`, ADR 0006); `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`. |
-| `@xenolithengine/graph-vue` | `<XenolithGraph>` (typed object-form emits + `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useXenolithGraph` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useNodesState` (`setNodes` + `setEdges`); in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`, `emitName`, `XenolithGraphEmits`. |
-| `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`. |
-| `@xenolithengine/graph-solid` | `xenolith` directive (`use:xenolith`, typed via `JSX.Directives`; `on:ready` + kebab CustomEvents `on:node-click` — one colon, so Vite's dep scan can parse the JSX), `solidEventName`, `createXenolithStores` (signal bag: `setEditor`/`editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`), `createXenolithGraph`. |
+| `@xenolithengine/graph-react` | `<XenolithGraph>`, `<XenolithPanel>`, `<XenolithButton>`, `<XenolithControls>`, `<XenolithMiniMap>`, `<XenolithProposalQueue>`; hooks `useEditor` / `useXenolithEditor` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useEditorEvent` / `useXenolith` / `useNodesState` (`{ nodes, edges, applyChanges, setNodes, setEdges }`, ADR 0006); `reactWidget`; `WidgetProps`, `XenolithContext`, `EVENT_PROP`; prop types `XenolithGraphProps`, `XenolithPanelProps`, `XenolithButtonProps`, `XenolithControlsProps`, `XenolithMiniMapProps`, `PanelPosition`, `EventCallbacks`. |
+| `@xenolithengine/graph-vue` | `<XenolithGraph>` (typed object-form emits + `@ready`); composables `useEditor` / `useEditorOrNull` / `useEditorReady` / `useEditorEvent` / `useXenolithGraph` / `useNodes` / `useEdges` / `useSelection` / `useViewport` / `useGraphJSON` / `useUndoRedo` / `useNodesState` (`setNodes` + `setEdges`); in-editor components `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue`; `vueWidget`, `WidgetProps`, `XenolithEditorKey`, `emitName`, `XenolithGraphEmits`, `PanelPosition`. |
+| `@xenolithengine/graph-svelte` | `xenolith` action (`on:ready` + typed kebab `on:*` events), `createXenolithStores` (store bag: `editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`/`dispose`), `createXenolithGraph`, `XenolithActionReturn`, `XenolithActionAttributes`, `svelteEventName`, types `XenolithStores` / `XenolithNodesState`, editor context helpers `createXenolithEditorContext` / `getXenolithEditorContext` / `XenolithEditorContextKey`; the Svelte-5 `./components` subpath adds `XenolithPanel` / `XenolithButton` / `XenolithControls` / `XenolithMiniMap` / `XenolithProposalQueue` and `svelteWidget` / `WidgetProps`. |
+| `@xenolithengine/graph-solid` | `xenolith` directive (`use:xenolith`, typed via `JSX.Directives`; `on:ready` + kebab CustomEvents `on:node-click` — one colon, so Vite's dep scan can parse the JSX), `solidEventName`, `createXenolithStores` (signal bag: `setEditor`/`editor`/`nodes`/`edges`/`selection`/`viewport`/`graphJSON`/`undoRedo`/`nodesState()` including `setEdges`), `createXenolithGraph`, types `XenolithStores` / `XenolithNodesState`. |
 | `@xenolithengine/graph-angular` | `XenolithGraphService` (decorator-free DI service: `mount`/`destroy`/`editor`/`editor$`, store observables `nodes$`…`graphJSON$`, `canUndo$`/`canRedo$` + `undo`/`redo`, typed `on$('node:click')`, `nodesState()` with `setNodes` + `setEdges`), `XenolithNodesState`. No shipped component — bring-your-own host (Learn page recipe). |
 | `@xenolithengine/graph-wc` | `XenolithGraphElement` (`<xenolith-graph>`: attributes `minimap`/`fit-on-load`/`disable-grid`/`resize-to-window`/`snap`; JS props `theme`/`graph`/`zoomBounds`/`isValidConnection`; `ready` event with the editor; all 25 events forwarded), `register(tag?)`, `FORWARDED_EVENTS` (= `EDITOR_EVENT_NAMES`), `readAttributes`. |
 
@@ -137,14 +163,33 @@ Adapter tiers, frozen as shipped. **Full** (mount, hooks, panels, widget bridge)
 
 | Package | Export |
 |---|---|
-| `@xenolithengine/graph-theme-xen` | `xenTheme` (default), `xenTokens`, `mergeTheme`. Fonts are declared on each theme (`theme.fonts: FontSpec[]`) and auto-loaded by the editor — Google Fonts CDN by default, opt-in self-host via `editor.fonts.selfHost({ 'Inter|400': '/url.woff2', ... })` or `XenolithEditor.init(host, { fontUrls: {...} })`. |
-| `@xenolithengine/graph-theme-liquid-glass` | `liquidGlassTheme`. |
+| `@xenolithengine/graph-theme-xen` | `xenTokens`, `mergeTheme`, `VERSION` + token types `XenTokens`, `XenCategoryMap`, `XenPinTypeMap`, `XenSurfaceColors`, `PinTypeToken`, `CategoryToken`, `StateStyle`, `PinShape`, `TypographyStyle`, `ShadowStyle`, `DeepPartial`. The default `xenTheme` theme object ships from `@xenolithengine/graph-render-pixi` (its section above), not from this package. Fonts are declared on each theme (`theme.fonts: FontSpec[]`) and auto-loaded by the editor — Google Fonts CDN by default, opt-in self-host via `editor.fonts.selfHost({ 'Inter|400': '/url.woff2', ... })` or `XenolithEditor.init(host, { fontUrls: {...} })`. |
+| `@xenolithengine/graph-theme-daylight` | `daylightTheme` (default), `daylightTokens`, `VERSION`. |
+| `@xenolithengine/graph-theme-liquid-glass` | `liquidGlassTheme` (default), `liquidGlassTokens`, `VERSION`. |
 
 ### Plugins
 
 | Package | Stable surface |
 |---|---|
-| `@xenolithengine/graph-plugin-autolayout` | `autoLayoutPlugin(opts)` factory + sub-entries `@xenolithengine/graph-plugin-autolayout/dagre` and `/elk`. |
+| `@xenolithengine/graph-plugin-autolayout` | `autoLayoutPlugin(opts)` factory; types `AutoLayoutConfig`, `AutoLayoutPlugin`, `LayoutEngine`, `LayoutGraph`, `LayoutNode`, `LayoutEdge`, `LayoutOpts`, `LayoutResult`. Sub-entries `@xenolithengine/graph-plugin-autolayout/dagre` (`dagreEngine`, `DagreEngineOpts`) and `/elk` (`elkEngine`, `ElkEngineOpts`). |
+
+### Experimental-tier packages
+
+The packages below ship their whole surface as Experimental (see [Experimental](#experimental)).
+They are listed here so the shipped export list is pinned — everything in them may change shape
+before v1.0.
+
+### `@xenolithengine/graph-plugin-runtime`
+
+`Runtime`, `attachRuntimeBridge`, `BUILTIN_PRIMITIVES`, `runtimePlugin`, `codegen`, `domainNodes`, `mandelbrotPixelGraph`, `mandelbrotPixelReference`, `COLLECTION_PRIMITIVES`, `PRIMITIVE_SCHEMAS`, `PRIMITIVE_CATEGORY_COLORS`, `PRIMITIVE_ICONS`, `PIN_TYPES`, `pinsFromSchemaFields`, `widgetsFromSchemaFields`, `schemaPinTypeFor`, `asNumber`, `asBool`, `asArray`, `SCATTER_VAR_PREFIX`, `OUTPUT_VAR_PREFIX`; types `NodeDef`, `PureIO`, `ExecIO`, `RtNode`, `RtPin`, `RtEdge`, `RtGraph`, `VmValue`, `Allocate`, `SchemaExtraPin`; `VERSION`.
+
+### `@xenolithengine/graph-runtime-as`
+
+`compile`, `compileAS`, `canCompileToAS`, `emitASSource`; type `ASWasmGraph`. AssemblyScript-WASM codegen runtime — the entire package is experimental.
+
+### `@xenolithengine/graph-mcp-server`
+
+`createMcpServer`, `startStdio`, `TOOLS`, `RESOURCES`, `TOOL_NAMES`; types `ToolName`, `ToolDef`, `ResourceDef`, `BridgeOptions`, `CallSink`, `EditorBridge`, `EditorConnection`, `PendingCalls`, `WSCall`, `WSResult`, `WSMessage`. The tool catalog itself is the part hosts should rely on; the wiring types above are experimental plumbing.
 
 ---
 
@@ -206,13 +251,18 @@ through a proper public method.
 - `editor.requestRender`, `editor.renderedNodePosition`, `editor.isNodeRendered`,
   `editor.renderedNodeCount` — renderer internals.
 - `markPinInteractive`, `readPinHandle`, `clearGlowTextureCache`, `clearGradientCache` in
-  `@xenolithengine/graph-render-pixi` — PIXI-internal helpers.
+  `@xenolithengine/graph-render-pixi` — PIXI-internal helpers. They are not exported from the
+  package entry (absent from its `.d.ts`); the in-repo editor and themes reach them through the
+  `@xenolithengine/graph-render-pixi/internal` subpath, which is not part of the public contract
+  and may be removed at v1.0.
 
 ---
 
 ## Experimental
 
 These surfaces exist publicly but may change shape before v1.0. Use them, but pin your version.
+Every export of every package that the [Stable](#stable) section does not name is experimental by
+default, even when it is not listed in this table.
 
 | Symbol | What's experimental |
 |---|---|
