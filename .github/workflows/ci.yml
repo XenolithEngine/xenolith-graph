@@ -28,6 +28,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' run build
+      - name: STABLE-API drift gate (doc ↔ shipped surface; reads dist/*.d.ts, so it runs after build)
+        run: pnpm audit:api
       - run: pnpm -r --filter '!@xenolithengine/playground' --filter '!@xenolithengine/site' run test
       - name: Install Playwright browsers (chromium + firefox)
         run: pnpm --filter @xenolithengine/playground exec playwright install --with-deps chromium firefox
