@@ -18,7 +18,8 @@
     "typecheck": "turbo run typecheck",
     "playground": "pnpm --filter @xenolithengine/playground dev",
     "size": "size-limit",
-    "size:why": "size-limit --why"
+    "size:why": "size-limit --why",
+    "audit:api": "node scripts/audit-stable-api.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
